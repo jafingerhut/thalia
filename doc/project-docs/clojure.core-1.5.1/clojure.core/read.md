@@ -55,7 +55,7 @@ Examples that should scare you:
  
 The particular issue of executing arbitrary Java constructors used in
 the examples above no longer works in Clojure 1.5 when `*read-eval*`
-is false.  Even so, you SHOULD NEVER USE `clojure.core/read` or
+is false.  Even so, you *SHOULD NEVER USE* `clojure.core/read` or
 `clojure.core/read-string` for reading untrusted data.  Use an edn
 reader or a different data serialization format.
  
@@ -66,23 +66,25 @@ documented nor promised to be safe from unwanted side effects.  If you
 use them for reading untrusted data, and a dangerous side effect is
 found in the future, you will be told that you are using the wrong
 tool for the job.  `clojure.edn/read` and `read-string`, and the
-tools.reader.edn library, are documented to be safe from unwanted side
-effects, and if any bug is found in this area it should get quick
+`tools.reader.edn` library, are documented to be safe from unwanted
+side effects, and if any bug is found in this area it should get quick
 attention and corrected.
  
 If you understand all of the above, and want to use `read` or
 `read-string` to read data from a _trusted_ source, continue on below.
  
-    ;; read wants *in* set to a java.io.PushbackReader.  with-open
-    ;; sets *in* and closes it after it's done.  *read-eval* specifies
-    ;; whether to evaluate #=() forms when reading.
+    ;; read wants its reader arg (or *in*) to be a
+    ;; java.io.PushbackReader.  with-open closes r after the with-open
+    ;; body is done.  *read-eval* specifies whether to allow #=()
+    ;; forms when reading, and evaluate them as a side effect while
+    ;; reading.
+
     (defn read-from-file-with-trusted-contents [filename]
-      (with-open
-        [r (java.io.PushbackReader.
-             (clojure.java.io/reader filename))]
-          (binding [*read-eval* false]
-            (read r))))
- 
+      (with-open [r (java.io.PushbackReader.
+                      (clojure.java.io/reader filename))]
+        (binding [*read-eval* false]
+          (read r))))
+
     user=> (spit "testfile.txt" "{:a 1 :b 2 :c 3}")
     nil
     user=> (read-from-file-with-trusted-contents "testfile.txt")
