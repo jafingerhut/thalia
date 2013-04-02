@@ -1,4 +1,4 @@
-= Comparison functions in Clojure and Java =
+# Comparison functions in Clojure and Java
 
 TBD: Is Java sort guaranteed to be stable for array elements
 considered equal by the given comparison function?
@@ -7,14 +7,28 @@ TBD: Does the above matter for Clojure, except for sorting
 vectors/arrays?  I don't see how it would matter for sorted sets or
 sorted maps, but think about it a bit more.
 
+TBD: How does Double/NaN compare to other things?
 
-== Versions ==
+TBD: Maybe mention these other Clojure functions that make use of
+comparison functions.  If mentioned nowhere else, at least at the end
+of the see also list: `clojure.parallel/pmax`,
+`clojure.parallel/pmin`, `clojure.parallel/psummary`,
+`clojure.parallel/psort`
+
+TBD: Is function `clojure.core/comparator` useful for anything?  It
+seems like with `AFunction`'s `compare` method changing boolean return
+values to -1, 0, or 1, `comparator` would be unnecessary and perhaps
+obsolete.
+
+
+## Versions
 
 This document was written while checking the details against Clojure
 1.5.1 and Java 6, but most or all of it should apply to other
 versions, too.
 
-== Introduction ==
+
+## Introduction
 
 In Clojure you need comparison functions for sorting a collection of
 values, or for maintaining a sorted collection such as a sorted map,
@@ -61,9 +75,8 @@ work at all for objects of a type you wish to sort, you can write your
 own comparison function and use that instead.  There are a few rules
 to follow when writing a comparison function that works correctly.
 
-====================
-Built-in `compare` order examples
-====================
+
+## Built-in `compare`
 
 Numbers are sorted in increasing order.  This includes integers of all
 sizes (ints, longs, BigIntegers, etc.), floats, doubles, and Clojure
@@ -132,41 +145,13 @@ comparison function for them.
     user> (sort [{:a 1 :b 3} {:c -2 :d 4}])
     ClassCastException clojure.lang.PersistentArrayMap cannot be cast to java.lang.Comparable  clojure.lang.Util.compare (Util.java:153)
 
-====================
-End of section: Built-in `compare` order examples
-====================
+Implementation details: See Clojure source file
+`src/jvm/clojure/lang/Util.java` method `compare`, and `compareTo`
+methods used to implement `Comparable` interface in several Java
+source files in Clojure's implementation.
 
 
-Clojure functions related to comparators:
-
-Function clojure.core/compare takes advantage of the many Java data
-structures that implement the interface java.util.Comparable already.
-
-    Ref: See "All Known Implementing Classes" on the Java
-    documentation page for interface Comparable at
-    http://docs.oracle.com/javase/6/docs/api/java/lang/Comparable.html
-
-Ref: src/jvm/clojure/lang/Util.java method 'compare'
-
-It also takes advantage of the Clojure data structures for which this
-interface has been implemented.  These include at least the following
-(there may be more that I have missed):
-
-The following Clojure data structures, all in the clojure.lang
-package, do *not* implement the Comparable interface, and thus throw
-an exception if they are given as an argument to compare, or compared
-as part of being included in a sorted data structure, or sorted in a
-vector/array, etc.:
-
-    PersistentArrayMap - Clojure maps, unsorted (usually small ones).
-    PersistentHashMap - Clojure maps, unsorted (usually large ones).
-    PersistentHashSet - Clojure sets, unsorted
-    PersistentList - Clojure lists, e.g. '(1 2 3)
-    PersistentQueue - TBD
-    PersistentStructMap - TBD
-    PersistentTreeMap - Clojure sorted maps.
-    PersistentTreeSet - Clojure sorted sets.
-    PersistentVector - This *does* implement Comparable.  See above.
+## Writing your own comparison functions
 
 
 ----------------------------------------------------------------------
@@ -225,34 +210,6 @@ behavior.
     negative, positive, or 0.  This can reverse the order of the
     comparison.
 
-
-
-Note: compare throws exception if you attempt to compare objects of
-different types, except anything that is a Number is comparable to
-anything else that is a Number (byte, short, int, long, BigDecimal,
-BigInteger, bigint, ratio, float, double).
-
-TBD: How does Double/NaN compare to other things?
-
-
-Creating a comparator from a predicate: fn clojure.core/comparator
-
-Uses comparators:
-    sorted-map-by
-    sorted-set-by
-    sort
-    sort-by
-    subseq
-    rsubseq
-    clojure.parallel/pmax
-    clojure.parallel/pmin
-    clojure.parallel/psummary
-    clojure.parallel/psort
-
-Uses default comparator compare:
-    sorted-map uses a default comparator that is the same as the one
-        used to implement clojure.core/compare
-    sorted-set - I believe this also does, too.
 
 ----------------------------------------------------------------------
 
