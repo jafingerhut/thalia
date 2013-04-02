@@ -88,9 +88,10 @@ ratios.
 Strings are sorted in lexicographic order, i.e. dictionary order, by
 their representation as sequences of Unicode UTF-16 code units.  This
 is alphabetical order for strings restricted to the ASCII subset of
-characters (case-sensitive).
+characters (case-sensitive).  Additional details provided by the Java
+documentation for `String`'s [`compareTo`][StringcompareTo] method.
 
-http://docs.oracle.com/javase/6/docs/api/java/lang/String.html#compareTo%28java.lang.String%29
+[StringcompareTo]: http://docs.oracle.com/javase/6/docs/api/java/lang/String.html#compareTo%28java.lang.String%29
 
     user> (def sset1 (sorted-set "aardvark" "boo" "a" "Antelope" "bar"))
     #'user/sset1
