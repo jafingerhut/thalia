@@ -71,7 +71,7 @@ type).  See [Comparators in Clojure][ComparatorsInClojure] for
 examples of comparators that can be used to compare objects of these
 different types.
 
-[ComparatorsInClojure]: https://github.com/jafingerhut/thalia/blob/master/doc/other-topics/comparison-functions.md
+[ComparatorsInClojure]: https://github.com/jafingerhut/thalia/blob/master/doc/other-topics/comparators.md
 
 ```clojure
     user> (sort [5 "a"])
