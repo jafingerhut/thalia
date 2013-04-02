@@ -1,25 +1,5 @@
 # Comparators in Clojure
 
-TBD: Is Java sort guaranteed to be stable for array elements
-considered equal by the given comparator?  Yes, according to Java docs
-it is:
-http://docs.oracle.com/javase/6/docs/api/java/util/Arrays.html#sort%28java.lang.Object[]%29
-
-TBD: How does Double/NaN compare to other things?  The answer is
-included in the Java docs for sorting an array of doubles:
-http://docs.oracle.com/javase/6/docs/api/java/util/Arrays.html#sort%28double[]%29
-
-TBD: Maybe mention these other Clojure functions that make use of
-comparators.  If mentioned nowhere else, at least at the end of the
-see also list: `clojure.parallel/pmax`, `clojure.parallel/pmin`,
-`clojure.parallel/psummary`, `clojure.parallel/psort`
-
-TBD: Is function `clojure.core/comparator` useful for anything?  It
-seems like with `AFunction`'s `compare` method changing boolean return
-values to -1, 0, or 1, `comparator` would be unnecessary and perhaps
-obsolete.
-
-
 ## Versions
 
 This document was written while checking the details against Clojure
@@ -38,9 +18,6 @@ priority queue) in a particular sorted order.
 
 See also: `compare`, `sort`, `sort-by` `sorted-set`, `sorted-set-by`,
 `sorted-map`, `sorted-map-by`, `subseq`, `rsubseq`
-
-TBD: Make links for the see also list, and other Clojure functions
-mentioned in the text below.
 
 Here we briefly describe the default sorting order provided by the
 function `compare`.  After that we give examples of custom
@@ -441,3 +418,28 @@ That can be tricky to get right.  It can be so tricky to get right,
 I'm not even going to try to write an example of a good comparator for
 the 2-element vector example that we started with, for fear of getting
 it wrong.
+
+
+## TBD
+
+TBD: Is Java sort guaranteed to be stable for array elements
+considered equal by the given comparator?  Yes, according to Java docs
+it is:
+http://docs.oracle.com/javase/6/docs/api/java/util/Arrays.html#sort%28java.lang.Object[]%29
+
+TBD: How does Double/NaN compare to other things?  The answer is
+included in the Java docs for sorting an array of doubles:
+http://docs.oracle.com/javase/6/docs/api/java/util/Arrays.html#sort%28double[]%29
+
+TBD: Maybe mention these other Clojure functions that make use of
+comparators.  If mentioned nowhere else, at least at the end of the
+see also list: `clojure.parallel/pmax`, `clojure.parallel/pmin`,
+`clojure.parallel/psummary`, `clojure.parallel/psort`
+
+TBD: Is function `clojure.core/comparator` useful for anything?  It
+seems like with `AFunction`'s `compare` method changing boolean return
+values to -1, 0, or 1, `comparator` would be unnecessary and perhaps
+obsolete.
+
+TBD: Make links for the see also list, and other Clojure functions
+mentioned in the text below.
