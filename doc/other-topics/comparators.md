@@ -101,7 +101,7 @@ In Clojure, you may also use boolean comparators that return true if
 the first argument should come before the second argument, or false
 otherwise (i.e. should come after, _or_ equal).  The function `<` is a
 perfect example if you only wish to compare numbers and sort them in
-increasing order.  '>' works for sorting numbers in decreasing order.
+increasing order.  `>` works for sorting numbers in decreasing order.
 
 Behind the scenes, when such a Clojure function `boolean-cmp-fn` is
 "called as a comparator" (see details below if curious), Clojure runs
@@ -313,7 +313,7 @@ them as equal.  Sets should not contain duplicate elements, so the
 other elements are not added.
 
 A common thought in such a case is to use a boolean comparator
-function based on `<=` instead of '<', like so:
+function based on `<=` instead of `<`, like so:
 
 ```clojure
     (defn by-2nd-<= [a b]
@@ -349,8 +349,8 @@ comparator.
 The techniques described in "Multi-field comparators" above provide
 correct comparators for this example.  In general, be wary of
 comparing only parts of values to each other.  Consider having some
-kind of tie-breaking condition after all of the fields you are
-interested have been compared.
+kind of tie-breaking condition after all of the fields of interest to
+you have been compared.
 
 Aside: If you do _not_ want multiple vectors in your set with the same
 number, `by-2nd` is the comparator you should use.  It gives exactly
@@ -385,7 +385,7 @@ subtracting one numeric value from another, like so.
 
 While this works in many cases, think twice (or three times) before
 using this technique.  It is less error-prone to use explicit
-conditional checks and return -1, 0, or 1, or to use predicate
+conditional checks and return -1, 0, or 1, or to use boolean
 comparators.
 
 Why?  Java comparators must return a 32-bit `int` type, so when a
@@ -415,9 +415,10 @@ value between -1 and 1 is truncated to the `int` 0:
 ```
 
 This also leads to bugs when comparing integer values that differ by
-an amount that changes sign when you truncate it by chopping off all
-but its least significant 32 bits.  About half of all pairs of long
-values are compared incorrectly by using subtraction as a comparator.
+amounts that changes sign when you truncate it to a 32-bit `int` (by
+discarding all but its least significant 32 bits).  About half of all
+pairs of long values are compared incorrectly by using subtraction as
+a comparator.
 
 ```clojure
     ;; This looks good
@@ -431,8 +432,8 @@ values are compared incorrectly by using subtraction as a comparator.
     user> [Integer/MIN_VALUE Integer/MAX_VALUE]
     [-2147483648 2147483647]
 
-    ;; How .intValue truncates a few selected integers.  Note
-    ;; especially the first and last ones.
+    ;; How .intValue truncates a few selected values.  Note especially
+    ;; the first and last ones.
     user> (map #(.intValue %) [-2147483649 -2147483648 -1 0 1 2147483647 2147483648])
     (2147483647 -2147483648 -1 0 1 2147483647 -2147483648)
 ```
