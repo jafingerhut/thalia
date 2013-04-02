@@ -51,11 +51,8 @@ when writing a comparator that works correctly.
 
 ### Reverse order
 
-If `compare` doesn't sort values in the order you want, then you must
-write your own comparator.  The simplest kinds you can write are minor
-variations of the built-in `compare`.  To sort numbers in decreasing
-order, simply write a comparator that calls `compare` with the
-arguments in the opposite order:
+To sort numbers in decreasing order, simply write a comparator that
+calls `compare` with the arguments in the opposite order:
 
 ```clojure
     user> (sort [4 2 3 1])
@@ -89,6 +86,73 @@ by `compare` in an order you wish (or you wish them in the reverse of
 that order).
 
 TBD: Finish this section.
+
+TBD: Include an example where one field is compared an ascending
+order, another in descending order.
+
+
+### General rules for comparators
+
+Java comparators are all 3-way, meaning they return a negative,
+positive, or 0 `int` depending upon whether the first argument should
+come before, after, or is equal to the second argument.
+
+In Clojure, you may also use boolean comparators that return true if
+the first argument should come before the second argument, or false
+otherwise (i.e. should come after, _or_ equal).  The function `<` is a
+perfect example if you only wish to compare numbers and sort them in
+increasing order.  '>' works for sorting numbers in decreasing order.
+
+Behind the scenes, when such a Clojure function `boolean-cmp-fn` is
+"called as a comparator" (see details below if curious), Clojure runs
+code that works like this to return an `int` instead, as callers of a
+comparator expect.
+
+```clojure
+    (if (boolean-cmp-fn x y)
+      -1     ; x < y
+      (if (boolean-cmp-fn y x)  ; note the reversed argument order
+        1    ; x > y
+        0))  ; x = y
+```
+
+In other words, if you write such a boolean comparator, it should work
+like `<` does for numbers.  As explained more below, it should _not_
+behave like `<=` for numbers (see section "Comparators for sorted sets
+and maps are easy to get wrong").
+
+Any comparator, whether 3-way or boolean, should return answers
+consistent with a [_total order_][Total_order] on the values you want
+to compare.
+
+[Total_order]: http://en.wikipedia.org/wiki/Total_order
+
+A total order is simply an ordering of all values from smallest to
+largest, where some groups of values can all be equal to each other.
+Every pair of values must be comparable to each other (i.e. no "I
+don't know how to compare them" answers from the comparator).
+
+For example, you can order all fractions written in the form `m/n` for
+integers `m` and `n` from smallest to largest, in the usual way this
+would be done in mathematics.  Many of the fractions would be equal to
+each other, e.g. `1/2 = 2/4 = 3/6`.  A comparator implementing that
+total order should behave as if they are all the same.
+
+A 3-way comparator `(cmp a b)` should return a negative, positive, or
+0 `int` if `a` is before, after, or is considered equal to `b` in the
+total order, respectively.
+
+A boolean comparator `(cmp a b)` should return true if `a` is before
+`b` in the total order, or false if `a` is after or considered equal
+to `b`.
+
+Implementation details: When I say above that a function is "called as
+a comparator", I mean by calling the function's `compare` method
+instead of the more usual `invoke` (TBD: or is it more usually
+`call`?)  See Clojure source file
+`src/jvm/clojure/lang/AFunction.java` method `compare` if you want the
+gory details.
+
 
 
 ## Off-the-shelf comparators
@@ -216,70 +280,45 @@ values of different types.
 
 ### Comparators for sorted sets and maps are easy to get wrong
 
-This is accurately stated as "comparators are easy to get wrong", but
-it is often more noticeable when you use a bad comparator for sorted
-sets and maps, because you see values not getting added to your sorted
-collections, or not being able to find value you added to your
-collections earlier.
+This is just as accurately stated as "comparators are easy to get
+wrong", but it is often more noticeable when you use a bad comparator
+for sorted sets and maps.  If you write the kinds of bad comparators
+in this section and use them to call `sort`, usually little or nothing
+will go wrong (although inconsistent comparators are not good for
+sorting, either).  With sorted sets and maps, these bad comparators
+can cause values not to be added to your sorted collections, or to be
+added but not be found when you search for them.
 
-Suppose we want a sorted set containing vectors of two elements.  The
-second elements are always numbers, and we want the set sorted by this
-number.  We want to allow multiple vectors with the same second
-element, but different first elements.  The quickest comparator to
-write is to simply compare on the second vector element:
+Suppose we want a sorted set containing vectors of two elements, where
+each is a string followed by a number, e.g. `["a" 5]`.  We want the
+set sorted by the number, and we want to allow multiple vectors with
+the same number, but different strings.  The quickest comparator to
+write is to compare on the second vector element:
 
 ```clojure
     (defn by-2nd [a b]
       (compare (second a) (second b)))
 ```
 
-But look what happens when we try to add two vectors with the same
-number.
+But look what happens when we try to add multiple vectors with the
+same number.
 
 ```clojure
     user> (sorted-set-by by-2nd [:a 1] [:b 1] [:c 1])
     #{[:a 1]}
 ```
 
-Only one element is in the set, because `by-2nd` treats all 3 of them
-as equal.  Sets should not contain duplicate elements, so the other
-elements are not added.
+Only one element is in the set, because `by-2nd` treats all three of
+them as equal.  Sets should not contain duplicate elements, so the
+other elements are not added.
 
-Aside: If you do _not_ want multiple vectors in your set with the same
-second element, `by-2nd` is the comparator you should use.  This is
-exactly the behavior you want.  (TBD: Are there any caveats here?
-Will `sorted-set` ever use `=` to compare elements for any reason, or
-only the supplied comparator function?)
-
-Let us continue under the assumption that we want to allow multiple
-different vectors with the same second element in our sorted set.  A
-common thought in such a case is to use a boolean comparator function
-based on `<=` instead of '<', like so:
+A common thought in such a case is to use a boolean comparator
+function based on `<=` instead of '<', like so:
 
 ```clojure
     (defn by-2nd-<= [a b]
       (<= (second a) (second b)))
 ```
-
-In Clojure, besides writing a comparator that returns a number that is
-negative, positive, or 0, you may also write a comparator that returns
-true if the first argument should come before the second argument in
-the desired sorted order.  Behind the scenes, when such a Clojure
-function `boolean-cmp-fn` is "called as a comparator" (see details
-below if curious), Clojure runs code that works like this to return an
-`int` instead, as callers of a comparator expect.
-
-```clojure
-    (if (boolean-cmp-fn x y)
-      -1     ; x < y
-      (if (boolean-cmp-fn y x)  ; note the reversed argument order
-        1    ; x > y
-        0))  ; x = y
-```
-
-In other words, if you write such a boolean comparator, it should work
-like `<` does for numbers, but as we will see, you should not write it
-so that it works like `<=` for numbers.
 
 The boolean comparator `by-2nd-<=` seems to work correctly on the
 first step of creating the set, but not so well when testing whether
@@ -307,12 +346,17 @@ expect an implementation of a sorted data structure to provide any
 kind of guarantees on its behavior if you give it an inconsistent
 comparator.
 
-Implementation details: When I say above that a function is "called as
-a comparator", I mean by calling the function's `compare` method
-instead of the more usual `invoke` (TBD: or is it more usually
-`call`?)  See Clojure source file
-`src/jvm/clojure/lang/AFunction.java` method `compare` if you want the
-gory details.
+The techniques described in "Multi-field comparators" above provide
+correct comparators for this example.  In general, be wary of
+comparing only parts of values to each other.  Consider having some
+kind of tie-breaking condition after all of the fields you are
+interested have been compared.
+
+Aside: If you do _not_ want multiple vectors in your set with the same
+number, `by-2nd` is the comparator you should use.  It gives exactly
+the behavior you want.  (TBD: Are there any caveats here?  Will
+`sorted-set` ever use `=` to compare elements for any reason, or only
+the supplied comparator function?)
 
 
 ### Beware using subtraction in a comparator
