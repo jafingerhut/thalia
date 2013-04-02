@@ -63,7 +63,9 @@ objects, ordering values in a particular way:
    ordering among equal length vectors.
 
 5. Any Java types that implement the [`Comparable`][Comparable]
-   interface.  See "All Known Implementing Classes" there.
+   interface.  See "All Known Implementing Classes" there.  A few that
+   are common in Clojure are characters, booleans, and types `File`,
+   `URI`, and `UUID`.
 
 [Comparable]: http://docs.oracle.com/javase/6/docs/api/java/lang/Comparable.html
 
@@ -160,19 +162,133 @@ comparison function for them.
     ClassCastException clojure.lang.PersistentArrayMap cannot be cast to java.lang.Comparable  clojure.lang.Util.compare (Util.java:153)
 ```
 
-Implementation details: See Clojure source file
+Implementation details: See [Clojure][ClojureGithub] source file
 `src/jvm/clojure/lang/Util.java` method `compare`, and `compareTo`
-methods used to implement `Comparable` interface in several Java
-source files in Clojure's implementation.
+methods used to implement `Comparable` interface spread across several
+other Clojure source files.
+
+[ClojureGithub]: http://github.com/clojure/clojure
 
 
 ## Writing your own comparison functions
 
+If `compare` doesn't sort value in the order you want, then you must
+write your own comparison function.  The simplest kinds you can write
+are minor variations of the built-in `compare`.  For example, if you
+want to sort numbers in decreasing order instead of increasing order,
+just provide a comparison function that calls compare with the two
+arguments swapped:
 
-----------------------------------------------------------------------
+```clojure
+    user> (sort [4 2 3 1])
+    (1 2 3 4)
+
+    user> (defn reverse-cmp [a b]
+	    (compare b a))
+    #'user/reverse-cmp
+    user> (sort reverse-cmp [4 2 3 1])
+    (4 3 2 1)
+```
+
+Such short functions are often written using Clojure's `#()` notation,
+where the two arguments are `%1` and `%2`, in that order.
+
+```clojure
+    user> (sort #(compare %2 %1) [4 2 3 1])
+    (4 3 2 1)
+```
+
+Because equal-length Clojure vectors are compared lexicographically,
+they can be used to create sort keys for values with multiple fields
+like maps or records, with only a small amount of code.  However, this
+method only works if the field values to be sorted are already sorted
+by `compare` in an order you wish (or you wish them in the reverse of
+that order).
+
+
+## Pitfalls to avoid
+
+### Beware using subtraction as a comparison function
+
+Java comparison functions return a negative Java `int` (typically -1)
+if the first argument is to be treated as less than the second, a
+positive `int` (typically 1) if the first argument is to be treated as
+greater than the second, and 0 if they are equal.
+
+```clojure
+    user> (compare 10 20)
+    -1
+    user> (compare 20 10)
+    1
+    user> (compare 20 20)
+    0
+```
+
+Because of this, you might be tempted to write a comparison function
+by subtracting one numeric value from another, like so.
+
+```clojure
+    user> (sort #(- %1 %2) [4 2 3 1])
+    (1 2 3 4)
+```
+
+While this works in many cases, we would strongly recommend avoiding
+this technique.  It is less error-prone to use explicit conditional
+checks and return -1, 0, or 1, or to use predicate comparison
+functions.
+
+Why?  Java comparison functions must return a 32-bit `int` type, so
+when any Clojure comparison function returns any type of number, it is
+converted to an `int` under the covers by the Java method
+[`intValue`][NumberintValue].
+
+[NumberintValue]: http://docs.oracle.com/javase/6/docs/api/java/lang/Number.html#intValue%28%29
+
+For comparing floating point numbers, this causes numbers differing by
+less than 1.0 to be treated as equal, because the return value between
+-1.0 and 1.0 is truncated to the `int` 0:
+
+```clojure
+    ;; This gives the correct answer
+    user> (sort #(- %1 %2) [10.0 9.0 8.0 7.0])
+    (7.0 8.0 9.0 10.0)
+
+    ;; but this does not, because all values are treated as equal by
+    ;; the bad comparison function.
+    user> (sort #(- %1 %2) [1.0 0.9 0.8 0.7])
+    (1.0 0.9 0.8 0.7)
+
+    user> (map #(.intValue %) [-1.0 -0.99 -0.1 0.1 0.99 1.0])
+    (-1 0 0 0 0 1)
+```
+
+For comparing integer values, this also leads to bugs when comparing
+values that differ by about half the range of a 32-bit `int`, because
+the subtraction result is truncated to a value in the range of a
+32-bit `int` by discarding its most significant bits.  This can change
+negative values to positive, or vice versa.
+
+```clojure
+    ;; This looks good
+    user> (sort #(- %1 %2) [4 2 3 1])
+    (1 2 3 4)
+
+    ;; What the heck?
+    user> (sort #(- %1 %2) [2147483650 2147483651 2147483652 4 2 3 1])
+    (3 4 2147483650 2147483651 2147483652 1 2)
+
+    user> [Integer/MIN_VALUE Integer/MAX_VALUE]
+    [-2147483648 2147483647]
+
+    ;; How intValue truncates a few selected integers
+    user> (map #(.intValue %) [-2147483649 -2147483648 -1 0 1 2147483647 2147483648])
+    (2147483647 -2147483648 -1 0 1 2147483647 -2147483648)
+```
+
+
+
 Every Clojure function taking two arguments and returning a boolean or
 number can be used as a comparison function.
-----------------------------------------------------------------------
 
 Any Clojure function taking two arguments and returning a boolean or
 number is made to automatically implement the `java.util.Comparator`
