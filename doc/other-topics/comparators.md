@@ -10,9 +10,9 @@ versions, too.
 ## Introduction
 
 In Clojure you need comparators for sorting a collection of values, or
-for maintaining a sorted collection such as a `sorted-map`,
-`sorted-set`, or [`priority-map`][priority-map] (also known as a
-priority queue) in a particular sorted order.
+for maintaining a collection of values in a desired sorted order,
+e.g. a `sorted-map`, `sorted-set`, or [`priority-map`][priority-map]
+(also known as a priority queue).
 
 [priority-map]: https://github.com/clojure/data.priority-map
 
@@ -20,9 +20,9 @@ See also: `compare`, `sort`, `sort-by` `sorted-set`, `sorted-set-by`,
 `sorted-map`, `sorted-map-by`, `subseq`, `rsubseq`
 
 Here we briefly describe the default sorting order provided by the
-function `compare`.  After that we give examples of custom
-comparators, with some recommended guidelines and mistakes to avoid
-when writing your own.
+function `compare`.  After that we give examples of other comparators,
+with some guidelines to follow and mistakes to avoid when writing your
+own.
 
 If you don't specify your own comparator, sorting is done by a
 built-in function `compare`.  `compare` works for many types of
@@ -48,6 +48,8 @@ when writing a comparator that works correctly.
 
 
 ## Writing your own comparators
+
+### Reverse order
 
 If `compare` doesn't sort values in the order you want, then you must
 write your own comparator.  The simplest kinds you can write are minor
@@ -77,6 +79,8 @@ where the two arguments are `%1` and `%2`, in that order.
 `reverse-cmp` will also work for all other types that `compare` works
 for.
 
+### Multi-field comparators
+
 Because equal-length Clojure vectors are compared lexicographically,
 they can be used to create sort keys for values with multiple fields
 like maps or records, with only a small amount of code.  However, this
@@ -84,14 +88,232 @@ method only works if the field values to be sorted are already sorted
 by `compare` in an order you wish (or you wish them in the reverse of
 that order).
 
+TBD: Finish this section.
+
 
 ## Off-the-shelf comparators
+
+
+### Unicode comparators
 
 TBD: Give links to Unicode string comparators, and any other useful
 ones I can find.
 
 
-## Pitfalls to avoid
+### Comparators that work between different types
+
+Sometimes you might wish to sort a collection of values by some key,
+but that key is not unique.  You want the values with the same key to
+be sorted in some predictable, repeatable order, but you don't care
+much what that order is.
+
+As a toy example, you might have a collection of vectors, each with
+two elements, where the first element is always a string and the
+second is always a number.  You want to sort them by the number value
+in increasing order, but you know your data can contain more than one
+vector with the same number.  You want to break ties in some way,
+consistently across multiple sorts.
+
+This case is easily implemented using a multi-field comparator as
+described above.
+
+```clojure
+    (defn by-number-then-string [[a-str a-num] [b-str b-num]]
+      (compare [a-num a-str]
+               [b-num b-str]))
+```
+
+If the entire vector values can be compared with `compare`, because
+all vectors are equal length, and the type of each corresponding
+elements can be compared to each other with `compare`, then you can
+also do this, using the entire vector values as the final tie-breaker:
+
+```clojure
+    (defn by-number-then-whatever [a-vec b-vec]
+      (compare [(second a-vec) a-vec]
+               [(second b-vec) b-vec]))
+```
+
+However, that will throw an exception if some element position in the
+vectors contain types too different for `compare` to work on, and
+those vectors have the same second element:
+
+```clojure
+    ;; compare throws exception if you try to compare a string and a
+    ;; keyword
+    user> (sort by-number-then-whatever [["a" 2] ["c" 3] [:b 2]])
+    ClassCastException java.lang.String cannot be cast to clojure.lang.Keyword  clojure.lang.Keyword.compareTo (Keyword.java:109)
+```
+
+`cc-cmp` ("cross class compare") below may be useful in such cases.
+It can compare values of different types, which it orders based on a
+string that represents the type of the value.  It isn't simply `(class
+x)`, because then numbers like `Integer` and `Long` would not be
+sorted in numeric order.
+
+```clojure
+
+;; comparison-class throws exceptions for many types that would be
+;; useful to include, e.g. Java arrays, and Clojure records, lists,
+;; sets, and maps.  We'll save that for a fancier version.
+
+(defn comparison-class [x]
+  (cond (nil? x) ""
+        ;; Lump all numbers together since Clojure's compare can
+        ;; compare them all to each other sensibly.
+        (number? x) "java.lang.Number"
+        ;; Similarly lump all vector types together into one.
+        (vector? x) "clojure.lang.IPersistentVector"
+        ;; Comparable includes Boolean, Character, String, Clojure
+        ;; refs, and many others.
+        (instance? Comparable x) (.getName (class x))
+        :else (throw
+               (ex-info (format "cc-cmp does not implement comparison of values with class %s"
+                                (.getName (class x)))
+                        {:value x}))))
+
+(defn cmp-vec-lexi [cmpf a b]
+  (let [a-len (count a)
+        b-len (count b)
+        len (min a-len b-len)]
+    (loop [i 0]
+      (if (== i len)
+        ;; If all elements 0..(len-1) are same, shorter vector comes
+        ;; first.
+        (compare a-len b-len) 
+        (let [x (cmpf (a i) (b i))]
+          (if (zero? x)
+            (recur (inc i))
+            x))))))
+
+(defn cc-cmp [a b]
+  (let [a-cls (comparison-class a)
+        b-cls (comparison-class b)
+        c (compare a-cls b-cls)]
+    (cond (not= c 0) c  ; different classes
+
+          ;; Must use cc-cmp recursively on vector elements, because
+          ;; if we used compare we would lose ability to compare
+          ;; elements with different types.  While we are making a
+          ;; special case, let us implement lexicographic ordering for
+          ;; different vector lengths.
+          (= c "clojure.lang.IPersistentVector")
+          (cmp-vec-lexi cc-cmp a b)
+          
+          :else (compare a b))))
+```
+
+Here is a quick example demonstrating `cc-cmp`'s ability to compare
+values of different types.
+
+```clojure
+    user> (sort cc-cmp [true false nil Double/MAX_VALUE 10 Integer/MIN_VALUE :a "b" 'c (ref 5) [5 4 3] [5 4] [5]])
+    (nil [5] [5 4] [5 4 3] :a #<Ref@6685370c: 5> c false true -2147483648 10 1.7976931348623157E308 "b")
+```
+
+
+## Mistakes to avoid
+
+### Comparators for sorted sets and maps are easy to get wrong
+
+This is accurately stated as "comparators are easy to get wrong", but
+it is often more noticeable when you use a bad comparator for sorted
+sets and maps, because you see values not getting added to your sorted
+collections, or not being able to find value you added to your
+collections earlier.
+
+Suppose we want a sorted set containing vectors of two elements.  The
+second elements are always numbers, and we want the set sorted by this
+number.  We want to allow multiple vectors with the same second
+element, but different first elements.  The quickest comparator to
+write is to simply compare on the second vector element:
+
+```clojure
+    (defn by-2nd [a b]
+      (compare (second a) (second b)))
+```
+
+But look what happens when we try to add two vectors with the same
+number.
+
+```clojure
+    user> (sorted-set-by by-2nd [:a 1] [:b 1] [:c 1])
+    #{[:a 1]}
+```
+
+Only one element is in the set, because `by-2nd` treats all 3 of them
+as equal.  Sets should not contain duplicate elements, so the other
+elements are not added.
+
+Aside: If you do _not_ want multiple vectors in your set with the same
+second element, `by-2nd` is the comparator you should use.  This is
+exactly the behavior you want.  (TBD: Are there any caveats here?
+Will `sorted-set` ever use `=` to compare elements for any reason, or
+only the supplied comparator function?)
+
+Let us continue under the assumption that we want to allow multiple
+different vectors with the same second element in our sorted set.  A
+common thought in such a case is to use a boolean comparator function
+based on `<=` instead of '<', like so:
+
+```clojure
+    (defn by-2nd-<= [a b]
+      (<= (second a) (second b)))
+```
+
+In Clojure, besides writing a comparator that returns a number that is
+negative, positive, or 0, you may also write a comparator that returns
+true if the first argument should come before the second argument in
+the desired sorted order.  Behind the scenes, when such a Clojure
+function `boolean-cmp-fn` is "called as a comparator" (see details
+below if curious), Clojure runs code that works like this to return an
+`int` instead, as callers of a comparator expect.
+
+```clojure
+    (if (boolean-cmp-fn x y)
+      -1     ; x < y
+      (if (boolean-cmp-fn y x)  ; note the reversed argument order
+        1    ; x > y
+        0))  ; x = y
+```
+
+In other words, if you write such a boolean comparator, it should work
+like `<` does for numbers, but as we will see, you should not write it
+so that it works like `<=` for numbers.
+
+The boolean comparator `by-2nd-<=` seems to work correctly on the
+first step of creating the set, but not so well when testing whether
+elements are in the set.
+
+```clojure
+    user> (def sset (sorted-set-by by-2nd-<= [:a 1] [:b 1] [:c 1]))
+    #'user/sset
+    user> sset
+    #{[:c 1] [:b 1] [:a 1]}
+    user> (sset [:c 1])
+    nil
+    user> (sset [:b 1])
+    nil
+    user> (sset [:a 1])
+    nil
+```
+
+The problem here is that `by-2nd-<=` gives inconsistent answers.  If
+you ask it whether `[:c 1]` comes before `[:b 1]`, it returns true
+(which Clojure's boolean-to-int comparator conversion turns into -1).
+If you ask it whether `[:b 1]` comes before `[:c 1]`, again it returns
+true (again converted into -1 by Clojure).  One cannot reasonably
+expect an implementation of a sorted data structure to provide any
+kind of guarantees on its behavior if you give it an inconsistent
+comparator.
+
+Implementation details: When I say above that a function is "called as
+a comparator", I mean by calling the function's `compare` method
+instead of the more usual `invoke` (TBD: or is it more usually
+`call`?)  See Clojure source file
+`src/jvm/clojure/lang/AFunction.java` method `compare` if you want the
+gory details.
+
 
 ### Beware using subtraction in a comparator
 
@@ -177,247 +399,6 @@ subtracting an arbitrary pair of 16-bit characters converted to ints
 is guaranteed to fit within an `int` without wrapping around.  If your
 comparator is not guaranteed to be given such restricted inputs,
 better not to risk it.
-
-```clojure
-(defn comparison-class
-  [obj]
-  (cond (nil? x) nil  ; special case
-        ;; Lump all numbers together since Clojure's compare can
-        ;; compare them all to each other sensibly.
-        (number? x) (.getName java.lang.Number)
-
-        ;; Note: This returns false for Java arrays, among many other
-        ;; things.  It would be easy to write a lexicographic
-        ;; comparator for 1-dimensional Java arrays, but what
-        ;; about for multi-dimensional Java arrays?  I suppose they
-        ;; could be compared lexicographically as Object arrays,
-        ;; containing either arrays or primitive elements themselves.
-        ;; That could get messy handling all possible cases, given
-        ;; that some of the arrays could be arrays of Objects, while
-        ;; others are arrays of primitive types.
-
-        (instance? Comparable x) (.getName (class x))
-
-```
-
-
-Every Clojure function taking two arguments and returning a boolean or
-number can be used as a comparator.
-
-Any Clojure function taking two arguments and returning a boolean or
-number is made to automatically implement the `java.util.Comparator`
-interface.  This is done by the `compare` method in file
-`src/jvm/clojure/lang/AFunction.java` of the Clojure source code,
-shown below.
-
-```Java
-    public int compare(Object o1, Object o2)
-    {
-        try {
-            Object o = invoke(o1, o2);
-
-            if (o instanceof Boolean) {
-                if (RT.booleanCast(o))
-                    return -1;
-                return RT.booleanCast(invoke(o2,o1)) ? 1 : 0;
-            }
-
-            Number n = (Number) o;
-            return n.intValue();
-        }
-        catch (Exception e) {
-            throw Util.sneakyThrow(e);
-        }
-    }
-```
-
-TBD: Document examples where returning a boolean can cause the
-comparator to be incorrect in subtle ways.  For example, using <= for
-numbers means that the resulting compare function will never return 0
-for equal items.  If two equal numbers are compared, the first will be
-declared smaller than the second because <= returns true, causing
-compare to return -1.
-
-
-
-## Original text of a document I wrote about compare functions
-
-It is probably also too long and needs summarizing or just plain
-cutting out.
-
-
-See also compare-functions.clj for shorter examples without all the
-explanation.
-
-
-Why does using function second-< as a comparator for sorted-set-by
-treat [:a 1] and [:b 1] as equal?
-
-One way that Clojure lets you provide a comparator is by the Java way
-of providing a "3-way" comparator: you write a function of two
-arguments, which I'll call x and y, and you return a negative number
-if x is smaller than y, 0 if they are equal, or a positive number if x
-is larger than y.
-
-Clojure also lets you write a "2-way" comparator: a function of two
-arguments that returns a boolean value.  The basic idea is that the
-function should return true if the first argument x should come before
-the second argument y.
-
-The underlying Java code implementing the sorted sets needs a 3-way
-compare function as described above.  What does Clojure do in this
-case?  It adds a little code around the 2-way comparator to convert
-the boolean into an integer.  "Wait!"  you say.  "There are only 2
-boolean values, but 3 possible comparison results.  How can this be?"
-Good catch.  Clojure does this by sometimes calling the function
-twice, like this:
-
-(if (cmp-2-way x y)
-  -1     ; x < y
-  (if (cmp-2-way y x)  ; note the reversed argument order
-    1    ; x > y
-    0))  ; x = y
-
-(The code to do this is in the method 'compare' in the Clojure's
-source file AFunction.java.  It is written in in Java, not Clojure,
-but it does implement the behavior above.)
-
-So, if you write a function that returns true exactly when the first
-argument should come earlier in the sort order, and false if it is
-equal or should come later in the sort order, it will do what you
-want.  But 'equal' here means *completely equal*, not just equal in
-the part that you are interested in comparing.
-
-For example:
-
-;; Give a name to our anonymous function #(< (second %) (second %2))
-user=> (defn second-< [x y]
-         (< (second x) (second y)))
-
-user=> (sorted-set-by second-< [:a 1] [:b 1] [:c 1])
-#{[:a 1]}
-
-What happened here?  First [:a 1] was added to the set being
-constructed.  Then at some point a comparison was done between [:a 1]
-and [:b 1] by calling second-<, which went like this:
-
-user=> (second-< [:a 1] [:b 1])
-false   ; 1 < 1 is false
-user=> (second-< [:b 1] [:a 1])
-false   ; 1 < 1 is still false
-
-Since neither is less than the other, they must be equal.  Two equal
-items should not be in the same set, so don't add [:b 1] to the set.
-The same happens when we test whether to add [:c 1] to the set.
-
-At this point you might be thinking of using this comparator instead:
-
-user=> (defn second-<= [x y]
-         (<= (second x) (second y)))
-
-user=> (sorted-set-by second-<= [:a 1] [:b 1] [:c 1])
-#{[:c 1] [:b 1] [:a 1]}
-
-That certainly looks better.  But there is still trouble afoot:
-
-user=> (def s1 (sorted-set-by second-<= [:a 1] [:b 1] [:c 1]))
-#'user/s1
-user=> (contains? s1 [:a 1])
-false
-user=> (contains? s1 [:b 1])
-false
-
-It doesn't seem to contain any of the elements when you test if they
-are in the set!  Now what is going on?
-
-The function second-<= is a bad comparator.  To see why, suppose the
-sorted-set code compares [:a 1] and [:b 1] at some point.  second-<=
-will return true because 1 <= 1, and so the 3-way comparison will
-return -1, indicating that [:a 1] and [:b 1] are different and [:a 1]
-should come earlier.  Fine, you think.  You didn't really care which
-of [:a 1] and [:b 1] is earlier in the sorted order, as long as they
-are both in the set.
-
-But wait.  During a later operation the sorted-set might compare them
-in the opposite order, [:b 1] and [:a 1].  second-<= will return true
-again, and so the 3-way comparison will return -1, indicating that [:b
-1] and [:a 1] are different and [:b 1] should come earlier.  This is
-inconsistent with the earlier return value, and so all bets are off as
-to how the sorted set using second-<= will behave.  We were lucky we
-didn't give it to a function like sort and have it go into an infinite
-loop.
-
-See (Note 1) below if you are interested in some details on how one
-can write a good 2-way comparator in Clojure.  2-way comparators are
-best if they are something simple like < or >.  As soon as you start
-trying to compare pieces of a data structure to each other (e.g. the
-values of some keys in maps, but not all of them), you can easily
-create problems like the ones in the examples above.
-
-It is often more straightforward to write a 3-way comparator that
-returns an integer, following these rules;
-
-    If (mycmp x y) return a negative number, (mycmp y x) must return a
-    positive number.  (x < y implies y > x)
-
-    If (mycmp x y) return a positive number, (mycmp y x) must return a
-    negative number.  (x > y implies y < x)
-
-    If (mycmp x y) returns 0, (mycmp y x) must return 0.  (x = y
-    implies y = x)
-
-In addition to those rules, it must satisfy the normal rules of being
-a total ordering on the values being compared, like < is a total
-ordering for the integers or real numbers.
-
-Clojure has a built-in 3-way comparator 'compare' that can make it
-easier to write your own 3-way comparators.  It can compare many types
-of Clojure objects, and for all the types on which it works, it
-satisfies the rules for being a good 3-way comparator.  It is unlikely
-be the order you want all by itself, so you should use it in a way
-that compares the parts of things you are interested in sorting, or
-that breaks ties when yo do not care about the relative order.
-
-Example:
-
-(defn second-<-with-tie-break [x y]
-  (let [c (compare (second x) (second y))]
-    (if (not= c 0)
-      ;; (second x) and (second y) are different, so their comparison
-      ;; result decides the order.
-      c
-      ;; Otherwise we don't care as long as ties are broken
-      ;; consistently.
-      (compare x y))))
-
-
-Clojure even lets you write a compairson function that sometimes
-returns an integer, and sometimes a boolean.  That is even less
-recommended than writing a 2-way comparator.
-
-
-
-(Note 1)
-
-If you want to write a good comparator `mycmp`, one way is to write a
-2-way comparator that returns a boolean, and be sure that it follows
-these rules:
-
-    If (mycmp x y) returns true, (mycmp y x) must return false.
-    (second-<= violates this rule when (second x) and (second y) are
-    equal.)
-
-    If x and y are the same value, both (mycmp x y) and (mycmp y x)
-    must return false.  (second-<= violates this rule, too)
-
-    If (mycmp x y) returns false, and x and y are the not the same
-    value, (mycmp y x) must return true.  (second-< violates this
-    rule)
-
-That can be tricky to get right.  It can be so tricky to get right,
-I'm not even going to try to write an example of a good comparator for
-the 2-element vector example that we started with, for fear of getting
-it wrong.
 
 
 ## TBD
