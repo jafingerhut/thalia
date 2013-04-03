@@ -1,5 +1,6 @@
 Examples:
 
+```clojure
     user> (range 11)
     (0 1 2 3 4 5 6 7 8 9 10)
 
@@ -16,12 +17,14 @@ Examples:
 
     user> (range 11 -1 -1)
     (11 10 9 8 7 6 5 4 3 2 1 0)
+```
 
 Note that one must be cautious when using float or double values, due
 to round-off errors.  This is especially true for `range`, because
 these round-off errors can accumulate and increase over a large number
 of values.
 
+```clojure
     user> (count (range 0 100 1))
     100
 
@@ -33,10 +36,12 @@ of values.
 
     user> (last (range 0.0 10.0 0.1))
     9.99999999999998
+```
 
 Functions like the ones below may be closer to what you want in some
 cases:
 
+```clojure
     (defn double-range [start end step]
       (map #(+ start (* % step))
            (range (/ (- end start) step))))
@@ -60,3 +65,4 @@ cases:
     ;; double-range above, by design.
     user> (last (rangef 0.0 10.0 100))
     10.0
+```
