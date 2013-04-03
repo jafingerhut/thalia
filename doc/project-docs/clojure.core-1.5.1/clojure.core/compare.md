@@ -6,6 +6,27 @@ sorting, positive if x should come after y, or 0 if they are equal.
 `sort`, for ordering the elements of `sorted-set`s, and for ordering
 the keys of `sorted-map`s, unless you specify your own comparator.
 
+`compare` works for many types of values, ordering values in one
+particular way: increasing numeric order for numbers; [lexicographic
+order][lexicographic] (aka dictionary order) for strings, symbols, and
+keywords; shortest-to-longest order for Clojure vectors, with
+lexicographic ordering among equal length vectors.  All Java types
+implementing the [`Comparable`][Comparable] interface such as
+characters, booleans, `File`, `URI`, and `UUID` are compared via their
+`compareTo` methods.  Finally, `nil` can be compared to all values
+described earlier, and is considered less than everything else.
+
+[lexicographic]: http://en.wikipedia.org/wiki/Lexicographical_order
+[Comparable]: http://docs.oracle.com/javase/6/docs/api/java/lang/Comparable.html
+
+`compare` throws an exception if given two values whose types are "too
+different", e.g. it can compare Integers, Longs, and Doubles to each
+other, but not strings to keywords or keywords to symbols.  It cannot
+compare Clojure lists, sequences, sets, or maps at all.
+
+
+## Examples
+
 Numbers are sorted in increasing order.  This includes integers of all
 sizes (ints, longs, BigIntegers, etc.), floats, doubles, and Clojure
 ratios.
@@ -21,8 +42,6 @@ UTF-16 code units.  This is alphabetical order for strings restricted
 to the ASCII subset of characters (case-sensitive).  Additional
 details are described in the Java documentation for `String`'s
 [`compareTo`][StringcompareTo] method.
-
-[lexicographic]: http://en.wikipedia.org/wiki/Lexicographical_order
 
 [StringcompareTo]: http://docs.oracle.com/javase/6/docs/api/java/lang/String.html#compareTo%28java.lang.String%29
 
@@ -65,10 +84,10 @@ longest, then lexicographically among equal-length vectors.
 ```
 
 You will get an exception if you try to make the default `compare`
-function compare objects with different types (any two numeric types
+function compare values with different types (any two numeric types
 listed above can be compared to each other, but not to a non-numeric
 type).  See [Comparators in Clojure][ComparatorsInClojure] for
-examples of comparators that can be used to compare objects of these
+examples of comparators that can be used to compare values of these
 different types.
 
 [ComparatorsInClojure]: https://github.com/jafingerhut/thalia/blob/master/doc/other-topics/comparators.md
