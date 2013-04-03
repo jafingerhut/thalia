@@ -6,6 +6,7 @@ which `f` is called.
 
 Examples:
 
+```clojure
     ;; equivalent to (+ 1 2)
     user> (apply + [1 2])
     3
@@ -17,3 +18,4 @@ Examples:
     ;; This doesn't work because and is a macro, not a function
     user> (apply and [true false true])
     CompilerException java.lang.RuntimeException: Can't take value of a macro: #'clojure.core/and, compiling:(NO_SOURCE_PATH:1:1) 
+```
