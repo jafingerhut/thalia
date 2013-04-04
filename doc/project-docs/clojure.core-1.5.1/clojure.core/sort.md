@@ -13,13 +13,14 @@ implements a 3-way comparator, or a boolean comparator.  See the
 document on [Comparators in Clojure][ComparatorsInClojure-boolean] for
 details on boolean comparators.
 
-[ComparatorsInClojure-boolean]https://github.com/jafingerhut/thalia/blob/master/doc/other-topics/comparators.md#boolean-comparators
+[ComparatorsInClojure-boolean]: https://github.com/jafingerhut/thalia/blob/master/doc/other-topics/comparators.md#boolean-comparators
 
-`sort` uses Java's [`java.util.Arrays sort`][Java-Arrays-sort-method]
-method in its implementation, and thus is guaranteed to implement a
-stable sort.  This means that if two objects in the input collection
-are considered equal by the comparator, they are guaranteed to remain
-in the same relative order in the output as they had in the input.
+`sort` is guaranteed to be _stable_, since it uses Java's
+[`java.util.Arrays sort`][Java-Arrays-sort-method] method in its
+implementation.  This means that if two objects in the input
+collection are considered equal by the comparator, they are guaranteed
+to remain in the same relative order in the output as they had in the
+input.
 
 [Java-Arrays-sort-method]: http://docs.oracle.com/javase/6/docs/api/java/util/Arrays.html#sort%28java.lang.Object[]%29
 
