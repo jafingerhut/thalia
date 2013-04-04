@@ -111,15 +111,11 @@ for.
 ### Multi-field comparators
 
 Because equal-length Clojure vectors are compared lexicographically,
-they can be used to create sort keys for values with multiple fields
-like maps or records, with only a small amount of code.  However, this
-method only works if the field values to be sorted are already sorted
-by `compare` in an order you wish (or the reverse of the order you
-wish).
+they can be used to do multi-field sorting on values like maps or
+records.  This only works if the fields are already sorted by
+`compare` in the order you wish (or the reverse of that).
 
-First we will show an equivalent way to do it in function
-`by-salary-name-co` that does not use Clojure vector comparison.  It
-should make the desired comparison behavior clear.
+First we will show a way to do it that does not compare vectors.
 
 ```clojure
     (def john1 {:name "John", :salary 35000.00, :company "Acme" })
@@ -149,8 +145,8 @@ should make the desired comparison behavior clear.
 ```
 
 Below is the shorter way, by comparing Clojure vectors.  It behaves
-exactly the same as above.  Note that as above, the field :salary is
-sorted in descending order because the x and y are swapped.
+exactly the same as above.  Note that as above, the field `:salary` is
+sorted in descending order because `x` and `y` are swapped.
 
 ```clojure
     (defn by-salary-name-co2 [x y]
@@ -177,15 +173,15 @@ Java comparators are all 3-way, meaning they return a negative, 0, or
 positive integer depending upon whether the first argument should be
 considered less than, equal to, or greater than the second argument.
 
-In Clojure, you may also use boolean comparators that return true if
-the first argument should come before the second argument, or false
+In Clojure, you may also use boolean comparators that return `true` if
+the first argument should come before the second argument, or `false`
 otherwise (i.e. should come after, _or_ it is equal).  The function
 `<` is a perfect example, as long as you only need to compare numbers.
 `>` works for sorting numbers in decreasing order.
 
 Behind the scenes, when such a Clojure function `bool-cmp-fn` is
 "called as a comparator", Clojure runs code that works like this to
-return an `int` instead, as callers of a comparator expect.
+return an `int` instead:
 
 ```clojure
     (if (bool-cmp-fn x y)
@@ -260,12 +256,9 @@ total order, respectively.
 
 A boolean comparator `(cmp a b)` should return true if `a` is before
 `b` in the total order, or false if `a` is after or considered equal
-to `b`.
-
-In other words, if you write a boolean comparator, it should work like
-`<` does for numbers.  As explained later, it should _not_ behave like
-`<=` for numbers (see section "Comparators for sorted sets and maps
-are easy to get wrong").
+to `b`.  That is, it should work like `<` does for numbers.  As
+explained later, it should _not_ behave like `<=` for numbers (see
+section "Comparators for sorted sets and maps are easy to get wrong").
 
 
 ## Mistakes to avoid
@@ -281,18 +274,18 @@ sorting, either).  With sorted sets and maps, these bad comparators
 can cause values not to be added to your sorted collections, or to be
 added but not be found when you search for them.
 
-Suppose we want a sorted set containing vectors of two elements, where
-each is a string followed by a number, e.g. `["a" 5]`.  We want the
-set sorted by the number, and we want to allow multiple vectors with
-the same number, but different strings.  The quickest comparator to
-write is to compare on the second vector element:
+Suppose you want a sorted set containing vectors of two elements,
+where each is a string followed by a number, e.g. `["a" 5]`.  You want
+the set sorted by the number, and to allow multiple vectors with the
+same number but different strings.  Your first try might be to write
+something like `by-2nd`:
 
 ```clojure
     (defn by-2nd [a b]
       (compare (second a) (second b)))
 ```
 
-But look what happens when we try to add multiple vectors with the
+But look what happens when you try to add multiple vectors with the
 same number.
 
 ```clojure
@@ -301,11 +294,11 @@ same number.
 ```
 
 Only one element is in the set, because `by-2nd` treats all three of
-them as equal.  Sets should not contain duplicate elements, so the
-other elements are not added.
+the vectors as equal.  Sets should not contain duplicate elements, so
+the other elements are not added.
 
 A common thought in such a case is to use a boolean comparator
-function based on `<=` instead of `<`, like so:
+function based on `<=` instead of `<`:
 
 ```clojure
     (defn by-2nd-<= [a b]
@@ -313,7 +306,7 @@ function based on `<=` instead of `<`, like so:
 ```
 
 The boolean comparator `by-2nd-<=` seems to work correctly on the
-first step of creating the set, but not so well when testing whether
+first step of creating the set, but fails when testing whether
 elements are in the set.
 
 ```clojure
