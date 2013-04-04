@@ -383,9 +383,9 @@ comparators.
 Why?  Java comparators must return a 32-bit `int` type, so when a
 Clojure function is used as a comparator and it returns any type of
 number, that number is converted to an `int` behind the scenes using
-the Java method [`intValue`][NumberintValue].  See [Clojure source
-file `src/jvm/clojure/lang/AFunction.java` method
-`compare`][Clojure-AFunction-compare] if you want the details.
+the Java method [`intValue`][NumberintValue].  See Clojure source file
+[`src/jvm/clojure/lang/AFunction.java`][Clojure-AFunction-compare]
+method `compare` if you want the details.
 
 [NumberintValue]: http://docs.oracle.com/javase/6/docs/api/java/lang/Number.html#intValue%28%29
 
