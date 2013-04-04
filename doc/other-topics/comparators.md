@@ -11,13 +11,31 @@ versions, too.
 
 In Clojure you need comparators for sorting a collection of values, or
 for maintaining a collection of values in a desired sorted order,
-e.g. a `sorted-map`, `sorted-set`, or [`priority-map`][priority-map]
-(also known as a priority queue).
+e.g. a [`sorted-map`][doc-sorted-map], [`sorted-set`][doc-sorted-set],
+or [`priority-map`][priority-map] (also known as a priority queue).
 
 [priority-map]: https://github.com/clojure/data.priority-map
 
-See also: `compare`, `sort`, `sort-by` `sorted-set`, `sorted-set-by`,
-`sorted-map`, `sorted-map-by`, `subseq`, `rsubseq`
+See also:
+[`compare`][doc-compare]
+[`sort`][doc-sort]
+[`sort-by`][doc-sort-by]
+[`sorted-set`][doc-sorted-set]
+[`sorted-set-by`][doc-sorted-set-by]
+[`sorted-map`][doc-sorted-map]
+[`sorted-map-by`][doc-sorted-map-by]
+[`subseq`][doc-subseq]
+[`rsubseq`][doc-rsubseq]
+
+[doc-compare]: https://github.com/jafingerhut/thalia/blob/master/doc/project-docs/clojure.core-1.5.1/clojure.core/compare.md
+[doc-sort]: https://github.com/jafingerhut/thalia/blob/master/doc/project-docs/clojure.core-1.5.1/clojure.core/sort.md
+[doc-sort-by]: https://github.com/jafingerhut/thalia/blob/master/doc/project-docs/clojure.core-1.5.1/clojure.core/sort-by.md
+[doc-sorted-set]: https://github.com/jafingerhut/thalia/blob/master/doc/project-docs/clojure.core-1.5.1/clojure.core/sorted-set.md
+[doc-sorted-set-by]: https://github.com/jafingerhut/thalia/blob/master/doc/project-docs/clojure.core-1.5.1/clojure.core/sorted-set-by.md
+[doc-sorted-map]: https://github.com/jafingerhut/thalia/blob/master/doc/project-docs/clojure.core-1.5.1/clojure.core/sorted-map.md
+[doc-sorted-map-by]: https://github.com/jafingerhut/thalia/blob/master/doc/project-docs/clojure.core-1.5.1/clojure.core/sorted-map-by.md
+[doc-subseq]: https://github.com/jafingerhut/thalia/blob/master/doc/project-docs/clojure.core-1.5.1/clojure.core/subseq.md
+[doc-rsubseq]: https://github.com/jafingerhut/thalia/blob/master/doc/project-docs/clojure.core-1.5.1/clojure.core/rsubseq.md
 
 Here we briefly describe the default sorting order provided by the
 function `compare`.  After that we give examples of other comparators,
@@ -26,23 +44,22 @@ own.
 
 If you don't specify your own comparator, sorting is done by a
 built-in function `compare`.  `compare` works for many types of
-objects, ordering values in one particular way: increasing numeric
-order for numbers; [lexicographic order][lexicographic] (aka
-dictionary order) for strings, symbols, and keywords;
-shortest-to-longest order for Clojure vectors, with lexicographic
-ordering among equal length vectors.  All Java types implementing the
-[`Comparable`][Comparable] interface such as characters, booleans,
-`File`, `URI`, and `UUID` are compared via their `compareTo` methods.
-Finally, `nil` can be compared to all values described earlier, and is
-considered less than all of them.  See [`compare`][compare-docs] for
-examples and more details.
+values, ordering them in one particular way: increasing numeric order
+for numbers; [lexicographic order][lexicographic] (aka dictionary
+order) for strings, symbols, and keywords; shortest-to-longest order
+for Clojure vectors, with lexicographic ordering among equal length
+vectors.  All Java types implementing the [`Comparable`][Comparable]
+interface such as characters, booleans, `File`, `URI`, and `UUID` are
+compared via their `compareTo` methods.  Finally, `nil` can be
+compared to all values described earlier, and is considered less than
+everything else.  See [`compare`][doc-compare] for examples and more
+details.
 
 [Comparable]: http://docs.oracle.com/javase/6/docs/api/java/lang/Comparable.html
 [lexicographic]: http://en.wikipedia.org/wiki/Lexicographical_order
-[compare-docs]: https://github.com/jafingerhut/thalia/blob/master/doc/project-docs/clojure.core-1.5.1/clojure.core/compare.md
 
 If this built-in sorting order doesn't meet your needs, or doesn't
-work at all for objects of a type you wish to sort, you can write your
+work at all for values of a type you wish to sort, you can write your
 own comparator and use that instead.  There are a few rules to follow
 when writing a comparator that works correctly.
 
@@ -76,22 +93,74 @@ where the two arguments are `%1` and `%2`, in that order.
 `reverse-cmp` will also work for all other types that `compare` works
 for.
 
+
 ### Multi-field comparators
 
 Because equal-length Clojure vectors are compared lexicographically,
 they can be used to create sort keys for values with multiple fields
 like maps or records, with only a small amount of code.  However, this
 method only works if the field values to be sorted are already sorted
-by `compare` in an order you wish (or you wish them in the reverse of
-that order).
+by `compare` in an order you wish (or the reverse of the order you
+wish).
 
-TBD: Finish this section.
+First we will show an equivalent way to do it that does not use
+Clojure vector comparison, but should make the behavior clear.
 
-TBD: Include an example where one field is compared an ascending
-order, another in descending order.
+```clojure
+    (def john1 {:name "John", :salary 35000.00, :company "Acme" })
+    (def mary  {:name "Mary", :salary 35000.00, :company "Mars Inc" })
+    (def john2 {:name "John", :salary 40000.00, :company "Venus Co" })
+    (def john3 {:name "John", :salary 30000.00, :company "Asteroids-R-Us" })
+    (def people [john1 mary john2 john3])
+
+    ;; Here is a longer way to do it, without using Clojure vector
+    ;; comparison.
+    (defn by-salary-name-co [x y]
+      ;; :salary values sorted in decreasing order because x and y
+      ;; swapped in this compare.
+      (let [c (compare (:salary y) (:salary x))]
+        (if (not= c 0)
+          c
+          ;; :name and :company are sorted in increasing order
+          (let [c (compare (:name x) (:name y))]
+            (if (not= c 0)
+              c
+              (let [c (compare (:company x) (:company y))]
+                c))))))
+
+    user> (pprint (sort by-salary-name-co people))
+    ({:name "John", :salary 40000.0, :company "Venus Co"}
+     {:name "John", :salary 35000.0, :company "Acme"}
+     {:name "Mary", :salary 35000.0, :company "Mars Inc"}
+     {:name "John", :salary 30000.0, :company "Asteroids-R-Us"})
+```
+
+This is the shorter way that behaves exactly the same as above, using
+compare on Clojure vectors.  Note that as above, the field :salary is
+sorted in descending order because the x and y are swapped.
+
+```clojure
+    (defn by-salary-name-co2 [x y]
+      (compare [(:salary y) (:name x) (:company x)]
+               [(:salary x) (:name y) (:company y)]))
+
+    user> (pprint (sort by-salary-name-co2 people))
+    ({:name "John", :salary 40000.0, :company "Venus Co"}
+     {:name "John", :salary 35000.0, :company "Acme"}
+     {:name "Mary", :salary 35000.0, :company "Mars Inc"}
+     {:name "John", :salary 30000.0, :company "Asteroids-R-Us"})
+```
+
+The above is fine for key values that are inexpensive to compute from
+the values being sorted.  If they key values are expensive to compute,
+and you would like them to be calculated only once for each value
+being sorted, it is better to calculate them once and save them, at
+least for as long as you need to compare the values.  See the
+"decorate-sort-undecorate" technique described in the documentation
+for [`sort-by`][doc-sort-by].
 
 
-### General rules for comparators
+### Boolean comparators
 
 Java comparators are all 3-way, meaning they return a negative,
 positive, or 0 `int` depending upon whether the first argument should
@@ -103,23 +172,55 @@ otherwise (i.e. should come after, _or_ equal).  The function `<` is a
 perfect example if you only wish to compare numbers and sort them in
 increasing order.  `>` works for sorting numbers in decreasing order.
 
-Behind the scenes, when such a Clojure function `boolean-cmp-fn` is
-"called as a comparator" (see details below if curious), Clojure runs
-code that works like this to return an `int` instead, as callers of a
-comparator expect.
+Behind the scenes, when such a Clojure function `bool-cmp-fn` is
+"called as a comparator", Clojure runs code that works like this to
+return an `int` instead, as callers of a comparator expect.
 
 ```clojure
-    (if (boolean-cmp-fn x y)
+    (if (bool-cmp-fn x y)
       -1     ; x < y
-      (if (boolean-cmp-fn y x)  ; note the reversed argument order
+      (if (bool-cmp-fn y x)  ; note the reversed argument order
         1    ; x > y
         0))  ; x = y
 ```
 
-In other words, if you write such a boolean comparator, it should work
-like `<` does for numbers.  As explained more below, it should _not_
-behave like `<=` for numbers (see section "Comparators for sorted sets
-and maps are easy to get wrong").
+You can see this by calling the `compare` method of any function
+taking 2 arguments and returning a number or boolean.  I will give an
+example with a custom version `my-<` of `<` that prints its arguments
+when it is called, so you can see the cases where it is called more
+than once:
+
+```clojure
+    user> (defn my-< [a b]
+	    (println "(my-<" a b ") returns " (< a b))
+	    (< a b))
+    #'user/my-<
+    user> (. my-< (compare 1 2))
+    (my-< 1 2 ) returns  true
+    -1
+    user> (. my-< (compare 2 1))
+    (my-< 2 1 ) returns  false
+    (my-< 1 2 ) returns  true
+    1
+    user> (. my-< (compare 1 1))
+    (my-< 1 1 ) returns  false
+    (my-< 1 1 ) returns  false
+    0
+
+    ;; Calling a Clojure function in the normal way uses its invoke
+    ;; method, not compare.
+    user> (. my-< (invoke 2 1))
+    (my-< 2 1 ) returns  false
+    false
+```
+
+See [Clojure source file `src/jvm/clojure/lang/AFunction.java` method
+`compare`][Clojure-AFunction-compare] if you want all the details.
+
+[Clojure-AFunction-compare]: https://github.com/clojure/clojure/blob/clojure-1.5.1/src/jvm/clojure/lang/AFunction.java#L46
+
+
+### General rules for comparators
 
 Any comparator, whether 3-way or boolean, should return answers
 consistent with a [_total order_][Total_order] on the values you want
@@ -146,19 +247,16 @@ A boolean comparator `(cmp a b)` should return true if `a` is before
 `b` in the total order, or false if `a` is after or considered equal
 to `b`.
 
-Implementation details: When I say above that a function is "called as
-a comparator", I mean by calling the function's `compare` method
-instead of the more usual `invoke` (TBD: or is it more usually
-`call`?)  See Clojure source file
-`src/jvm/clojure/lang/AFunction.java` method `compare` if you want the
-gory details.
-
+In other words, if you write boolean comparator, it should work like
+`<` does for numbers.  As explained later, it should _not_ behave like
+`<=` for numbers (see section "Comparators for sorted sets and maps
+are easy to get wrong").
 
 
 ## Off-the-shelf comparators
 
 
-### Unicode comparators
+### Unicode strings
 
 TBD: Give links to Unicode string comparators, and any other useful
 ones I can find.
@@ -218,16 +316,19 @@ sorted in numeric order.
 ```clojure
 
 ;; comparison-class throws exceptions for many types that would be
-;; useful to include, e.g. Java arrays, and Clojure records, lists,
-;; sets, and maps.  We'll save that for a fancier version.
+;; useful to include, e.g. Java arrays, and Clojure records, sets, and
+;; maps.  We'll save such enhancements for a fancier version.
 
 (defn comparison-class [x]
   (cond (nil? x) ""
         ;; Lump all numbers together since Clojure's compare can
         ;; compare them all to each other sensibly.
         (number? x) "java.lang.Number"
-        ;; Similarly lump all vector types together into one.
-        (vector? x) "clojure.lang.IPersistentVector"
+        ;; sequential? includes lists, conses, vectors, and seqs of
+        ;; vectors.  This should be everything we would want to
+        ;; compare using cmp-seq-lexi below.  TBD: Does it leave
+        ;; anything out?  Include anything it should not?
+        (sequential? x) "clojure.lang.Sequential"
         ;; Comparable includes Boolean, Character, String, Clojure
         ;; refs, and many others.
         (instance? Comparable x) (.getName (class x))
@@ -236,43 +337,71 @@ sorted in numeric order.
                                 (.getName (class x)))
                         {:value x}))))
 
-(defn cmp-vec-lexi [cmpf a b]
-  (let [a-len (count a)
-        b-len (count b)
-        len (min a-len b-len)]
+(defn cmp-seq-lexi
+  [cmpf x y]
+  (loop [x x
+         y y]
+    (if (seq x)
+      (if (seq y)
+        (let [c (cmpf (first x) (first y))]
+          (if (zero? c)
+            (recur (rest x) (rest y))
+            c))
+        ;; else we reached end of y first, so x > y
+        1)
+      (if (seq y)
+        ;; we reached end of x first, so x < y
+        -1
+        ;; Sequences contain same elements.  x = y
+        0))))
+
+;; The same result can be obtained by calling cmp-seq-lexi on two
+;; vectors, but this one should allocate less memory comparing
+;; vectors.
+(defn cmp-vec-lexi
+  [cmpf x y]
+  (let [x-len (count x)
+        y-len (count y)
+        len (min x-len y-len)]
     (loop [i 0]
       (if (== i len)
         ;; If all elements 0..(len-1) are same, shorter vector comes
         ;; first.
-        (compare a-len b-len) 
-        (let [x (cmpf (a i) (b i))]
-          (if (zero? x)
+        (compare x-len y-len) 
+        (let [c (cmpf (x i) (y i))]
+          (if (zero? c)
             (recur (inc i))
-            x))))))
+            c))))))
 
-(defn cc-cmp [a b]
-  (let [a-cls (comparison-class a)
-        b-cls (comparison-class b)
-        c (compare a-cls b-cls)]
+(defn cc-cmp
+  [x y]
+  (let [x-cls (comparison-class x)
+        y-cls (comparison-class y)
+        c (compare x-cls y-cls)]
     (cond (not= c 0) c  ; different classes
 
-          ;; Must use cc-cmp recursively on vector elements, because
-          ;; if we used compare we would lose ability to compare
-          ;; elements with different types.  While we are making a
-          ;; special case, let us implement lexicographic ordering for
-          ;; different vector lengths.
-          (= c "clojure.lang.IPersistentVector")
-          (cmp-vec-lexi cc-cmp a b)
+          ;; Make a special check for two vectors, since cmp-vec-lexi
+          ;; should allocate less memory comparing them than
+          ;; cmp-seq-lexi.  Both here and for comparing sequences, we
+          ;; must use cc-cmp recursively on the elements, because if
+          ;; we used compare we would lose the ability to compare
+          ;; elements with different types.
+          (and (vector? x) (vector? y)) (cmp-vec-lexi cc-cmp x y)
+
+          ;; This will compare any two sequences, if they are not both
+          ;; vectors, e.g. a vector and a list will be compared here.
+          (= x-cls "clojure.lang.Sequential")
+          (cmp-seq-lexi cc-cmp x y)
           
-          :else (compare a b))))
+          :else (compare x y))))
 ```
 
 Here is a quick example demonstrating `cc-cmp`'s ability to compare
 values of different types.
 
 ```clojure
-    user> (sort cc-cmp [true false nil Double/MAX_VALUE 10 Integer/MIN_VALUE :a "b" 'c (ref 5) [5 4 3] [5 4] [5]])
-    (nil [5] [5 4] [5 4 3] :a #<Ref@6685370c: 5> c false true -2147483648 10 1.7976931348623157E308 "b")
+    user> (sort cc-cmp [true false nil Double/MAX_VALUE 10 Integer/MIN_VALUE :a "b" 'c (ref 5) [5 4 3] '(5 4) (seq [5]) (cons 6 '(1 2 3))])
+    (nil :a #<Ref@6ed4b575: 5> (5) (5 4) [5 4 3] (6 1 2 3) c false true -2147483648 10 1.7976931348623157E308 "b")
 ```
 
 
@@ -391,7 +520,9 @@ comparators.
 Why?  Java comparators must return a 32-bit `int` type, so when a
 Clojure function is used as a comparator and it returns any type of
 number, that number is converted to an `int` behind the scenes using
-the Java method [`intValue`][NumberintValue].
+the Java method [`intValue`][NumberintValue].  See [Clojure source
+file `src/jvm/clojure/lang/AFunction.java` method
+`compare`][Clojure-AFunction-compare] if you want the details.
 
 [NumberintValue]: http://docs.oracle.com/javase/6/docs/api/java/lang/Number.html#intValue%28%29
 
@@ -448,11 +579,6 @@ better not to risk it.
 
 ## TBD
 
-TBD: Is Java sort guaranteed to be stable for array elements
-considered equal by the given comparator?  Yes, according to Java docs
-it is:
-http://docs.oracle.com/javase/6/docs/api/java/util/Arrays.html#sort%28java.lang.Object[]%29
-
 TBD: How does Double/NaN compare to other things?  The answer is
 included in the Java docs for sorting an array of doubles:
 http://docs.oracle.com/javase/6/docs/api/java/util/Arrays.html#sort%28double[]%29
@@ -466,6 +592,3 @@ TBD: Is function `clojure.core/comparator` useful for anything?  It
 seems like with `AFunction`'s `compare` method changing boolean return
 values to -1, 0, or 1, `comparator` would be unnecessary and perhaps
 obsolete.
-
-TBD: Make links for the see also list, and other Clojure functions
-mentioned in the text below.
