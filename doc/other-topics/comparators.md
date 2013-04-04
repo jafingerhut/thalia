@@ -64,6 +64,20 @@ own comparator and use that instead.  There are a few rules to follow
 when writing a comparator that works correctly.
 
 
+## Off-the-shelf comparators
+
+First consider using well-tested comparators developed and tested by
+others, especially if they are complex.
+
+A perfect example of this would be sorting Unicode strings in
+different languages in orders specific to different locales.  The Java
+[Collator][Java-Collator] class and [ICU][ICU] (International
+Components for Unicode) provide libraries for this.
+
+[Java-Collator]: http://docs.oracle.com/javase/6/docs/api/java/text/Collator.html
+[ICU]: http://site.icu-project.org/home#TOC-What-is-ICU-
+
+
 ## Writing your own comparators
 
 ### Reverse order
@@ -103,8 +117,9 @@ method only works if the field values to be sorted are already sorted
 by `compare` in an order you wish (or the reverse of the order you
 wish).
 
-First we will show an equivalent way to do it that does not use
-Clojure vector comparison, but should make the behavior clear.
+First we will show an equivalent way to do it in function
+`by-salary-name-co` that does not use Clojure vector comparison.  It
+should make the desired comparison behavior clear.
 
 ```clojure
     (def john1 {:name "John", :salary 35000.00, :company "Acme" })
@@ -113,8 +128,6 @@ Clojure vector comparison, but should make the behavior clear.
     (def john3 {:name "John", :salary 30000.00, :company "Asteroids-R-Us" })
     (def people [john1 mary john2 john3])
 
-    ;; Here is a longer way to do it, without using Clojure vector
-    ;; comparison.
     (defn by-salary-name-co [x y]
       ;; :salary values sorted in decreasing order because x and y
       ;; swapped in this compare.
@@ -135,8 +148,8 @@ Clojure vector comparison, but should make the behavior clear.
      {:name "John", :salary 30000.0, :company "Asteroids-R-Us"})
 ```
 
-This is the shorter way that behaves exactly the same as above, using
-compare on Clojure vectors.  Note that as above, the field :salary is
+Below is the shorter way, by comparing Clojure vectors.  It behaves
+exactly the same as above.  Note that as above, the field :salary is
 sorted in descending order because the x and y are swapped.
 
 ```clojure
@@ -153,24 +166,22 @@ sorted in descending order because the x and y are swapped.
 
 The above is fine for key values that are inexpensive to compute from
 the values being sorted.  If they key values are expensive to compute,
-and you would like them to be calculated only once for each value
-being sorted, it is better to calculate them once and save them, at
-least for as long as you need to compare the values.  See the
+it is better to calculate them once for each value.  See the
 "decorate-sort-undecorate" technique described in the documentation
 for [`sort-by`][doc-sort-by].
 
 
 ### Boolean comparators
 
-Java comparators are all 3-way, meaning they return a negative,
-positive, or 0 `int` depending upon whether the first argument should
-come before, after, or is equal to the second argument.
+Java comparators are all 3-way, meaning they return a negative, 0, or
+positive integer depending upon whether the first argument should be
+considered less than, equal to, or greater than the second argument.
 
 In Clojure, you may also use boolean comparators that return true if
 the first argument should come before the second argument, or false
-otherwise (i.e. should come after, _or_ equal).  The function `<` is a
-perfect example if you only wish to compare numbers and sort them in
-increasing order.  `>` works for sorting numbers in decreasing order.
+otherwise (i.e. should come after, _or_ it is equal).  The function
+`<` is a perfect example, as long as you only need to compare numbers.
+`>` works for sorting numbers in decreasing order.
 
 Behind the scenes, when such a Clojure function `bool-cmp-fn` is
 "called as a comparator", Clojure runs code that works like this to
@@ -184,17 +195,20 @@ return an `int` instead, as callers of a comparator expect.
         0))  ; x = y
 ```
 
-You can see this by calling the `compare` method of any function
-taking 2 arguments and returning a number or boolean.  I will give an
-example with a custom version `my-<` of `<` that prints its arguments
-when it is called, so you can see the cases where it is called more
-than once:
+You can see this by calling the `compare` method of any Clojure
+function.  Below is an example with a custom version `my-<` of `<`
+that prints its arguments when it is called, so you can see the cases
+where it is called more than once:
 
 ```clojure
     user> (defn my-< [a b]
-	    (println "(my-<" a b ") returns " (< a b))
-	    (< a b))
+            (println "(my-<" a b ") returns " (< a b))
+            (< a b))
     #'user/my-<
+
+    ;; (. o (compare a b)) calls the method named compare for object
+    ;; o, with arguments a and b.  In this case the object is the
+    ;; Clojure function my-<
     user> (. my-< (compare 1 2))
     (my-< 1 2 ) returns  true
     -1
@@ -214,8 +228,9 @@ than once:
     false
 ```
 
-See [Clojure source file `src/jvm/clojure/lang/AFunction.java` method
-`compare`][Clojure-AFunction-compare] if you want all the details.
+See Clojure source file
+[`src/jvm/clojure/lang/AFunction.java`][Clojure-AFunction-compare]
+method `compare` if you want all the details.
 
 [Clojure-AFunction-compare]: https://github.com/clojure/clojure/blob/clojure-1.5.1/src/jvm/clojure/lang/AFunction.java#L46
 
@@ -235,9 +250,9 @@ don't know how to compare them" answers from the comparator).
 
 For example, you can order all fractions written in the form `m/n` for
 integers `m` and `n` from smallest to largest, in the usual way this
-would be done in mathematics.  Many of the fractions would be equal to
-each other, e.g. `1/2 = 2/4 = 3/6`.  A comparator implementing that
-total order should behave as if they are all the same.
+is done in mathematics.  Many of the fractions would be equal to each
+other, e.g. `1/2 = 2/4 = 3/6`.  A comparator implementing that total
+order should behave as if they are all the same.
 
 A 3-way comparator `(cmp a b)` should return a negative, positive, or
 0 `int` if `a` is before, after, or is considered equal to `b` in the
@@ -247,162 +262,10 @@ A boolean comparator `(cmp a b)` should return true if `a` is before
 `b` in the total order, or false if `a` is after or considered equal
 to `b`.
 
-In other words, if you write boolean comparator, it should work like
+In other words, if you write a boolean comparator, it should work like
 `<` does for numbers.  As explained later, it should _not_ behave like
 `<=` for numbers (see section "Comparators for sorted sets and maps
 are easy to get wrong").
-
-
-## Off-the-shelf comparators
-
-
-### Unicode strings
-
-TBD: Give links to Unicode string comparators, and any other useful
-ones I can find.
-
-
-### Comparators that work between different types
-
-Sometimes you might wish to sort a collection of values by some key,
-but that key is not unique.  You want the values with the same key to
-be sorted in some predictable, repeatable order, but you don't care
-much what that order is.
-
-As a toy example, you might have a collection of vectors, each with
-two elements, where the first element is always a string and the
-second is always a number.  You want to sort them by the number value
-in increasing order, but you know your data can contain more than one
-vector with the same number.  You want to break ties in some way,
-consistently across multiple sorts.
-
-This case is easily implemented using a multi-field comparator as
-described above.
-
-```clojure
-    (defn by-number-then-string [[a-str a-num] [b-str b-num]]
-      (compare [a-num a-str]
-               [b-num b-str]))
-```
-
-If the entire vector values can be compared with `compare`, because
-all vectors are equal length, and the type of each corresponding
-elements can be compared to each other with `compare`, then you can
-also do this, using the entire vector values as the final tie-breaker:
-
-```clojure
-    (defn by-number-then-whatever [a-vec b-vec]
-      (compare [(second a-vec) a-vec]
-               [(second b-vec) b-vec]))
-```
-
-However, that will throw an exception if some element position in the
-vectors contain types too different for `compare` to work on, and
-those vectors have the same second element:
-
-```clojure
-    ;; compare throws exception if you try to compare a string and a
-    ;; keyword
-    user> (sort by-number-then-whatever [["a" 2] ["c" 3] [:b 2]])
-    ClassCastException java.lang.String cannot be cast to clojure.lang.Keyword  clojure.lang.Keyword.compareTo (Keyword.java:109)
-```
-
-`cc-cmp` ("cross class compare") below may be useful in such cases.
-It can compare values of different types, which it orders based on a
-string that represents the type of the value.  It isn't simply `(class
-x)`, because then numbers like `Integer` and `Long` would not be
-sorted in numeric order.
-
-```clojure
-
-;; comparison-class throws exceptions for many types that would be
-;; useful to include, e.g. Java arrays, and Clojure records, sets, and
-;; maps.  We'll save such enhancements for a fancier version.
-
-(defn comparison-class [x]
-  (cond (nil? x) ""
-        ;; Lump all numbers together since Clojure's compare can
-        ;; compare them all to each other sensibly.
-        (number? x) "java.lang.Number"
-        ;; sequential? includes lists, conses, vectors, and seqs of
-        ;; vectors.  This should be everything we would want to
-        ;; compare using cmp-seq-lexi below.  TBD: Does it leave
-        ;; anything out?  Include anything it should not?
-        (sequential? x) "clojure.lang.Sequential"
-        ;; Comparable includes Boolean, Character, String, Clojure
-        ;; refs, and many others.
-        (instance? Comparable x) (.getName (class x))
-        :else (throw
-               (ex-info (format "cc-cmp does not implement comparison of values with class %s"
-                                (.getName (class x)))
-                        {:value x}))))
-
-(defn cmp-seq-lexi
-  [cmpf x y]
-  (loop [x x
-         y y]
-    (if (seq x)
-      (if (seq y)
-        (let [c (cmpf (first x) (first y))]
-          (if (zero? c)
-            (recur (rest x) (rest y))
-            c))
-        ;; else we reached end of y first, so x > y
-        1)
-      (if (seq y)
-        ;; we reached end of x first, so x < y
-        -1
-        ;; Sequences contain same elements.  x = y
-        0))))
-
-;; The same result can be obtained by calling cmp-seq-lexi on two
-;; vectors, but this one should allocate less memory comparing
-;; vectors.
-(defn cmp-vec-lexi
-  [cmpf x y]
-  (let [x-len (count x)
-        y-len (count y)
-        len (min x-len y-len)]
-    (loop [i 0]
-      (if (== i len)
-        ;; If all elements 0..(len-1) are same, shorter vector comes
-        ;; first.
-        (compare x-len y-len) 
-        (let [c (cmpf (x i) (y i))]
-          (if (zero? c)
-            (recur (inc i))
-            c))))))
-
-(defn cc-cmp
-  [x y]
-  (let [x-cls (comparison-class x)
-        y-cls (comparison-class y)
-        c (compare x-cls y-cls)]
-    (cond (not= c 0) c  ; different classes
-
-          ;; Make a special check for two vectors, since cmp-vec-lexi
-          ;; should allocate less memory comparing them than
-          ;; cmp-seq-lexi.  Both here and for comparing sequences, we
-          ;; must use cc-cmp recursively on the elements, because if
-          ;; we used compare we would lose the ability to compare
-          ;; elements with different types.
-          (and (vector? x) (vector? y)) (cmp-vec-lexi cc-cmp x y)
-
-          ;; This will compare any two sequences, if they are not both
-          ;; vectors, e.g. a vector and a list will be compared here.
-          (= x-cls "clojure.lang.Sequential")
-          (cmp-seq-lexi cc-cmp x y)
-          
-          :else (compare x y))))
-```
-
-Here is a quick example demonstrating `cc-cmp`'s ability to compare
-values of different types.
-
-```clojure
-    user> (sort cc-cmp [true false nil Double/MAX_VALUE 10 Integer/MIN_VALUE :a "b" 'c (ref 5) [5 4 3] '(5 4) (seq [5]) (cons 6 '(1 2 3))])
-    (nil :a #<Ref@6ed4b575: 5> (5) (5 4) [5 4 3] (6 1 2 3) c false true -2147483648 10 1.7976931348623157E308 "b")
-```
 
 
 ## Mistakes to avoid
@@ -575,6 +438,149 @@ subtracting an arbitrary pair of 16-bit characters converted to ints
 is guaranteed to fit within an `int` without wrapping around.  If your
 comparator is not guaranteed to be given such restricted inputs,
 better not to risk it.
+
+
+## Comparators that work between different types
+
+Sometimes you might wish to sort a collection of values by some key,
+but that key is not unique.  You want the values with the same key to
+be sorted in some predictable, repeatable order, but you don't care
+much what that order is.
+
+As a toy example, you might have a collection of vectors, each with
+two elements, where the first element is always a string and the
+second is always a number.  You want to sort them by the number value
+in increasing order, but you know your data can contain more than one
+vector with the same number.  You want to break ties in some way,
+consistently across multiple sorts.
+
+This case is easily implemented using a multi-field comparator as
+described in an earlier section.
+
+```clojure
+    (defn by-number-then-string [[a-str a-num] [b-str b-num]]
+      (compare [a-num a-str]
+               [b-num b-str]))
+```
+
+If the entire vector values can be compared with `compare`, because
+all vectors are equal length, and the type of each corresponding
+elements can be compared to each other with `compare`, then you can
+also do this, using the entire vector values as the final tie-breaker:
+
+```clojure
+    (defn by-number-then-whatever [a-vec b-vec]
+      (compare [(second a-vec) a-vec]
+               [(second b-vec) b-vec]))
+```
+
+However, that will throw an exception if some element position in the
+vectors contain types too different for `compare` to work on, and
+those vectors have the same second element:
+
+```clojure
+    ;; compare throws exception if you try to compare a string and a
+    ;; keyword
+    user> (sort by-number-then-whatever [["a" 2] ["c" 3] [:b 2]])
+    ClassCastException java.lang.String cannot be cast to clojure.lang.Keyword  clojure.lang.Keyword.compareTo (Keyword.java:109)
+```
+
+`cc-cmp` ("cross class compare") below may be useful in such cases.
+It can compare values of different types, which it orders based on a
+string that represents the type of the value.  It isn't simply `(class
+x)`, because then numbers like `Integer` and `Long` would not be
+sorted in numeric order.
+
+```clojure
+
+;; comparison-class throws exceptions for many types that would be
+;; useful to include, e.g. Java arrays, and Clojure records, sets, and
+;; maps.  We'll save such enhancements for a fancier version.
+
+(defn comparison-class [x]
+  (cond (nil? x) ""
+        ;; Lump all numbers together since Clojure's compare can
+        ;; compare them all to each other sensibly.
+        (number? x) "java.lang.Number"
+        ;; sequential? includes lists, conses, vectors, and seqs of
+        ;; vectors.  This should be everything we would want to
+        ;; compare using cmp-seq-lexi below.  TBD: Does it leave
+        ;; anything out?  Include anything it should not?
+        (sequential? x) "clojure.lang.Sequential"
+        ;; Comparable includes Boolean, Character, String, Clojure
+        ;; refs, and many others.
+        (instance? Comparable x) (.getName (class x))
+        :else (throw
+               (ex-info (format "cc-cmp does not implement comparison of values with class %s"
+                                (.getName (class x)))
+                        {:value x}))))
+
+(defn cmp-seq-lexi
+  [cmpf x y]
+  (loop [x x
+         y y]
+    (if (seq x)
+      (if (seq y)
+        (let [c (cmpf (first x) (first y))]
+          (if (zero? c)
+            (recur (rest x) (rest y))
+            c))
+        ;; else we reached end of y first, so x > y
+        1)
+      (if (seq y)
+        ;; we reached end of x first, so x < y
+        -1
+        ;; Sequences contain same elements.  x = y
+        0))))
+
+;; The same result can be obtained by calling cmp-seq-lexi on two
+;; vectors, but this one should allocate less memory comparing
+;; vectors.
+(defn cmp-vec-lexi
+  [cmpf x y]
+  (let [x-len (count x)
+        y-len (count y)
+        len (min x-len y-len)]
+    (loop [i 0]
+      (if (== i len)
+        ;; If all elements 0..(len-1) are same, shorter vector comes
+        ;; first.
+        (compare x-len y-len) 
+        (let [c (cmpf (x i) (y i))]
+          (if (zero? c)
+            (recur (inc i))
+            c))))))
+
+(defn cc-cmp
+  [x y]
+  (let [x-cls (comparison-class x)
+        y-cls (comparison-class y)
+        c (compare x-cls y-cls)]
+    (cond (not= c 0) c  ; different classes
+
+          ;; Make a special check for two vectors, since cmp-vec-lexi
+          ;; should allocate less memory comparing them than
+          ;; cmp-seq-lexi.  Both here and for comparing sequences, we
+          ;; must use cc-cmp recursively on the elements, because if
+          ;; we used compare we would lose the ability to compare
+          ;; elements with different types.
+          (and (vector? x) (vector? y)) (cmp-vec-lexi cc-cmp x y)
+
+          ;; This will compare any two sequences, if they are not both
+          ;; vectors, e.g. a vector and a list will be compared here.
+          (= x-cls "clojure.lang.Sequential")
+          (cmp-seq-lexi cc-cmp x y)
+          
+          :else (compare x y))))
+```
+
+Here is a quick example demonstrating `cc-cmp`'s ability to compare
+values of different types.
+
+```clojure
+    user> (sort cc-cmp [true false nil Double/MAX_VALUE 10 Integer/MIN_VALUE :a "b" 'c (ref 5) [5 4 3] '(5 4) (seq [5]) (cons 6 '(1 2 3))])
+    (nil :a #<Ref@6ed4b575: 5> (5) (5 4) [5 4 3] (6 1 2 3) c false true -2147483648 10 1.7976931348623157E308 "b")
+```
 
 
 ## TBD
