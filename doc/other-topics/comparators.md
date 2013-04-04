@@ -503,9 +503,12 @@ sorted in numeric order.
         ;; compare them all to each other sensibly.
         (number? x) "java.lang.Number"
         ;; sequential? includes lists, conses, vectors, and seqs of
-        ;; vectors.  This should be everything we would want to
-        ;; compare using cmp-seq-lexi below.  TBD: Does it leave
-        ;; anything out?  Include anything it should not?
+	;; just about any collection, although it is recommended not
+	;; to use this to compare seqs of unordered collections like
+	;; sets or maps (vectors should be OK).  This should be
+	;; everything we would want to compare using cmp-seq-lexi
+	;; below.  TBD: Does it leave anything out?  Include anything
+	;; it should not?
         (sequential? x) "clojure.lang.Sequential"
         ;; Comparable includes Boolean, Character, String, Clojure
         ;; refs, and many others.
