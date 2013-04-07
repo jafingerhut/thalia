@@ -17,18 +17,19 @@ statement in your `ns` declaration like this:
       (:require [clojure.string :as s]))
 ```
 
-    | What to   | Find              |            |
-    | find      | first             | Find all   |
-    |-----------|-------------------|------------|
+    | What to   |                            |                            |
+    | find      | Find first                 | Find all                   |
+    |-----------|----------------------------|----------------------------|
+    | character | (.indexOf s (int ch))  (1) | (index-seq s find-ch)  (2) |
+    | string    | (.indexOf s find-s)    (1) | (index-seq s find-s)   (2) |
+    | regex     | (re-find regex s)          | (re-seq regex s)           |
 
-    | character | (.indexOf         | (2)        |
-    |           |   s (int ch)) (1) |            |
-
-    | string    | (.indexOf         | (2)        |
-    |           |   s find-s) (1)   |            |
-
-    | regex     | (re-find          | (re-seq    |
-    |           |   regex s)        |   regex s) |
+    | What to   |                                      |                                   |
+    | replace   | Replace first                        | Replace all                       |
+    |-----------|--------------------------------------|-----------------------------------|
+    | character | (s/replace-first s old-ch new-ch)    | (s/replace s old-ch new-ch)   (3) |
+    | string    | (s/replace-first s old-s new-s)      | (s/replace s old-s new-s)         |
+    | regex     | (s/replace-first s regex new-s)  (4) | (s/replace s regex new-s)     (4) |
 
 (1) These `.indexOf` Java methods returns the index within string `s`
 of the first occurrence of character `ch` or string `find-s`, or -1 if
@@ -36,19 +37,6 @@ there is no such character/string.
 
 (2) I know of nothing built into Java or Clojure to do this, but
 `index-seq` in the "Code" section below is one way to do it.
-
-    | What to   |                      |                        |
-    | replace   | Replace first        | Replace all            |
-    |-----------|----------------------|------------------------|
-
-    | character | (s/replace-first     | (s/replace             |
-    |           |   s old-ch new-ch)   |   s old-ch new-ch) (3) |
-
-    | string    | (s/replace-first     | (s/replace             |
-    |           |   s old-s new-s)     |   s old-s new-s)       |
-
-    | regex     | (s/replace-first     | (s/replace             |
-    |           |   s regex new-s) (4) |   s regex new-s) (4)   |
 
 (3) To replace multiple different characters, each with a potentially
 different string, see also `clojure.string/escape`.
