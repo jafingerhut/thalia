@@ -486,15 +486,15 @@ sorted in numeric order.
 
 ```clojure
 
-;; comparison-class throws exceptions for many types that would be
-;; useful to include, e.g. Java arrays, and Clojure records, sets, and
-;; maps.  We'll save such enhancements for a fancier version.
+;; comparison-class throws exceptions for some types that might be
+;; useful to include.
 
 (defn comparison-class [x]
   (cond (nil? x) ""
         ;; Lump all numbers together since Clojure's compare can
         ;; compare them all to each other sensibly.
         (number? x) "java.lang.Number"
+
         ;; sequential? includes lists, conses, vectors, and seqs of
 	;; just about any collection, although it is recommended not
 	;; to use this to compare seqs of unordered collections like
@@ -503,6 +503,11 @@ sorted in numeric order.
 	;; below.  TBD: Does it leave anything out?  Include anything
 	;; it should not?
         (sequential? x) "clojure.lang.Sequential"
+
+        (set? x) "clojure.lang.IPersistentSet"
+        (map? x) "clojure.lang.IPersistentMap"
+        (.isArray (class x)) "java.util.Arrays"
+
         ;; Comparable includes Boolean, Character, String, Clojure
         ;; refs, and many others.
         (instance? Comparable x) (.getName (class x))
@@ -547,12 +552,43 @@ sorted in numeric order.
             (recur (inc i))
             c))))))
 
+(defn cmp-array-lexi
+  [cmpf x y]
+  (let [x-len (alength x)
+        y-len (alength y)
+        len (min x-len y-len)]
+    (loop [i 0]
+      (if (== i len)
+        ;; If all elements 0..(len-1) are same, shorter array comes
+        ;; first.
+        (compare x-len y-len) 
+        (let [c (cmpf (aget x i) (aget y i))]
+          (if (zero? c)
+            (recur (inc i))
+            c))))))
+
+
 (defn cc-cmp
   [x y]
   (let [x-cls (comparison-class x)
         y-cls (comparison-class y)
         c (compare x-cls y-cls)]
     (cond (not= c 0) c  ; different classes
+
+          ;; Compare sets to each other as sequences, with elements in
+          ;; sorted order.
+          (= x-cls "clojure.lang.IPersistentSet")
+          (cmp-seq-lexi cc-cmp (sort cc-cmp x) (sort cc-cmp y))
+
+          ;; Compare maps to each other as sequences of [key val]
+          ;; pairs, with pairs in order sorted by key.
+          (= x-cls "clojure.lang.IPersistentMap")
+          (cmp-seq-lexi cc-cmp
+                        (sort-by key cc-cmp (seq x))
+                        (sort-by key cc-cmp (seq y)))
+
+          (= x-cls "java.util.Arrays")
+          (cmp-array-lexi cc-cmp x y)
 
           ;; Make a special check for two vectors, since cmp-vec-lexi
           ;; should allocate less memory comparing them than
@@ -574,8 +610,27 @@ Here is a quick example demonstrating `cc-cmp`'s ability to compare
 values of different types.
 
 ```clojure
-    user> (sort cc-cmp [true false nil Double/MAX_VALUE 10 Integer/MIN_VALUE :a "b" 'c (ref 5) [5 4 3] '(5 4) (seq [5]) (cons 6 '(1 2 3))])
-    (nil :a #<Ref@6ed4b575: 5> (5) (5 4) [5 4 3] (6 1 2 3) c false true -2147483648 10 1.7976931348623157E308 "b")
+    user> (pprint (sort cc-cmp [true false nil Double/MAX_VALUE 10 Integer/MIN_VALUE :a "b" 'c (ref 5) [5 4 3] '(5 4) (seq [5]) (cons 6 '(1)) #{1 2 3} #{2 1} {:a 1, :b 2} {:a 1, :b -2} (object-array [1 2 3 4])]))
+    (nil
+     {:a 1, :b -2}
+     {:a 1, :b 2}
+     #{1 2}
+     #{1 2 3}
+     :a
+     #<Ref@1493d9b3: 5>
+     (5)
+     (5 4)
+     [5 4 3]
+     (6 1)
+     c
+     false
+     true
+     -2147483648
+     10
+     1.7976931348623157E308
+     "b"
+     [1, 2, 3, 4])
+    nil
 ```
 
 
