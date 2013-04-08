@@ -13,20 +13,19 @@
         0)))
 
 
+;; TBD: Write doc string for multicmp2 with examples of use.
+;; Allow optional comparison function cmp for the key, defaulting to
+;; clojure.core/compare if none is given.  Allow optional order :asc
+;; or :desc, defaulting to :asc.  comparison function can be left out
+;; if you want clojure.core/compare, by specifing :asc or :desc as
+;; second item of vector.
+
 (defn multicmp2 [& key-specs]
   ;; Loop through the key-specs and create the individual comparison
   ;; functions for each one only once.
   (let [cmp-fns (map #(let [[keyfn x y] (if (vector? %)
                                           %
                                           [%])
-                            ;; Allow optional comparison function cmp
-                            ;; for the key, defaulting to
-                            ;; clojure.core/compare if none is given.
-                            ;; Allow optional order :asc or :desc,
-                            ;; defaulting to :asc.  comparison
-                            ;; function can be left out if you want
-                            ;; clojure.core/compare, by specifing :asc
-                            ;; or :desc as second item of vector.
                             [^clojure.lang.AFunction cmp order]
                             (if y
                               [x y]
