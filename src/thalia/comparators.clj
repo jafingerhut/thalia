@@ -45,23 +45,28 @@
           0))))
 
 
-;; comparison-class throws exceptions for many types that would be
-;; useful to include, e.g. Java arrays, and Clojure records, sets, and
-;; maps.  We'll save such enhancements for a fancier version.
+;; comparison-class throws exceptions for some types that might be
+;; useful to include.
 
 (defn comparison-class [x]
   (cond (nil? x) ""
         ;; Lump all numbers together since Clojure's compare can
         ;; compare them all to each other sensibly.
         (number? x) "java.lang.Number"
+
         ;; sequential? includes lists, conses, vectors, and seqs of
-	;; just about any collection, although it is recommended not
-	;; to use this to compare seqs of unordered collections like
-	;; sets or maps (vectors should be OK).  This should be
-	;; everything we would want to compare using cmp-seq-lexi
-	;; below.  TBD: Does it leave anything out?  Include anything
-	;; it should not?
+        ;; just about any collection, although it is recommended not
+        ;; to use this to compare seqs of unordered collections like
+        ;; sets or maps (vectors should be OK).  This should be
+        ;; everything we would want to compare using cmp-seq-lexi
+        ;; below.  TBD: Does it leave anything out?  Include anything
+        ;; it should not?
         (sequential? x) "clojure.lang.Sequential"
+
+        (set? x) "clojure.lang.IPersistentSet"
+        (map? x) "clojure.lang.IPersistentMap"
+        (.isArray (class x)) "java.util.Arrays"
+
         ;; Comparable includes Boolean, Character, String, Clojure
         ;; refs, and many others.
         (instance? Comparable x) (.getName (class x))
@@ -69,6 +74,7 @@
                (ex-info (format "cc-cmp does not implement comparison of values with class %s"
                                 (.getName (class x)))
                         {:value x}))))
+
 
 (defn cmp-seq-lexi
   "Compare sequences x and y in lexicographic order, using comparator
@@ -91,6 +97,7 @@ is less than, equal to, or greater than y."
         -1
         ;; Sequences contain same elements.  x = y
         0))))
+
 
 ;; The same result can be obtained by calling cmp-seq-lexi on two
 ;; vectors, but this one should allocate less memory comparing
@@ -118,19 +125,40 @@ works for vectors."
             (recur (inc i))
             c))))))
 
+(defn cmp-array-lexi
+  "Compare Java arrays x and y in lexicographic order, using
+comparator cmpf to compare elements from x and y to each other.  As a
+comparator function, cmp-array-lexi returns a negative, 0, or positive
+integer if x is less than, equal to, or greater than y."
+  [cmpf x y]
+  (let [x-len (alength x)
+        y-len (alength y)
+        len (min x-len y-len)]
+    (loop [i 0]
+      (if (== i len)
+        ;; If all elements 0..(len-1) are same, shorter array comes
+        ;; first.
+        (compare x-len y-len) 
+        (let [c (cmpf (aget x i) (aget y i))]
+          (if (zero? c)
+            (recur (inc i))
+            c))))))
+
+
 (defn cc-cmp
   "cc-cmp compares two values x and y.  As a comparator, it returns a
 negative, 0, or positive integer if x is less than, equal to, or
 greater than y.
 
 cc-cmp can compare values of many types, including numbers, strings,
-symbols, keywords, vectors, lists, sequences, anything that implements
-the Java Comparable interface (including booleans, characters, File,
-URL, UUID, Clojure refs), and nil.
+symbols, keywords, vectors, lists, sequences, sets, maps, records,
+Java arrays, anything that implements the Java Comparable
+interface (including booleans, characters, File, URL, UUID, Clojure
+refs), and nil.
 
 Unlike the function compare, it sorts vectors in lexicographic order.
-It also sorts lists and sequences, on which compare throws exceptions,
-in lexicographic order.
+It also sorts lists, sequences, and Java arrays in lexicographic
+order, on which compare throws exceptions.
 
 Also unlike compare, cc-cmp can compare values of different types to
 each other without throwing an exception, if it can compare them at
@@ -139,15 +167,36 @@ string that is the name of their class.  Note that all numbers use the
 string \"java.lang.Number\" so that numbers are sorted together,
 rather than separated out by type, and for a similar reason all
 vectors, lists, and sequences use the string
-\"clojure.lang.Sequential\".
+\"clojure.lang.Sequential\".  All sets use the string
+\"clojure.lang.IPersistentSet\", and all maps and records use the
+string \"clojure.lang.IPersistentMap\".  All Java arrays use the
+string \"java.util.Arrays\" (that is not the name of any instantiable
+class -- it is simply used for sorting Java arrays versus other
+objects).
 
-cc-cmp throws exceptions if given a Clojure set or map, or any other
-type of value not mentioned above."
+cc-cmp throws an exception if given any type of value not mentioned
+above, e.g. Java arrays."
+
   [x y]
   (let [x-cls (comparison-class x)
         y-cls (comparison-class y)
         c (compare x-cls y-cls)]
     (cond (not= c 0) c  ; different classes
+
+          ;; Compare sets to each other as sequences, with elements in
+          ;; sorted order.
+          (= x-cls "clojure.lang.IPersistentSet")
+          (cmp-seq-lexi cc-cmp (sort cc-cmp x) (sort cc-cmp y))
+
+          ;; Compare maps to each other as sequences of [key val]
+          ;; pairs, with pairs in order sorted by key.
+          (= x-cls "clojure.lang.IPersistentMap")
+          (cmp-seq-lexi cc-cmp
+                        (sort-by key cc-cmp (seq x))
+                        (sort-by key cc-cmp (seq y)))
+
+          (= x-cls "java.util.Arrays")
+          (cmp-array-lexi cc-cmp x y)
 
           ;; Make a special check for two vectors, since cmp-vec-lexi
           ;; should allocate less memory comparing them than
@@ -179,9 +228,31 @@ type of value not mentioned above."
                 [6 1 2 3]
                 (cons 6 '(1 2 3))])
 
+(def set-vals1 [#{1 2 3}
+                (sorted-set-by > 1 2 3)
+                #{:a :b "c"}])
+
+(defrecord MyRec [foo bar baz])
+
+(def map-vals1 [{:a 1, :b 2}
+                (->MyRec "x" "y" "z")
+                {:bar "y" :baz "z" :foo "w"}])
+
+(def array-vals1 [(byte-array (map byte [1 2 3 4]))
+                  (short-array (map short [1 2 3 4]))
+                  (int-array (map int [1 2 3 4]))
+                  (long-array (map long [1 2 3 4]))
+                  (float-array (map float [1 2 3 4]))
+                  (double-array (map double [1 2 3 4]))
+                  (char-array (map char [1 2 3 4]))
+                  (object-array [1 2 3 4])])
+
 (def variety-vals (concat [true false nil Double/MAX_VALUE 10 Integer/MIN_VALUE
                            :a "b" 'c (ref 5)]
-                          seq-vals2))
+                          array-vals1
+                          seq-vals2
+                          set-vals1
+                          map-vals1))
 
 (def some-vals variety-vals)
 (def some-vals seq-vals)
