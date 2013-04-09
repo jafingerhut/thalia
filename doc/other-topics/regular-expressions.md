@@ -103,10 +103,10 @@ no capturing groups in the regex, or a vector of strings if there are.
 ## See also
 
 + [Quick start][regex-quickstart] section on regular-expressions.info
-site.  Note: this site describes features that exist in regex
-implementations that are not implemented in Java, but usually does a
-good job distinguishing which features exist in Java vs. those that do
-not.
+site.  Note: While many of the regex features described on this site
+can be used in Java regexes, not all of them can.  The site usually
+does a good job distinguishing which features exist in Java vs. those
+that do not.
 
 + [Documentation][Java-regex] for Java regular expressions.
 
@@ -126,9 +126,9 @@ See also: `re-pattern`, `re-matcher`, `re-matches`, `re-seq`,
 `re-groups`, `clojure.string/replace`, `clojure.string/replace-first`
 
 
-TBD: Some explanation on the difference between specifying regex with
-#"" syntax vs. as a string using re-pattern.  Basically #"" lets you
-type fewer backslash characters.
+TBD: Some explanation on the difference between specifying regex
+using #"" syntax vs. as a string using re-pattern.  Basically #"" lets
+you type fewer backslash characters.
 
 
 TBD: How to take a string and use it as part of a regex, matching its
