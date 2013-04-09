@@ -31,7 +31,7 @@ matching behavior between different regex implementations.
     (require '[clojure.string :as s])
 ```
 
-No match returns nil
+`re-find` returns nil if there is no match.
 
 ```clojure
     user> (re-find #"Time:" "No time like the present")
@@ -47,9 +47,9 @@ match `re-find` returns the part of the string that matches the regex.
     "Time: 09:58:10"
 ```
 
-If there are capturing groups, then on a match re-find returns a
-vector of strings, the first being the string that matches the entire
-regex, and each following string matching successive capturing groups.
+If there are capturing groups, then on a match `re-find` returns a
+vector of strings.  The first is the string that matches the entire
+regex.  Each following string matches one capturing group.
 
 ```clojure
     user> (re-find #"Time: (..):(..):(..)"
@@ -57,7 +57,8 @@ regex, and each following string matching successive capturing groups.
     ["Time: 09:58:10" "09" "58" "10"]
 ```
 
-The order is the order that the left parens appear in the regex.
+The order of matching strings is the order that the left parens appear
+in the regex.
 
 ```clojure
     user> (re-find #"(Time: ((..):(..))):(..)"
@@ -90,8 +91,8 @@ no capturing groups in the regex, or a vector of strings if there are.
 
 ```clojure
     user> (s/replace "0x4e out of 0x64 dentists agree they prefer decimal"
-       		     #"0x[0-9a-fA-F]+"
- 		     (fn [s] (str (BigInteger. (subs s 2) 16))))
+                     #"0x[0-9a-fA-F]+"
+                     (fn [s] (str (BigInteger. (subs s 2) 16))))
     "78 out of 100 dentists agree they prefer decimal"
 ```
 
