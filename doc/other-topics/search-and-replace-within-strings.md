@@ -1,7 +1,7 @@
 # Searching and replacing within strings
 
-The tables below give Clojure expressions assuming that `s` is the
-string in which you want to find or replace occurences of things.  The
+The tables below give Clojure expressions where `s` is the string in
+which you want to find or replace occurences of things.  The
 expressions use `s/` as an alias for the namespace `clojure.string/`.
 If you have a `:require` like this in your `ns` declaration, you can
 do the same in your code:
