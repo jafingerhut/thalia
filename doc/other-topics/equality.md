@@ -1,7 +1,11 @@
 # Equality
 
-Equality in Clojure is most often tested using `=`.
+This document discusses the behavior of equality in Clojure 1.5.1,
+including the functions `=`, `==`, and `identical?`, and how they
+differ from Java's `equals` method.  It also has some description of
+Clojure's `hash`, and how it differs from Java's `hashCode`.
 
+Equality in Clojure is most often tested using `=`.
 
 ```clojure
     user> (= 2 (+ 1 1))
@@ -18,11 +22,6 @@ values that do not have the same type as each other.
     true
     user> (= 3 3N)
     true
-
-    user> (range 3)
-    (0 1 2)
-    user> (= (range 3) [0 1 2])
-    true
 ```
 
 `=` does *not* always return true when two numbers are have the same
@@ -32,38 +31,6 @@ numeric value.  See the section "Numbers" below for details.
     user> (= 2 2.0)
     false
 ```
-
-Clojure `=` defaults to Java's `equals` for all types except numbers
-and Clojure collections.
-
-Booleans and characters are straightforward in their equality.
-
-Strings are straightforward, too, except in some cases involving
-Unicode where strings that consist of different sequences of Unicode
-characters can look the same when displayed, and in some applications
-should be treated as equal even though `=` returns false.  See
-"Normalization" on the Wikipedia page on [Unicode
-equivalence][UnicodeEquivalence] if you are interested.  There are
-libraries like [ICU4J][ICU] (International Components for Unicode for
-Java) that can help if you need to do this.
-
-[UnicodeEquivalence]: http://en.wikipedia.org/wiki/Unicode_equivalence
-[ICU]: http://site.icu-project.org/
-
-Two symbols are equal if they have the same namespace and symbol name.
-Two keywords are equal given the same conditions.  Clojure makes
-equality testing for keywords particularly quick (a simple pointer
-comparison).  It achieves this by its `intern` method of the Keyword
-class guaranteeing that all keywords with the same namespace and name
-will return the same keyword object.
-
-Like keywords, Clojure refs, vars, and atoms are only equal to others
-if they are the same object.  Unlike keywords, these types are
-mutable.
-
-TBD: Is there any issue with using them as set elements or map keys?
-Do they have consistent hash values even when their contents change?
-If so, how?
 
 Sequences, vectors, lists, and queues with equal elements in the same
 order are equal, even though they don't behave the same when used with
@@ -103,7 +70,7 @@ maps to equal values in each map.  The order that keys were added, and
 whether the maps are sorted, is irrelevant.
 
 ```clojure
-
+    TBD
 ```
 
 Any metadata associated with Clojure collections is ignored when
@@ -123,6 +90,38 @@ comparing them.
     user> (= s1 s2)
     true
 ```
+
+Clojure `=` behaves the same as Java's `equals` for all types except
+numbers and Clojure collections.
+
+Booleans and characters are straightforward in their equality.
+
+Strings are straightforward, too, except in some cases involving
+Unicode where strings that consist of different sequences of Unicode
+characters can look the same when displayed, and in some applications
+should be treated as equal even though `=` returns false.  See
+"Normalization" on the Wikipedia page on [Unicode
+equivalence][UnicodeEquivalence] if you are interested.  There are
+libraries like [ICU4J][ICU] (International Components for Unicode for
+Java) that can help if you need to do this.
+
+[UnicodeEquivalence]: http://en.wikipedia.org/wiki/Unicode_equivalence
+[ICU]: http://site.icu-project.org/
+
+Two symbols are equal if they have the same namespace and symbol name.
+Two keywords are equal given the same conditions.  Clojure makes
+equality testing for keywords particularly quick (a simple pointer
+comparison).  It achieves this by its `intern` method of the Keyword
+class guaranteeing that all keywords with the same namespace and name
+will return the same keyword object.
+
+Like keywords, Clojure refs, vars, and atoms are only equal to others
+if they are the same object.  Unlike keywords, these types are
+mutable.
+
+TBD: Is there any issue with using them as set elements or map keys?
+Do they have consistent hash values even when their contents change?
+If so, how?
 
 Java has `equals` to compare pairs of objects for equality.
 
