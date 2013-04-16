@@ -3,7 +3,10 @@
 This document discusses the behavior of equality in Clojure 1.5.1,
 including the functions `=`, `==`, and `identical?`, and how they
 differ from Java's `equals` method.  It also has some description of
-Clojure's `hash`, and how it differs from Java's `hashCode`.
+Clojure's `hash`, and how it differs from Java's `hashCode`.  Some of
+the behavior here has definitely changed since Clojure 1.3, and
+perhaps even since Clojure 1.4.  No attempt has yet been made to
+document these differences.
 
 Equality in Clojure is most often tested using `=`.
 
@@ -24,7 +27,7 @@ values that do not have the same type as each other.
     true
 ```
 
-`=` does *not* always return true when two numbers are have the same
+`=` does *not* always return true when two numbers have the same
 numeric value.  See the section "Numbers" below for details.
 
 ```clojure
@@ -33,10 +36,10 @@ numeric value.  See the section "Numbers" below for details.
 ```
 
 Sequences, vectors, lists, and queues with equal elements in the same
-order are equal, even though they don't behave the same when used with
-other functions.  This has been true for a long time in Clojure, and
-can be a significant convenience given the prevalence of seqeunces and
-vectors.
+order are equal, even though they do not all behave the same when
+operated upon by other functions.  This has been true for a long time
+in Clojure, and can be a significant convenience given the prevalence
+of seqeunces and vectors.
 
 ```clojure
     user> (range 3)
@@ -90,6 +93,8 @@ comparing them.
     user> (= s1 s2)
     true
 ```
+
+TBD: records defined via `defrecord`, types defined via `deftype`
 
 Clojure `=` behaves the same as Java's `equals` for all types except
 numbers and Clojure collections.
@@ -170,7 +175,7 @@ values can never be numerically equal, anyway.
 
 Clojure 1.5.1 inherits Java's exception for BigDecimal with equal
 numeric value but different scales, i.e. `(= 1.50M 1.500M)` is false.
-Ticket CLJ-1118 might change this.
+Ticket [CLJ-1118][CLJ-1118] might change this.
 
 Clojure also has `==` that is only useful for comparing numbers.  It
 returns `true` whenever `=` does, but also for numbers that are
@@ -207,19 +212,20 @@ numbers in any programming language.
     false
 
 There is a whole field called [Numerical Analysis][NumericalAnalysis]
-dedicated to studying algorithms that use numerical approximation, and
-libraries of Fortran code that are in heavy use because their order of
-floating point operations is carefully crafted to give guarantees on
-the difference of their approximate answers from the exact answers.
+dedicated to studying algorithms that use numerical approximation.
+There are libraries of Fortran code that are in heavy use because
+their order of floating point operations is carefully crafted to give
+guarantees on the difference between their approximate answers and the
+exact answers.
 
 [NumericalAnalysis]: https://en.wikipedia.org/wiki/Numerical_analysis
 
 ### Floating point "Not A Number"
 
-Clojure uses the underlying Java double-size (64-bit) floating point
-numbers with representation and behavior defined by a standard, IEEE
-754.  By this definition there is a special value "Not A Number"
-[IEEE754NaN], Double/NaN, that is not even equal to itself.
+Clojure uses the underlying Java double-size floating point numbers
+(64-bit) with representation and behavior defined by a standard, IEEE
+754.  There is a special value "Not A Number" [IEEE754NaN], `NaN`,
+that is not even equal to itself.
 
 [IEEE754NaN]: http://en.wikipedia.org/wiki/NaN
 
@@ -233,10 +239,11 @@ numbers with representation and behavior defined by a standard, IEEE
 
 ```
 
-This leads to some odd behavior.  While there is no error adding `NaN`
-as a set element or a key in a map, you cannot then search for it and
-find it, or remove it using the normal means.  It will still show up
-in sequences of those collections.
+This leads to some odd behavior if this "value" appears in your data.
+While there is no error adding `NaN` as a set element or a key in a
+map, you cannot then search for it and find it.  You also cannot
+remove it using the normal means.  It will still show up in sequences
+of those collections.
 
 ```clojure
     user> (def s1 #{1.0 2.0 Double/NaN})
@@ -304,13 +311,12 @@ other:
     {1.0E9 :oops, 1.0E9 :float-one}
 ```
 
+Until this is fixed, you may be able to work around it by using
+explicit conversion of `BigInteger`s to `BigInt`s and floats to
+doubles in your code.
+
 [CLJ-1118]: http://dev.clojure.org/jira/browse/CLJ-1118
 [CLJ-1036]: http://dev.clojure.org/jira/browse/CLJ-1036
-
-
-## Strings, characters, booleans, symbols, keywords, nil
-
-TBD
 
 
 ## Defining equality for your own types
