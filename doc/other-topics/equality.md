@@ -65,20 +65,28 @@ order are equal:
     false
 ```
 
-This is so even though they are not the same type, and there are some
-functions like `conj` where you can give them arguments that are all
-equal, but the return values are not equal:
+This is so even though sequences, vectors, etc. are not the same type.
+There are some functions like `conj` where you can give them arguments
+that are all equal, but the return values are not equal:
 
 ```clojure
-    user> (conj (range 3) 4)
+    user> (def s1 (range 3))
+    #'user/s1
+    user> (def v1 [0 1 2])
+    #'user/v1
+    user> (= s1 v1)
+    true
+    user> (= (conj s1 4) (conj v1 4))
+    false
+    user> (conj s1 4)
     (4 0 1 2)
-    user> (conj [0 1 2] 4)
+    user> (conj v1 4)
     [0 1 2 4]
 ```
 
-This has been true for a long time in Clojure (TBD: since version 1.0
-or even before?), and can be a significant convenience given the
-prevalence of sequences and vectors.
+This property of `=` has been true for a long time in Clojure (TBD:
+since version 1.0 or even before?), and can be a significant
+convenience given the prevalence of sequences and vectors.
 
 Two sets are equal if they have equal elements.  The order of the
 elements is not considered, nor is whether the sets are sorted.
@@ -101,7 +109,16 @@ maps to equal values in each map.  The order of the key/value pairs is
 not considered, nor is whether the maps are sorted.
 
 ```clojure
-    TBD
+    user> (def m1 (sorted-map-by > 3 -7 5 10 15 20))
+    #'user/m1
+    user> (def m2 {3 -7, 5 10, 15 20})
+    #'user/m2
+    user> m1
+    {15 20, 5 10, 3 -7}
+    user> m2
+    {3 -7, 5 10, 15 20}
+    user> (= m1 m2)
+    true
 ```
 
 Note that while it is possible to create a map that maps integers to
