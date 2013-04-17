@@ -1,5 +1,7 @@
 # Equality
 
+## Versions
+
 This document discusses the behavior of equality in Clojure 1.5.1,
 including the functions `=`, `==`, and `identical?`, and how they
 differ from Java's `equals` method.  It also has some description of
@@ -7,6 +9,8 @@ Clojure's `hash`, and how it differs from Java's `hashCode`.  Some of
 the behavior here has definitely changed since Clojure 1.3, and
 perhaps even since Clojure 1.4.  No attempt has yet been made to
 document these differences.
+
+## Introduction
 
 Equality in Clojure is most often tested using `=`.
 
@@ -127,23 +131,6 @@ mutable.
 TBD: Is there any issue with using them as set elements or map keys?
 Do they have consistent hash values even when their contents change?
 If so, how?
-
-Java has `equals` to compare pairs of objects for equality.
-
-Java has a hash function `hashCode` that is _consistent_ with this
-notion of equality, meaning that for any two objects `x` and `y` where
-`equals(x,y)` is `true`, `hash(x)` and `hash(y)` are equal, too.  This
-hash consistency property makes it possible to use `hashCode` to
-implement hash-based data structures like maps and sets using hashing
-techniques internally.  For example, a hash table could be used to
-implement a set, and it will be guaranteed that objects with different
-`hashcode` values can be put into different hash buckets, and objects
-in different hash buckets will never be equal to each other.
-
-Clojure has `=` and `hash` for similar reasons that Java has `equals`
-and `hashCode`.  However, Clojure strives to consider two objects to
-be equal if their values are equal, whereas Java typically considers
-two objects to be equal if their types and values are equal.
 
 
 ## Numbers
@@ -282,6 +269,28 @@ Java has a special case in its `equals` method for doubles that makes
     user> (.equals Double/NaN Double/NaN)
     true
 ```
+
+## Hashing and equality
+
+Java has `equals` to compare pairs of objects for equality.
+
+Java has a hash function `hashCode` that is _consistent_ with this
+notion of equality, meaning that for any two objects `x` and `y` where
+`equals(x,y)` is `true`, `hash(x)` and `hash(y)` are equal, too.  This
+hash consistency property makes it possible to use `hashCode` to
+implement hash-based data structures like maps and sets using hashing
+techniques internally.  For example, a hash table could be used to
+implement a set, and it will be guaranteed that objects with different
+`hashCode` values can be put into different hash buckets, and objects
+in different hash buckets will never be equal to each other.
+
+Clojure has `=` and `hash` for similar reasons that Java has `equals`
+and `hashCode`.  Since Clojure `=` considers more pairs of things
+equal to each other than Java `equals`, Clojure `hash` must return the
+same hash value for more pairs of objects.
+
+
+## Implementation details
 
 References to implementation code: For `=`, Util.java `equiv`,
 Numbers.java `equal` and `category`.  For `==`, Numbers.java `equiv`.
