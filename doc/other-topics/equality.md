@@ -1,6 +1,7 @@
 # Equality
 
-## Versions
+
+## Version info
 
 This document discusses the behavior of equality in Clojure 1.5.1,
 including the functions `=`, `==`, and `identical?`, and how they
@@ -9,6 +10,7 @@ Clojure's `hash`, and how it differs from Java's `hashCode`.  Some of
 the behavior here has definitely changed since Clojure 1.3, and
 perhaps even since Clojure 1.4.  No attempt has yet been made to
 document these differences.
+
 
 ## Introduction
 
@@ -32,32 +34,54 @@ values that do not have the same type as each other.
 ```
 
 `=` does *not* always return true when two numbers have the same
-numeric value.  See the section "Numbers" below for details.
+numeric value.
 
 ```clojure
     user> (= 2 2.0)
     false
 ```
 
+If you want to test for numeric equality, `==` is probably what you
+want.  See the section "Numbers" below for details.
+
 Sequences, vectors, lists, and queues with equal elements in the same
-order are equal, even though they do not all behave the same when
-operated upon by other functions.  This has been true for a long time
-in Clojure, and can be a significant convenience given the prevalence
-of seqeunces and vectors.
+order are equal:
 
 ```clojure
     user> (range 3)
     (0 1 2)
-    user> (= (range 3) [0 1 2])
+    user> (= [0 1 2] (range 3))
     true
+    user> (= [0 1 2] '(0 1 2))
+    true
+    ;; not = because different order
+    user> (= [0 1 2] [0 2 1])
+    false
+    ;; not = because different number of elements
+    user> (= [0 1] [0 1 2])
+    false
+    ;; not = because 2 and 2.0 are not =
+    user> (= '(0 1 2) '(0 1 2.0))
+    false
+```
+
+This is so even though they are not the same type, and there are some
+functions like `conj` where you can give them arguments that are all
+equal, but the return values are not equal:
+
+```clojure
     user> (conj (range 3) 4)
     (4 0 1 2)
     user> (conj [0 1 2] 4)
     [0 1 2 4]
 ```
 
-Two sets are equal if they have equal elements, regardless of the
-order they were added, and whether the sets are sorted or not.
+This has been true for a long time in Clojure (TBD: since version 1.0
+or even before?), and can be a significant convenience given the
+prevalence of sequences and vectors.
+
+Two sets are equal if they have equal elements.  The order of the
+elements is not considered, nor is whether the sets are sorted.
 
 ```clojure
     user> (def s1 (hash-set 1 2000 30000))
@@ -73,11 +97,28 @@ order they were added, and whether the sets are sorted or not.
 ```
 
 Two maps are equal if they have the same set of keys, and each key
-maps to equal values in each map.  The order that keys were added, and
-whether the maps are sorted, is irrelevant.
+maps to equal values in each map.  The order of the key/value pairs is
+not considered, nor is whether the maps are sorted.
 
 ```clojure
     TBD
+```
+
+Note that while it is possible to create a map that maps integers to
+values, and do so in a way very similar to a vector, these are not
+considered `=` in Clojure:
+
+```clojure
+    user> (def v1 ["a" "b" "c"])
+    #'user/v1
+    user> (def m1 {0 "a" 1 "b" 2 "c"})
+    #'user/m1
+    user> (v1 0)
+    "a"
+    user> (m1 0)
+    "a"
+    user> (= v1 m1)
+    false
 ```
 
 Any metadata associated with Clojure collections is ignored when
@@ -98,10 +139,12 @@ comparing them.
     true
 ```
 
-TBD: records defined via `defrecord`, types defined via `deftype`
-
 Clojure `=` behaves the same as Java's `equals` for all types except
 numbers and Clojure collections.
+
+TBD: Behavior for records defined via `defrecord`.
+TBD: Behavior for types defined via `deftype`.
+TBD: Does it ever make sense to define `equiv` for such things?
 
 Booleans and characters are straightforward in their equality.
 
@@ -135,14 +178,14 @@ If so, how?
 
 ## Numbers
 
-Java `equals` is only true if the types and numeric values are the
-same.  Thus equals is false even for Integer 1 and Long 1, because
-they have different types.
+Java `equals` is only true for two numbers if the types and numeric
+values are the same.  Thus `equals` is false even for Integer 1 and
+Long 1, because they have different types.
 
-Exception: Java equals is also false for two BigDecimal values that
+Exception: Java `equals` is also false for two BigDecimal values that
 are numerically equal if they have different scales, e.g. 1.50M and
 1.500M are not equal.  This is behavior is documented for BigDecimal
-method equals.
+method `equals`.
 
 Clojure `=` is true if the 'category' and numeric values are the same.
 Category is one of:
@@ -150,46 +193,48 @@ Category is one of:
 * integer: all integer types including BigInteger and BigInt
 * floating: Float and Double
 * ratio: Ratio
-* decimal (BigDecimal)
+* decimal: BigDecimal
 
 So `(= (int 1) (long 1))` is true because they are in the same integer
-category, but `(= (long 1) (double 1.0))` is false because they are in
-different categories (integer and floating).  Note: If arithmetic
-involving Clojure ratios results in an integer answer, it is
-auto-converted to a BigInt, so even though it might seem unfortunate
-that `=` always returns false when comparing integers and ratios, such
-values can never be numerically equal, anyway.
+category, but `(= 1 1.0)` is false because they are in different
+categories (integer and floating).
 
-Clojure 1.5.1 inherits Java's exception for BigDecimal with equal
+Note: If arithmetic involving Clojure ratios results in an integer
+answer, it is auto-converted to a BigInt, so even though it might seem
+unfortunate that `=` always returns false when comparing integers and
+ratios, such values can never be numerically equal, anyway.
+
+Clojure 1.5.1 inherits Java's exception for BigDecimal with the same
 numeric value but different scales, i.e. `(= 1.50M 1.500M)` is false.
 Ticket [CLJ-1118][CLJ-1118] might change this.
 
 Clojure also has `==` that is only useful for comparing numbers.  It
-returns `true` whenever `=` does, but also for numbers that are
-numerically equal, even if they are in different categories.  Thus `(=
-(long 1) (double 1.0))` is false, but `(== (long 1) (double 1.0))` is
-true.
+returns true whenever `=` does.  It also returns true for numbers that
+are numerically equal, even if they are in different categories.  Thus
+`(= 1 1.0)` is false, but `(== 1 1.0)` is true.
 
 Why does `=` have different categories for numbers, you might wonder?
 Best educated guess, unconfirmed: It would not be easy to make `hash`
-consistent with `=` if it behaved like `==`.  Imagine trying to write
-`hash` such that it was guaranteed to return the same hash value for
-all of `(float 1.5)`, `(double 1.5)`, BigDecimal values 1.50M, 1.500M,
-etc. and Ratio `(/ 3 2)`.
+consistent with `=` if it behaved like `==` (see section "Equality and
+hash" below).  Imagine trying to write `hash` such that it was
+guaranteed to return the same hash value for all of `(float 1.5)`,
+`(double 1.5)`, BigDecimal values 1.50M, 1.500M, etc. and the ratio
+`(/ 3 2)`.
 
 Clojure uses `=` to compare values for equality when they are used as
 elements in sets, or keys in maps.  Thus Clojure's four numeric
 categories come into play if you use sets with numeric elements or
 maps with numeric keys.
 
+
 ### Floating point numbers are usually approximations
 
 Note that floating point values might behave in ways that surprise
-you, if you have not learned of their approximate nature before.  This
-is simply because they are represented with a fixed number of bits,
-and thus many values cannot be represented exactly and must be
-approximated (or be out of range).  This is true for floating point
-numbers in any programming language.
+you, if you have not learned of their approximate nature before.  They
+are often only approximations simply because they are represented with
+a fixed number of bits, and thus many values cannot be represented
+exactly and must be approximated (or be out of range).  This is true
+for floating point numbers in any programming language.
 
     user> (def d1 (apply + (repeat 100 0.1)))
     #'user/d1
@@ -207,6 +252,14 @@ exact answers.
 
 [NumericalAnalysis]: https://en.wikipedia.org/wiki/Numerical_analysis
 
+If you want exact answers for at least some kinds of problems, ratios
+or BigDecimals might suit your needs.  Realize that these require
+variable amounts of memory if the number of digits required grow
+(e.g. after many arithmetic operations), and significantly more
+computation time.  They also won't help if you want exact values of
+the square root of 2 or pi.
+
+
 ### Floating point "Not A Number"
 
 Clojure uses the underlying Java double-size floating point numbers
@@ -223,7 +276,6 @@ that is not even equal to itself.
     false
     user> (== Double/NaN Double/NaN)
     false
-
 ```
 
 This leads to some odd behavior if this "value" appears in your data.
@@ -250,8 +302,8 @@ of those collections.
     #{2.0 1.0 Double/NaN}
 ```
 
-This also means that two sets that look like they have the same set of
-elements will not compare as equal, if they contain `NaN`:
+This also means that two sets with the same elements will not be `=`,
+if they contain `NaN`:
 
 ```clojure
     user> (def s2 #{Double/NaN 2.0 1.0})
@@ -262,15 +314,19 @@ elements will not compare as equal, if they contain `NaN`:
     false
 ```
 
-Java has a special case in its `equals` method for doubles that makes
-`NaN` equal to itself.
+Similar issues exist if you create a map containing `NaN` as a key or
+value.
+
+Java has a special case in its `equals` method for floating point
+values that makes `NaN` equal to itself.  Clojure `=` and `==` do not.
 
 ```clojure
     user> (.equals Double/NaN Double/NaN)
     true
 ```
 
-## Hashing and equality
+
+## Equality and hash
 
 Java has `equals` to compare pairs of objects for equality.
 
@@ -287,13 +343,22 @@ in different hash buckets will never be equal to each other.
 Clojure has `=` and `hash` for similar reasons that Java has `equals`
 and `hashCode`.  Since Clojure `=` considers more pairs of things
 equal to each other than Java `equals`, Clojure `hash` must return the
-same hash value for more pairs of objects.
+same hash value for more pairs of objects.  For example, `hash` always
+returns the same value regardless of the order of elements in sets,
+since `=` ignores order in sets, too:
 
+```clojure
+    user> (hash-set 1 2000 30000)
+    #{1 30000 2000}
+    user> (hash (hash-set 1 2000 30000))
+    32001
 
-## Implementation details
+    user> (sorted-set 30000 2000 1)
+    #{1 2000 30000}
+    user> (hash (sorted-set 30000 2000 1))
+    32001
+```
 
-References to implementation code: For `=`, Util.java `equiv`,
-Numbers.java `equal` and `category`.  For `==`, Numbers.java `equiv`.
 
 ### Possible bugs in Clojure 1.5.1
 
@@ -328,13 +393,29 @@ doubles in your code.
 [CLJ-1036]: http://dev.clojure.org/jira/browse/CLJ-1036
 
 
+## Implementation details
+
+References to implementation code: For `=`, Util.java `equiv`,
+Numbers.java `equal` and `category`.  For `==`, Numbers.java `equiv`.
+
+
 ## Defining equality for your own types
 
-TBD: Give examples from data.priority-map or flatland/ordered-set
+See these for examples on how to do this, and much more:
+
+* [data.priority-map][data.priority-map]
+* [flatland/ordered-set][flatland-ordered-set]
+
+[data.priority-map]: https://github.com/clojure/data.priority-map
+[flatland-ordered-set]: https://github.com/flatland/ordered
 
 
-TBD: Vectors and maps are both associative.  Is a map of integers to
-values equal to a vector with the same values at the same indices?
-Probably not.
+## References
 
-TBD: Link to Henry Baker's paper on egal
+The paper ["Equal Rights for Functional Objects, or, the More Things
+Change, The More They Are the Same"][BakerObjectIdentity] by Henry
+Baker includes code written in Common Lisp, but the idea of equality
+making sense for immutable values, and not so much for mutable
+objects, is independent of programming language:
+
+[BakerObjectIdentity]: http://home.pipeline.com/~hbaker1/ObjectIdentity.html
