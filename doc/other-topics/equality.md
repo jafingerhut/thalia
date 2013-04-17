@@ -22,31 +22,25 @@ Equality in Clojure is most often tested using `=`.
     user> (= (str "fo" "od") "food")
     true
 ```
-
 Unlike Java's `equals` method, Clojure's `=` returns true for many
 values that do not have the same type as each other.
-
 ```clojure
     user> (= (float 314.0) (double 314.0))
     true
     user> (= 3 3N)
     true
 ```
-
 `=` does *not* always return true when two numbers have the same
 numeric value.
-
 ```clojure
     user> (= 2 2.0)
     false
 ```
-
 If you want to test for numeric equality, `==` is probably what you
 want.  See the section "Numbers" below for details.
 
 Sequences, vectors, lists, and queues with equal elements in the same
 order are equal:
-
 ```clojure
     user> (range 3)
     (0 1 2)
