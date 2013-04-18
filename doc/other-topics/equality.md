@@ -14,7 +14,7 @@ document these differences.
 
 ## Summary
 
-Clojure's `=` is true if:
+Clojure's `=` is true when called with two values, if:
 
 * Both arguments are numbers in the same "category", and numerically
   the same, where category is one of integer, floating point, ratio,
@@ -28,7 +28,9 @@ Clojure's `=` is true if:
 * Java's `equals` is true for the values.  This should be unsurprising
   for nil, booleans, characters, and strings.
 
-`hash` is consistent with `=`.
+You may call `=` or `==` with more than two arguments, and the result
+will be true when all consecutive pairs are `=` or `==`.  `hash` is
+consistent with `=`.
 
 Exceptions, or possible surprises:
 
