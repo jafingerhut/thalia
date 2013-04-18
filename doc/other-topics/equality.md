@@ -30,8 +30,11 @@ Clojure's `=` is true if:
 
 `hash` is consistent with `=`.
 
-Exceptions and possible surprises:
+Exceptions, or possible surprises:
 
+* When comparing collections with `=`, numbers within are also
+  compared with `=`, so the four numeric categories above are
+  significant.
 * `=` and `==` are false for BigDecimal values with different scales,
   e.g. `(== 1.50M 1.500M)` is false.
 * "Not a Number" values Float/NaN and Double/NaN are not `=` or `==`
