@@ -350,8 +350,8 @@ values that makes `NaN` equal to itself.  Clojure `=` and `==` do not.
 Java has `equals` to compare pairs of objects for equality.
 
 Java has a method `hashCode` that is _consistent_ with this notion of
-equality, meaning that for any two objects `x` and `y` where they
-`equals` is true, `x.hashCode()` and `y.hashCode()` are equal, too.
+equality, meaning that for any two objects `x` and `y` where `equals`
+is true, `x.hashCode()` and `y.hashCode()` are equal, too.
 
 This hash consistency property makes it possible to use `hashCode` to
 implement hash-based data structures like maps and sets using hashing
