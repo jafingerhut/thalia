@@ -12,6 +12,38 @@ perhaps even since Clojure 1.4.  No attempt has yet been made to
 document these differences.
 
 
+## Summary
+
+Clojure's `=` is true if:
+
+* Both arguments are numbers in the same "category", and numerically
+  the same, where category is one of integer, floating point, ratio,
+  or BigDecimal.  Use `==` if you want to compare for numerical
+  equality between different categories.
+* Both arguments are sequences, lists, vectors, or queues, with equal
+  elements in the same order.
+* Both arguments are sets, with equal elements, ignoring order.
+* Both arguments are maps, with equal key/value pairs, ignoring order.
+* Both arguments are symbols, or both keywords, with equal namespaces and names.
+* Java's `equals` is true for the values.  This should be unsurprising
+  for nil, booleans, characters, and strings.
+
+* `hash` is consistent with `=`
+
+Exceptions and possible surprises:
+
+* `=` and `==` are false for BigDecimal values with different scales,
+  e.g. `(== 1.50M 1.500M)` is false.
+* "Not a Number" values Float/NaN and Double/NaN are not `=` or `==`
+  to anything, not even themselves.  Leads to odd behavior if you use
+  them as set elements or map keys.
+* `hash` is consistent with `=`, except for some BigIntegers, Floats,
+  and Doubles.  Leads to odd behavior if you use them as set elements
+  or map keys.
+
+
+
+
 ## Introduction
 
 Equality in Clojure is most often tested using `=`.
