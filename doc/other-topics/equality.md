@@ -222,7 +222,8 @@ arithmetic results on ratios to BigInts if they are integers.
 
 Clojure 1.5.1 inherits Java's exception for BigDecimal with the same
 numeric value but different scales, i.e. `(= 1.50M 1.500M)` is false.
-Ticket [CLJ-1118][CLJ-1118] might change this.
+Ticket [CLJ-1118][CLJ-1118] might change this in a later version of
+Clojure.
 
 Clojure also has `==` that is only useful for comparing numbers.  It
 returns true whenever `=` does.  It also returns true for numbers that
@@ -247,17 +248,19 @@ maps with numeric keys.
 
 Note that floating point values might behave in ways that surprise
 you, if you have not learned of their approximate nature before.  They
-are often only approximations simply because they are represented with
-a fixed number of bits, and thus many values cannot be represented
+are often approximations simply because they are represented with a
+fixed number of bits, and thus many values cannot be represented
 exactly and must be approximated (or be out of range).  This is true
 for floating point numbers in any programming language.
 
+```clojure
     user> (def d1 (apply + (repeat 100 0.1)))
     #'user/d1
     user> d1
     9.99999999999998
     user> (== d1 10.0)
     false
+```
 
 There is a whole field called [Numerical Analysis][NumericalAnalysis]
 dedicated to studying algorithms that use numerical approximation.
