@@ -28,7 +28,7 @@ Clojure's `=` is true if:
 * Java's `equals` is true for the values.  This should be unsurprising
   for nil, booleans, characters, and strings.
 
-* `hash` is consistent with `=`
+`hash` is consistent with `=`.
 
 Exceptions and possible surprises:
 
