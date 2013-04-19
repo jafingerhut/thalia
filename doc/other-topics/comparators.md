@@ -66,8 +66,8 @@ when writing a comparator that works correctly.
 
 ## Off-the-shelf comparators
 
-First consider using well-tested comparators developed and tested by
-others, especially if they are complex.
+First consider using well-tested comparators developed by others,
+especially if they are complex.
 
 A perfect example of this would be sorting Unicode strings in
 different languages in orders specific to different locales.  The Java
@@ -289,8 +289,8 @@ But look what happens when you try to add multiple vectors with the
 same number.
 
 ```clojure
-    user> (sorted-set-by by-2nd [:a 1] [:b 1] [:c 1])
-    #{[:a 1]}
+    user> (sorted-set-by by-2nd ["a" 1] ["b" 1] ["c" 1])
+    #{["a" 1]}
 ```
 
 Only one element is in the set, because `by-2nd` treats all three of
@@ -310,22 +310,22 @@ first step of creating the set, but fails when testing whether
 elements are in the set.
 
 ```clojure
-    user> (def sset (sorted-set-by by-2nd-<= [:a 1] [:b 1] [:c 1]))
+    user> (def sset (sorted-set-by by-2nd-<= ["a" 1] ["b" 1] ["c" 1]))
     #'user/sset
     user> sset
-    #{[:c 1] [:b 1] [:a 1]}
-    user> (sset [:c 1])
+    #{["c" 1] ["b" 1] ["a" 1]}
+    user> (sset ["c" 1])
     nil
-    user> (sset [:b 1])
+    user> (sset ["b" 1])
     nil
-    user> (sset [:a 1])
+    user> (sset ["a" 1])
     nil
 ```
 
 The problem here is that `by-2nd-<=` gives inconsistent answers.  If
-you ask it whether `[:c 1]` comes before `[:b 1]`, it returns true
+you ask it whether `["c" 1]` comes before `["b" 1]`, it returns true
 (which Clojure's boolean-to-int comparator conversion turns into -1).
-If you ask it whether `[:b 1]` comes before `[:c 1]`, again it returns
+If you ask it whether `["b" 1]` comes before `["c" 1]`, again it returns
 true (again converted into -1 by Clojure).  One cannot reasonably
 expect an implementation of a sorted data structure to provide any
 kind of guarantees on its behavior if you give it an inconsistent
@@ -402,7 +402,7 @@ value between -1 and 1 is truncated to the `int` 0:
 ```
 
 This also leads to bugs when comparing integer values that differ by
-amounts that changes sign when you truncate it to a 32-bit `int` (by
+amounts that change sign when you truncate it to a 32-bit `int` (by
 discarding all but its least significant 32 bits).  About half of all
 pairs of long values are compared incorrectly by using subtraction as
 a comparator.
@@ -421,7 +421,8 @@ a comparator.
 
     ;; How .intValue truncates a few selected values.  Note especially
     ;; the first and last ones.
-    user> (map #(.intValue %) [-2147483649 -2147483648 -1 0 1 2147483647 2147483648])
+    user> (map #(.intValue %) [-2147483649 -2147483648 -1 0 1
+                                2147483647  2147483648])
     (2147483647 -2147483648 -1 0 1 2147483647 -2147483648)
 ```
 
@@ -535,7 +536,7 @@ sorted in numeric order.
         0))))
 
 ;; The same result can be obtained by calling cmp-seq-lexi on two
-;; vectors, but this one should allocate less memory comparing
+;; vectors, but cmp-vec-lexi should allocate less memory comparing
 ;; vectors.
 (defn cmp-vec-lexi
   [cmpf x y]
@@ -610,7 +611,12 @@ Here is a quick example demonstrating `cc-cmp`'s ability to compare
 values of different types.
 
 ```clojure
-    user> (pprint (sort cc-cmp [true false nil Double/MAX_VALUE 10 Integer/MIN_VALUE :a "b" 'c (ref 5) [5 4 3] '(5 4) (seq [5]) (cons 6 '(1)) #{1 2 3} #{2 1} {:a 1, :b 2} {:a 1, :b -2} (object-array [1 2 3 4])]))
+    user> (pprint (sort cc-cmp [true false nil Double/MAX_VALUE 10
+                                Integer/MIN_VALUE :a "b" 'c (ref 5)
+                                [5 4 3] '(5 4) (seq [5]) (cons 6 '(1))
+                                #{1 2 3} #{2 1}
+                                {:a 1, :b 2} {:a 1, :b -2}
+                                (object-array [1 2 3 4])]))
     (nil
      {:a 1, :b -2}
      {:a 1, :b 2}
