@@ -40,7 +40,7 @@ DOs:
    and 1 if you have no reason to prefer other return values.
  * A boolean comparator takes 2 values, `x` and `y`, and returns true
    if `x` comes before `y`, or false otherwise (including if `x` and
-   `y` are equal).  `<` and '>' are good examples.  `<=` and `>=` are
+   `y` are equal).  `<` and `>` are good examples.  `<=` and `>=` are
    not.  Performance note: your boolean comparator may be called twice
    to distinguish between the "comes after" or "equals" cases.
 * Reverse the sort order by reversing the order that you give the
@@ -85,7 +85,7 @@ function `compare`.  After that we give examples of other comparators,
 with some guidelines to follow and mistakes to avoid when writing your
 own.
 
-If you don't specify your own comparator, sorting is done by a
+If you do not specify your own comparator, sorting is done by a
 built-in function `compare`.  `compare` works for many types of
 values, ordering them in one particular way: increasing numeric order
 for numbers; [lexicographic order][lexicographic] (aka dictionary
@@ -101,7 +101,7 @@ details.
 [Comparable]: http://docs.oracle.com/javase/6/docs/api/java/lang/Comparable.html
 [lexicographic]: http://en.wikipedia.org/wiki/Lexicographical_order
 
-If this built-in sorting order doesn't meet your needs, or doesn't
+If this built-in sorting order does not meet your needs, or does not
 work at all for values of a type you wish to sort, you can write your
 own comparator and use that instead.  There are a few rules to follow
 when writing a comparator that works correctly.
@@ -284,8 +284,8 @@ to compare.
 
 A total order is simply an ordering of all values from smallest to
 largest, where some groups of values can all be equal to each other.
-Every pair of values must be comparable to each other (i.e. no "I
-don't know how to compare them" answers from the comparator).
+Every pair of values must be comparable to each other (i.e. no "I do
+not know how to compare them" answers from the comparator).
 
 For example, you can order all fractions written in the form `m/n` for
 integers `m` and `n` from smallest to largest, in the usual way this
@@ -481,7 +481,7 @@ better not to risk it.
 
 Sometimes you might wish to sort a collection of values by some key,
 but that key is not unique.  You want the values with the same key to
-be sorted in some predictable, repeatable order, but you don't care
+be sorted in some predictable, repeatable order, but you do not care
 much what that order is.
 
 As a toy example, you might have a collection of vectors, each with
@@ -524,9 +524,9 @@ those vectors have the same second element:
 
 `cc-cmp` ("cross class compare") below may be useful in such cases.
 It can compare values of different types, which it orders based on a
-string that represents the type of the value.  It isn't simply `(class
-x)`, because then numbers like `Integer` and `Long` would not be
-sorted in numeric order.
+string that represents the type of the value.  It is not simply
+`(class x)`, because then numbers like `Integer` and `Long` would not
+be sorted in numeric order.
 
 ```clojure
 
