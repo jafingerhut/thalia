@@ -17,16 +17,16 @@ document these differences.
 Clojure's `=` is true when called with two values, if:
 
 * Both arguments are numbers in the same "category", and numerically
-  the same, where category is one of integer, floating point, ratio,
-  or BigDecimal.  Use `==` if you want to compare for numerical
+  the same, where category is one of (integer or ratio), floating
+  point, or BigDecimal.  Use `==` if you want to compare for numerical
   equality between different categories.
 * Both arguments are sequences, lists, vectors, or queues, with equal
   elements in the same order.
 * Both arguments are sets, with equal elements, ignoring order.
 * Both arguments are maps, with equal key/value pairs, ignoring order.
 * Both arguments are symbols, or both keywords, with equal namespaces and names.
-* Java's `equals` is true for the values.  This should be unsurprising
-  for nil, booleans, characters, and strings.
+* Java's `equals` is true for the values.  The result should be
+  unsurprising for nil, booleans, characters, and strings.
 
 You may call `=` or `==` with more than two arguments, and the result
 will be true when all consecutive pairs are `=` or `==`.  `hash` is
@@ -34,19 +34,19 @@ consistent with `=`.
 
 Exceptions, or possible surprises:
 
-* When comparing collections with `=`, numbers within are also
-  compared with `=`, so the four numeric categories above are
-  significant.
+* When comparing collections with `=`, numbers within the collections
+  are also compared with `=`, so the three numeric categories above
+  are significant.
 * `=` and `==` are false for BigDecimal values with different scales,
   e.g. `(== 1.50M 1.500M)` is false.
 * "Not a Number" values Float/NaN and Double/NaN are not `=` or `==`
-  to anything, not even themselves.  Leads to odd behavior if you use
-  them as set elements or map keys.
+  to anything, not even themselves.  This leads to odd behavior if you
+  use them as set elements or map keys.
 * `hash` is consistent with `=`, except for some BigIntegers, Floats,
-  and Doubles.  Leads to odd behavior if you use them as set elements
-  or map keys.
-
-
+  and Doubles.  This leads to odd behavior if you use them as set
+  elements or map keys.  Convert BigIntegers to BigInt using `(bigint
+  x)`, and floats and doubles to a common type with `(float x)` or
+  `(double x)`, to work around this issue.
 
 
 ## Introduction
@@ -245,17 +245,20 @@ behavior is documented for BigDecimal method
 Clojure `=` is true if the 'category' and numeric values are the same.
 Category is one of:
 
-* integer: all integer types including BigInteger and BigInt
+* integer: all integer types including BigInteger and BigInt, or
+  ratios (Java type Ratio)
 * floating: Float and Double
-* ratio: Ratio
 * decimal: BigDecimal
 
 So `(= (int 1) (long 1))` is true because they are in the same integer
 category, but `(= 1 1.0)` is false because they are in different
-categories (integer and floating).  While it might seem unfortunate
-that `=` always returns false when comparing integers and ratios, this
-is always the correct numerical answer, because Clojure auto-converts
-arithmetic results on ratios to BigInts if they are integers.
+categories (integer and floating).  While integers and ratios are in
+separate categories in the Clojure implementation, for the purposes of
+`=` they are effectively in the same category.  This is because ratios
+are auto-converted to BigInts if they are whole numbers.  Thus any
+Clojure number that is a still a ratio cannot equal any integer, so
+`=` always gives the correct numerical answer when comparing two such
+numbers (false).
 
 Clojure 1.5.1 inherits Java's exception for BigDecimal with the same
 numeric value but different scales, i.e. `(= 1.50M 1.500M)` is false.
@@ -276,9 +279,9 @@ guaranteed to return the same hash value for all of `(float 1.5)`,
 `(/ 3 2)`.
 
 Clojure uses `=` to compare values for equality when they are used as
-elements in sets, or keys in maps.  Thus Clojure's four numeric
-categories come into play if you use sets with numeric elements or
-maps with numeric keys.
+elements in sets, or keys in maps.  Thus Clojure's numeric categories
+come into play if you use sets with numeric elements or maps with
+numeric keys.
 
 
 ### Floating point numbers are usually approximations
