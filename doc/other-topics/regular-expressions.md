@@ -10,7 +10,7 @@ by " ", followed by either "bar" or "gloop".
 
 Regexes are not general enough to match any set of strings, e.g. you
 cannot write one to match all strings of balanced parentheses, nor all
-legal C or Clojure programs, but are useful for many tasks.
+legal C or Clojure programs, but they are useful for many tasks.
 
 This document does not attempt to give a complete description of
 everything that regexes are capable of -- only some tips on using
@@ -20,10 +20,10 @@ further.
 Regexes in Clojure are Java regexes, implemented by the Java classes
 [`java.util.regex.Pattern`][Java-Pattern] and
 [`java.util.regex.Matcher`][Java-Matcher].  Regexes in other variants
-of Clojure (e.g. Clojure/CLR or ClojureScript, based on JavaScript)
-have much in common with Java regexes, but they are not identical.
-Don't expect 100% compatibility of regex syntax and matching behavior
-between different regex implementations.
+of Clojure (e.g. Clojure/CLR or ClojureScript) have much in common
+with Java regexes, but they are not identical.  Do not expect 100%
+compatibility of regex syntax and matching behavior between different
+regex implementations.
 
 [Java-Pattern]: http://docs.oracle.com/javase/6/docs/api/java/util/regex/Pattern.html
 [Java-Matcher]: http://docs.oracle.com/javase/6/docs/api/java/util/regex/Matcher.html
@@ -124,7 +124,7 @@ Capturing groups followed by `*`, `+`, or `{m,n}` that match more than
 once in the string only capture the last occurrence, not all of them.
 If you want all matches, use another set of parens to make the
 expression, including the `*`, `+`, or `{m,n}` into a capture group.
-The inner one can be made a non-capturing group if you don't want the
+The inner one can be made a non-capturing group if you do not want the
 result of its last match.
 
     TBD: Examples
