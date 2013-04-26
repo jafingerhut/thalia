@@ -50,6 +50,10 @@ DOs:
 
 DO NOTs:
 
+* Do not write a boolean comparator that returns true if the values
+  are equal.  Such a comparator is inconsistent.  It will cause sorted
+  collections to behave incorrectly, and sorting to give unpredictable
+  orders.
 * Do not use comparators for sorted sets and maps that treat two
   values as equal, unless you want at most one of those two values to
   appear in the sorted collection.
