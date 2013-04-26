@@ -34,11 +34,11 @@ DOs:
   set, and determine which value should come first (or that they are
   equal).
 * Write either a 3-way comparator or a boolean comparator:
-** A 3-way comparator takes 2 values, `x` and `y`, and returns a Java
+ * A 3-way comparator takes 2 values, `x` and `y`, and returns a Java
    32-bit `int` that is negative if `x` comes before `y`, positive if
    `x` comes after `y`, or 0 if they are equal.  Use the values -1, 0,
    and 1 if you have no reason to prefer other return values.
-** A boolean comparator takes 2 values, `x` and `y`, and returns true
+ * A boolean comparator takes 2 values, `x` and `y`, and returns true
    if `x` comes before `y`, or false otherwise (including if `x` and
    `y` are equal).  `<` and '>' are good examples.  `<=` and `>=` are
    not.  Performance note: your boolean comparator may be called twice
