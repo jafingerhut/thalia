@@ -39,11 +39,10 @@ Demonstration that `sort-by` calls `keyfn` multiple times per value:
     (-1 -2 3 4 -5)
 ```
 
-Below is one way to compute `keyfn` exactly once per value, not once
-each time it is compared to another value.  It first "decorates" each
-value, i.e. creates a 2-element vector for each original value,
-containing the result of `keyfn` on the value, followed by the value.
-Then it sorts by these decorated values using `first`.  Finally it
+Below is one way to compute `keyfn` exactly once per value.  It first
+"decorates" each value, i.e. it creates a 2-element vector containing
+the result of `keyfn` on the value, followed by the value.  Then it
+sorts by these decorated values using `first`.  Finally it
 "undecorates" each element by using `second` to extract out the
 original value, removing the sort keys.
 
