@@ -7,7 +7,7 @@ This document was written while checking the details against Clojure
 versions, too.
 
 
-## Introduction
+## Summary
 
 In Clojure you need comparators for sorting a collection of values, or
 for maintaining a collection of values in a desired sorted order,
@@ -15,6 +15,49 @@ e.g. a [`sorted-map`][doc-sorted-map], [`sorted-set`][doc-sorted-set],
 or [`priority-map`][priority-map] (also known as a priority queue).
 
 [priority-map]: https://github.com/clojure/data.priority-map
+
+The default comparator [`compare`][doc-compare] works well for sorting
+numbers in increasing order, or strings, keywords, or symbols in
+[lexicographic][lexicographic] (i.e. dictionary) order, and a few
+other cases.  See [`compare`][doc-compare] for examples and more
+details.
+
+If `compare` does not do what you want, you must provide your own
+comparator that does.  Each of the recommendations below is explained
+in more detail later in this document.
+
+DOs:
+
+* Ensure that your comparators are based on a [_total
+  order_][Total_order] over the values you want to compare.  It should
+  be able to compare any pair of values that can appear in your data
+  set, and determine which value should come first (or that they are
+  equal).
+* Write either a 3-way comparator or a boolean comparator:
+** A 3-way comparator takes 2 values, `x` and `y`, and returns a Java
+   32-bit `int` that is negative if `x` comes before `y`, positive if
+   `x` comes after `y`, or 0 if they are equal.  Use the values -1, 0,
+   and 1 if you have no reason to prefer other return values.
+** A boolean comparator takes 2 values, `x` and `y`, and returns true
+   if `x` comes before `y`, or false otherwise (including if `x` and
+   `y` are equal).  `<` and '>' are good examples.  `<=` and `>=` are
+   not.  Performance note: your boolean comparator may be called twice
+   to distinguish between the "comes after" or "equals" cases.
+* Reverse the sort order by reversing the order that you give the
+  arguments to an existing comparator.
+* Compare equal-length Clojure vectors containing "sort keys" in order
+  to do a multi-field comparison beween values.
+
+DO NOTs:
+
+* Do not use comparators for sorted sets and maps that treat two
+  values as equal, unless you want at most one of those two values to
+  appear in the sorted collection.
+* Do not use subtraction when writing a 3-way comparator, unless you
+  really know what you are doing.
+
+
+## Introduction
 
 See also:
 [`compare`][doc-compare]
