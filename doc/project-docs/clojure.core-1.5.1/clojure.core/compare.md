@@ -1,6 +1,9 @@
-A comparator is a function that takes two arguments x and y.  It
-returns an `int` that is negative if x should come before y when
-sorting, positive if x should come after y, or 0 if they are equal.
+A [comparator][ComparatorsInClojure] is a function that takes two
+arguments x and y.  It returns an `int` that is negative if x should
+come before y when sorting, positive if x should come after y, or 0 if
+they are equal.
+
+[ComparatorsInClojure]: https://github.com/jafingerhut/thalia/blob/master/doc/other-topics/comparators.md
 
 `compare` is the default comparator used by Clojure for sorting with
 [`sort`][doc-sort] and [`sort-by`][doc-sort-by], for ordering the
@@ -95,8 +98,6 @@ listed above can be compared to each other, but not to a non-numeric
 type).  See [Comparators in Clojure][ComparatorsInClojure] for
 examples of comparators that can be used to compare values of these
 different types.
-
-[ComparatorsInClojure]: https://github.com/jafingerhut/thalia/blob/master/doc/other-topics/comparators.md
 
 ```clojure
     user> (sort [5 "a"])
