@@ -3,8 +3,14 @@ returns an `int` that is negative if x should come before y when
 sorting, positive if x should come after y, or 0 if they are equal.
 
 `compare` is the default comparator used by Clojure for sorting with
-`sort`, for ordering the elements of `sorted-set`s, and for ordering
-the keys of `sorted-map`s, unless you specify your own comparator.
+[`sort`][doc-sort] and [`sort-by`][doc-sort-by], for ordering the
+elements of a [`sorted-set`][doc-sorted-set], and for ordering the
+keys of a [`sorted-map`][doc-sorted-map].
+
+[doc-sort]: https://github.com/jafingerhut/thalia/blob/master/doc/project-docs/clojure.core-1.5.1/clojure.core/sort.md
+[doc-sort-by]: https://github.com/jafingerhut/thalia/blob/master/doc/project-docs/clojure.core-1.5.1/clojure.core/sort-by.md
+[doc-sorted-set]: https://github.com/jafingerhut/thalia/blob/master/doc/project-docs/clojure.core-1.5.1/clojure.core/sorted-set.md
+[doc-sorted-map]: https://github.com/jafingerhut/thalia/blob/master/doc/project-docs/clojure.core-1.5.1/clojure.core/sorted-map.md
 
 `compare` works for many types of values, ordering values in one
 particular way: increasing numeric order for numbers; [lexicographic
