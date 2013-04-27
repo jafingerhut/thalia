@@ -2,6 +2,10 @@
 order is determined by calling `keyfn` on each item and comparing the
 return values.  `compare` is used if no comparator is given.
 
+See [`sort`][doc-sort] for an example showing it modifying a Java
+array in place.  `sort-by` will also do this.  `sort-by` is guaranteed
+to be _stable_, as `sort` is.
+
 Performance note: `keyfn` is called on each value every time it is
 compared to another value (example below).  If `keyfn` is expensive to
 compute, you may be able to sort more quickly by using the
@@ -79,3 +83,12 @@ written in the order they occur.
     square: x= -2
     (-1 -2 3 4 -5)
 ```
+
+See also:
+[`sort`][doc-sort]
+[`compare`][doc-compare]
+[Comparators in Clojure][ComparatorsInClojure]
+
+[doc-sort]: https://github.com/jafingerhut/thalia/blob/master/doc/project-docs/clojure.core-1.5.1/clojure.core/sort.md
+[doc-compare]: https://github.com/jafingerhut/thalia/blob/master/doc/project-docs/clojure.core-1.5.1/clojure.core/compare.md
+[ComparatorsInClojure]: https://github.com/jafingerhut/thalia/blob/master/doc/other-topics/comparators.md
