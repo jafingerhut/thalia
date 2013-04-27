@@ -60,9 +60,6 @@ DO NOTs:
 * Do not use subtraction when writing a 3-way comparator, unless you
   really know what you are doing.
 
-
-## Introduction
-
 See also:
 [`compare`][doc-compare]
 [`sort`][doc-sort]
@@ -73,6 +70,9 @@ See also:
 [`sorted-map-by`][doc-sorted-map-by]
 [`subseq`][doc-subseq]
 [`rsubseq`][doc-rsubseq]
+
+
+## Introduction
 
 [doc-compare]: https://github.com/jafingerhut/thalia/blob/master/doc/project-docs/clojure.core-1.5.1/clojure.core/compare.md
 [doc-sort]: https://github.com/jafingerhut/thalia/blob/master/doc/project-docs/clojure.core-1.5.1/clojure.core/sort.md
