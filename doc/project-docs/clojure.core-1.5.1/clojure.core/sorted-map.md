@@ -19,9 +19,9 @@ Sorted maps are in most ways similar to unsorted maps created with
 [`hash-map`][doc-hash-map], [`array-map`][doc-array-map], or as a
 literal, e.g. `{1 "a" 2 "b"}`.  Here is a summary of the differences:
 
-* [`seq`][doc-seq] returns a sequence of the key/value pairs in order
-  sorted by keys.  This affects all other sequence-based operations
-  upon sorted maps, e.g. `first`, `for`, etc.
+* [`seq`][doc-seq] returns a sequence of the key/value pairs in order,
+  sorted by their keys.  This affects all other sequence-based
+  operations upon sorted maps, e.g. `first`, `for`, etc.
 
 * [`rseq`][doc-rseq] returns this same sequence but in reverse order,
   lazily, unlike `(reverse (seq coll))` which must generate the entire
@@ -35,7 +35,7 @@ literal, e.g. `{1 "a" 2 "b"}`.  Here is a summary of the differences:
   use [`compare`][doc-compare] or a caller-supplied comparator.  Thus
   unsorted maps treat several "categories" of numbers as different
   keys, whereas a sorted map using `compare` will treat them as the
-  same.  A sorted maps' comparator can throw exceptions if you perform
+  same.  A sorted map's comparator can throw exceptions if you perform
   operations with incomparable keys.
 
 * There is no transient version of sorted maps.
@@ -83,25 +83,55 @@ number of elements in the entire set.
 
 TBD: Are the sequences returned by subseq and rsubseq lazy?
 
-Examples demonstrating the difference between an unsorted map's use of
-`=` to compare for equal keys, with its different numeric categories
-as explained in the [Equality][Equality] document, and a sorted map's
-use of [`compare`][doc-compare]:
+Here are some examples demonstrating the difference between an
+unsorted map's use of `=` to compare for equal keys, with its
+different numeric categories as explained in the [Equality][Equality]
+document, and a sorted map's use of [`compare`][doc-compare].
+
+No pair of these values are `=` to each other, so they can all be in
+an unsorted set together.
 
 ```clojure
-;; No pair of these values are `=` to each other, so they can all be
-;; in an unsorted set together.
-user> (hash-set 1.0 1 1.0M 1.5M 3/2)
+user=> (def unsorted (hash-set 1.0 1 1.0M 1.5M 3/2))
+#'user/unsorted
+user=> unsorted
 #{1.0 1 3/2 1.5M 1.0M}
-user> (disj (hash-set 1.0 1 1.0M 1.5M 3/2) 1 3/2)
+user=> (disj unsorted 1 3/2)
 #{1.0 1.5M 1.0M}
+```
 
-;; (compare 1.0 1) is 0, so they are treated as equal in a sorted set
-;; with compare as its comparator.  Similarly for 1.5M and 3/2.
-user> (sorted-set 1.0 1 1.0M 1.5M 3/2)
+`(compare 1.0 1)` is 0, so they are treated as equal in a sorted set
+with compare as its comparator.  Similarly for 1.5M and 3/2.
+
+```clojure
+user=> (def sorted (sorted-set 1.0 1 1.0M 1.5M 3/2))
+#'user/sorted
+user=> sorted
 #{1.0 1.5M}
-user> (disj (sorted-set 1.0 1 1.0M 1.5M 3/2) 1 3/2)
+user=> (disj sorted 1 3/2)
 #{}
+```
+
+You may search an unsorted map for any value with no exception.
+
+```clojure
+user=> (get unsorted "a")
+nil
+user=> (get unsorted "a" :not-found)
+:not-found
+```
+
+Searching sorted maps calls the comparator with the searched-for value
+and some of the keys in the map, which may throw an exception if they
+are not comparable.
+
+```clojure
+user=> (get sorted "a")
+ClassCastException java.lang.Double cannot be cast to java.lang.String  java.lang.String.compareTo (String.java:108)
+
+user=> (get sorted "a" :not-found)
+ClassCastException java.lang.Double cannot be cast to java.lang.String  java.lang.String.compareTo (String.java:108)
+
 ```
 
 There is no transient implementation for sorted maps in Clojure 1.5.1
