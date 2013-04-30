@@ -1,14 +1,14 @@
-`sorted-set-by` returns a new sorted set with the given elements.  Its
-elements are maintained in sorted order using the
+`sorted-map-by` returns a new sorted map with the given key/value
+pairs.  Its keys are maintained in sorted order using the
 [comparator][ComparatorsInClojure] function given to it.  See
-[`sorted-set`][doc-sorted-set] for the differences between sorted and
-unsorted sets.
+[`sorted-map`][doc-sorted-map] for the differences between sorted and
+unsorted maps.
 
 [ComparatorsInClojure]: https://github.com/jafingerhut/thalia/blob/master/doc/other-topics/comparators.md
-[doc-sorted-set]: https://github.com/jafingerhut/thalia/blob/master/doc/project-docs/clojure.core-1.5.1/clojure.core/sorted-set.md
+[doc-sorted-map]: https://github.com/jafingerhut/thalia/blob/master/doc/project-docs/clojure.core-1.5.1/clojure.core/sorted-map.md
 
 Be cautious when writing your own comparators, especially for sorted
-sets.  In particular, read the warnings and suggestions in [this
+maps.  In particular, read the warnings and suggestions in [this
 section][ComparatorsInClojureSortedSets] of the Comparators in Clojure
 document.
 
