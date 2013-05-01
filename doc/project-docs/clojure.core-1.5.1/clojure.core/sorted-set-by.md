@@ -13,3 +13,27 @@ section][ComparatorsInClojureSortedSets] of the Comparators in Clojure
 document.
 
 [ComparatorsInClojureSortedSets]: https://github.com/jafingerhut/thalia/blob/master/doc/other-topics/comparators.md#comparators-for-sorted-sets-and-maps-are-easy-to-get-wrong
+
+Examples:
+
+```clojure
+user> (def s1 (sorted-set "Food" "good" "air" "My" "AiR" "My"))
+#'user/s1
+user> s1
+#{"AiR" "Food" "My" "air" "good"}
+```
+
+With `case-insensitive-cmp`, `"AiR"` is a duplicate with `"air"` and
+not added to the set, and the order is different.
+
+```clojure
+user> (require '[clojure.string :as str])
+nil
+user> (defn case-insensitive-cmp [s1 s2]
+        (compare (str/lower-case s1) (str/lower-case s2)))
+#'user/case-insensitive-cmp
+user> (def s2 (sorted-set-by case-insensitive-cmp "Food" "good" "air" "My" "AiR" "My"))
+#'user/s2
+user> s2
+#{"air" "Food" "good" "My"}
+```
