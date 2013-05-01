@@ -40,8 +40,7 @@ literal, e.g. `{1 "a" 2 "b"}`.  Here is a summary of the differences:
 
 * There is no transient version of sorted maps.
 
-TBD: Add link to an other-topics page on transients, when I create
-one.
+TBD: Add link to a page on transients, when I create one.
 
 [doc-hash-map]: https://github.com/jafingerhut/thalia/blob/master/doc/project-docs/clojure.core-1.5.1/clojure.core/hash-map.md
 [doc-array-map]: https://github.com/jafingerhut/thalia/blob/master/doc/project-docs/clojure.core-1.5.1/clojure.core/array-map.md
@@ -62,12 +61,33 @@ also guarantee this order, e.g. `first`, `rest`, `for`, `doseq`, and
 many others.
 
 ```clojure
-;; TBD: Add some examples of this behavior that is distinctive to sorted maps.
-
-;; One possibly interesting idea: Return a list of the largest 5 and
-;; smallest 5 *unique* numbers in an input sequence using a sorted
-;; map.
-
+user> (def births (sorted-map -428 "Plato"
+                              -384 "Aristotle"
+                              -469 "Socrates"
+                              -320 "Euclid"
+                              -460 ["Democritus" "Thucydides"]
+                              -535 "Heraclitus"
+                              -510 "Anaxagoras"
+                              -310 "Aristarchus"
+                              90 "Ptolemy"
+                              -570 "Pythagoras"
+                              -190 "Hipparchus"
+                              -624 "Thales"
+                              -410 "Eudoxus"
+                              -262 "Apollonius"))
+#'user/births
+user=> (first births)
+[-624 "Thales"]
+user=> (last births)
+[90 "Ptolemy"]
+user=> (take 5 births)
+([-624 "Thales"] [-570 "Pythagoras"] [-535 "Heraclitus"] [-510 "Anaxagoras"] [-469 "Socrates"])
+user=> (drop 10 births)
+([-310 "Aristarchus"] [-262 "Apollonius"] [-190 "Hipparchus"] [90 "Ptolemy"])
+user=> (keys births)
+(-624 -570 -535 -510 -469 -460 -428 -410 -384 -320 -310 -262 -190 90)
+user=> (vals births)
+("Thales" "Pythagoras" "Heraclitus" "Anaxagoras" "Socrates" ["Democritus" "Thucydides"] "Plato" "Eudoxus" "Aristotle" "Euclid" "Aristarchus" "Apollonius" "Hipparchus" "Ptolemy")
 ```
 
 You can also call [`subseq`][doc-subseq] or [`rsubseq`][doc-rsubseq]
@@ -77,8 +97,31 @@ way such that it is linear in the number of key/value pairs in the
 range, not the number of key/value pairs in the entire map.
 
 ```clojure
-;; TBD: Add examples of subseq and rsubseq here.
-
+user=> (def m (sorted-map "Dijkstra" "Edsger",
+                          "Knuth" "Donald",
+                          "Tarjan" "Robert",
+                          "Lamport" "Leslie",
+                          "Lampson" "Butler",
+                          "Johnson" "David",
+                          "Garey" "Michael"))
+#'user/m
+user=> (pprint m)
+{"Dijkstra" "Edsger",
+ "Garey" "Michael",
+ "Johnson" "David",
+ "Knuth" "Donald",
+ "Lamport" "Leslie",
+ "Lampson" "Butler",
+ "Tarjan" "Robert"}
+nil
+user=> (subseq m > "M")
+(["Tarjan" "Robert"])
+user=> (subseq m > "Hopcroft")
+(["Johnson" "David"] ["Knuth" "Donald"] ["Lamport" "Leslie"] ["Lampson" "Butler"] ["Tarjan" "Robert"])
+user=> (subseq m > "Hopcroft" < "Sipser")
+(["Johnson" "David"] ["Knuth" "Donald"] ["Lamport" "Leslie"] ["Lampson" "Butler"])
+user=> (rsubseq m < "K")
+(["Johnson" "David"] ["Garey" "Michael"] ["Dijkstra" "Edsger"])
 ```
 
 TBD: Are the sequences returned by subseq and rsubseq lazy?
@@ -144,9 +187,8 @@ There is no transient implementation for sorted maps in Clojure 1.5.1
 or earlier, but there is for unsorted maps.  See the implementation
 for `into` for an example of how to implement a function that uses
 transients on collections that support them, but falls back to the
-slower normal operations for collections that do not.
-
-TBD: Add link to implementation of `into` in Clojure 1.5.1.
+slower normal operations for collections that do not (e.g. do `(source
+into)` in a REPL session).
 
 Sorted maps are implemented efficiently by maintaining the map's
 key/value pairs in sorted order using a persistent red-black tree data
