@@ -62,19 +62,19 @@ also guarantee this order, e.g. `first`, `rest`, `for`, `doseq`, and
 many others.
 
 ```clojure
-;; TBD: Add some examples of this behavior that is distinctive to sorted sets.
+;; TBD: Add some examples of this behavior that is distinctive to sorted maps.
 
 ;; One possibly interesting idea: Return a list of the largest 5 and
 ;; smallest 5 *unique* numbers in an input sequence using a sorted
-;; set.
+;; map.
 
 ```
 
 You can also call [`subseq`][doc-subseq] or [`rsubseq`][doc-rsubseq]
-on a sorted set to create a sequence of all elements in a certain
-range of values.  This is implemented efficiently, i.e. in a way such
-that it is linear in the number of elements in the range, not the
-number of elements in the entire set.
+on a sorted map to create a sequence of all key/value pairs in a
+certain range of values.  This is implemented efficiently, i.e. in a
+way such that it is linear in the number of key/value pairs in the
+range, not the number of key/value pairs in the entire map.
 
 ```clojure
 ;; TBD: Add examples of subseq and rsubseq here.
@@ -88,36 +88,42 @@ unsorted map's use of `=` to compare for equal keys, with its
 different numeric categories as explained in the [Equality][Equality]
 document, and a sorted map's use of [`compare`][doc-compare].
 
-No pair of these values are `=` to each other, so they can all be in
-an unsorted set together.
+No pair of these keys are `=` to each other, so they can all be keys
+in an unsorted map together.
 
 ```clojure
-user=> (def unsorted (hash-set 1.0 1 1.0M 1.5M 3/2))
+user=> (def unsorted (hash-map 1.0 "floatone" 1 "intone" 1.0M "bigdecone"
+                               1.5M "bigdec1.5" 3/2 "ratio1.5"))
 #'user/unsorted
 user=> unsorted
-#{1.0 1 3/2 1.5M 1.0M}
-user=> (disj unsorted 1 3/2)
-#{1.0 1.5M 1.0M}
+{1.0 "floatone", 1 "intone", 3/2 "ratio1.5", 1.5M "bigdec1.5", 1.0M "bigdecone"}
+user=> (dissoc unsorted 1 3/2)
+{1.0 "floatone", 1.5M "bigdec1.5", 1.0M "bigdecone"}
 ```
 
-`(compare 1.0 1)` is 0, so they are treated as equal in a sorted set
-with compare as its comparator.  Similarly for 1.5M and 3/2.
+`(compare 1.0 1)` is 0, so they are treated as equal keys in a sorted
+map with compare as its comparator.  Similarly for `1.5M` and `3/2`.
+`assoc` on both unsorted and sorted maps keeps the existing key if you
+try to add a new one that is considered equal, but the associated
+value is replaced.  That is why you end up with the key `1.0` but the
+value `"bigdecone"` in this example:
 
 ```clojure
-user=> (def sorted (sorted-set 1.0 1 1.0M 1.5M 3/2))
+user=> (def sorted (sorted-map 1.0 "floatone" 1 "intone" 1.0M "bigdecone"
+                               1.5M "bigdec1.5" 3/2 "ratio1.5"))
 #'user/sorted
 user=> sorted
-#{1.0 1.5M}
-user=> (disj sorted 1 3/2)
-#{}
+{1.0 "bigdecone", 1.5M "ratio1.5"}
+user=> (dissoc sorted 1 3/2)
+{}
 ```
 
 You may search an unsorted map for any value with no exception.
 
 ```clojure
-user=> (get unsorted "a")
+user=> (unsorted "a")
 nil
-user=> (get unsorted "a" :not-found)
+user=> (unsorted "a" :not-found)
 :not-found
 ```
 
@@ -126,10 +132,10 @@ and some of the keys in the map, which may throw an exception if they
 are not comparable.
 
 ```clojure
-user=> (get sorted "a")
+user=> (sorted "a")
 ClassCastException java.lang.Double cannot be cast to java.lang.String  java.lang.String.compareTo (String.java:108)
 
-user=> (get sorted "a" :not-found)
+user=> (sorted "a" :not-found)
 ClassCastException java.lang.Double cannot be cast to java.lang.String  java.lang.String.compareTo (String.java:108)
 
 ```
