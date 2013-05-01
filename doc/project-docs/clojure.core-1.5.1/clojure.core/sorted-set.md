@@ -34,11 +34,11 @@ Sorted sets are in most ways similar to unsorted sets created with
 [`hash-set`][doc-hash-set], [`set`][doc-set], or as a literal,
 e.g. `#{1 2 3}`.
 
-Read about how sorted _maps_ are different from unsorted maps at the
-documentation for [`sorted-map`][doc-sorted-map].  Those same
-differences apply for how sorted sets are different from unsorted
-sets, if you replace "key/value pairs" with "elements", and sorting by
-keys with sorting by elements.
+Read about how sorted _maps_ differ from unsorted maps at the
+documentation for [`sorted-map`][doc-sorted-map].  All of that applies
+equally to how sorted sets differ from unsorted sets, if you replace
+"key/value pairs" with "elements", and sorting by keys with sorting by
+elements.
 
 [doc-hash-set]: https://github.com/jafingerhut/thalia/blob/master/doc/project-docs/clojure.core-1.5.1/clojure.core/hash-set.md
 [doc-set]: https://github.com/jafingerhut/thalia/blob/master/doc/project-docs/clojure.core-1.5.1/clojure.core/set.md
