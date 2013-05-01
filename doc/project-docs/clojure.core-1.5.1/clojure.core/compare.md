@@ -1,15 +1,15 @@
-A [comparator][ComparatorsInClojure] is a function that takes two
-arguments x and y.  It returns an `int` that is negative if x should
-come before y when sorting, positive if x should come after y, or 0 if
-they are equal.
+`compare` is the default [comparator][ComparatorsInClojure] used by
+Clojure for sorting with [`sort`][doc-sort] and
+[`sort-by`][doc-sort-by], for ordering the elements of a
+[`sorted-set`][doc-sorted-set], and for ordering the keys of a
+[`sorted-map`][doc-sorted-map].
+
+As for all 3-way comparators, it takes two arguments `x` and `y`.  It
+returns an `int` that is negative if `x` should come before `y` when
+sorting, positive if `x` should come after `y`, or 0 if they are
+equal.
 
 [ComparatorsInClojure]: https://github.com/jafingerhut/thalia/blob/master/doc/other-topics/comparators.md
-
-`compare` is the default comparator used by Clojure for sorting with
-[`sort`][doc-sort] and [`sort-by`][doc-sort-by], for ordering the
-elements of a [`sorted-set`][doc-sorted-set], and for ordering the
-keys of a [`sorted-map`][doc-sorted-map].
-
 [doc-sort]: https://github.com/jafingerhut/thalia/blob/master/doc/project-docs/clojure.core-1.5.1/clojure.core/sort.md
 [doc-sort-by]: https://github.com/jafingerhut/thalia/blob/master/doc/project-docs/clojure.core-1.5.1/clojure.core/sort-by.md
 [doc-sorted-set]: https://github.com/jafingerhut/thalia/blob/master/doc/project-docs/clojure.core-1.5.1/clojure.core/sorted-set.md

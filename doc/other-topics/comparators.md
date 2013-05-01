@@ -9,6 +9,13 @@ versions, too.
 
 ## Summary
 
+A [comparator][ComparatorsInClojure] is a function that takes two
+arguments `x` and `y`, and returns a value indicating the relative
+order in which `x` and `y` should be sorted.  It can be a 3-way
+comparator returning an integer, or a 2-way comparator returning a
+boolean.  See the DOs below for what the return values should be,
+depending upon the order of `x` and `y`.
+
 In Clojure you need comparators for sorting a collection of values, or
 for maintaining a collection of values in a desired sorted order,
 e.g. a [`sorted-map`][doc-sorted-map], [`sorted-set`][doc-sorted-set],
