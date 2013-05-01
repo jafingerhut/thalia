@@ -16,15 +16,18 @@ keys of a [`sorted-map`][doc-sorted-map].
 [doc-sorted-map]: https://github.com/jafingerhut/thalia/blob/master/doc/project-docs/clojure.core-1.5.1/clojure.core/sorted-map.md
 
 `compare` works for many types of values, ordering values in one
-particular way: increasing numeric order for numbers; [lexicographic
-order][lexicographic] (aka dictionary order) for strings, symbols, and
-keywords; shortest-to-longest order for Clojure vectors, with
-lexicographic ordering among equal length vectors.  All Java types
-implementing the [`Comparable`][Comparable] interface such as
-characters, booleans, `File`, `URI`, and `UUID` are compared via their
-`compareTo` methods.  Finally, `nil` can be compared to all values
-described earlier, and is considered less than everything else.
+particular way: increasing numeric order for numbers (returning 0 if
+two numbers are numerically equal as by `==`, even if [`=`][Equality]
+returns false); [lexicographic order][lexicographic] (aka dictionary
+order) for strings, symbols, and keywords; shortest-to-longest order
+for Clojure vectors, with lexicographic ordering among equal length
+vectors.  All Java types implementing the [`Comparable`][Comparable]
+interface such as characters, booleans, `File`, `URI`, and `UUID` are
+compared via their `compareTo` methods.  Finally, `nil` can be
+compared to all values described earlier, and is considered less than
+everything else.
 
+[Equality]: https://github.com/jafingerhut/thalia/blob/master/doc/other-topics/equality.md
 [lexicographic]: http://en.wikipedia.org/wiki/Lexicographical_order
 [Comparable]: http://docs.oracle.com/javase/6/docs/api/java/lang/Comparable.html
 
