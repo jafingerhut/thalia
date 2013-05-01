@@ -33,9 +33,10 @@ user=> (pprint reverse-alpha)
 nil
 ```
 
-With `case-insensitive-cmp`, `"Lion"` is a duplicate with `"lion"` and
-not added as a separate key in the map.  The value associated with the
-second equal key "Lion" does replace the first value.
+With comparator `case-insensitive-cmp`, `"Lion"` is a duplicate with
+`"lion"` and not added as a separate key in the map.  The value
+associated with the second equal key `"Lion"` does replace the first
+value.
 
 ```clojure
 user> (require '[clojure.string :as str])
