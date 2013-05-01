@@ -22,22 +22,18 @@ literal, e.g. `{1 "a" 2 "b"}`.  Here is a summary of the differences:
 * [`seq`][doc-seq] returns a sequence of the key/value pairs in order,
   sorted by their keys.  This affects all other sequence-based
   operations upon sorted maps, e.g. `first`, `for`, etc.
-
 * [`rseq`][doc-rseq] returns this same sequence but in reverse order,
   lazily, unlike `(reverse (seq coll))` which must generate the entire
   sequence before it can reverse it.
-
 * You can call [`subseq`][doc-subseq] or [`rsubseq`][doc-rsubseq] on a
   sorted map to get a sorted sequence of all key/value pairs with keys
   in a specified range.
-
 * Unsorted maps use [`=`][Equality] to compare keys, but sorted maps
   use [`compare`][doc-compare] or a caller-supplied comparator.  Thus
   unsorted maps treat several "categories" of numbers as different
   keys, whereas a sorted map using `compare` will treat them as the
   same.  A sorted map's comparator can throw exceptions if you perform
   operations with incomparable keys.
-
 * There is no transient version of sorted maps.
 
 TBD: Add link to a page on transients, when I create one.
