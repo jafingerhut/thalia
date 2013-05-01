@@ -32,23 +32,23 @@ regex implementations.
 ## Examples
 
 ```clojure
-    (require '[clojure.string :as s])
+(require '[clojure.string :as s])
 ```
 
 `re-find` returns nil if there is no match.
 
 ```clojure
-    user> (re-find #"Time:" "No time like the present")
-    nil
+user> (re-find #"Time:" "No time like the present")
+nil
 ```
 
 If the regex contains no parenthesized _capturing groups_, then on a
 match `re-find` returns the part of the string that matches the regex.
 
 ```clojure
-    user> (re-find #"Time: ..:..:.."
-                   "At the chime it is Time: 09:58:10.")
-    "Time: 09:58:10"
+user> (re-find #"Time: ..:..:.."
+               "At the chime it is Time: 09:58:10.")
+"Time: 09:58:10"
 ```
 
 If there are capturing groups, then on a match `re-find` returns a
@@ -56,18 +56,18 @@ vector of strings.  The first is the string that matches the entire
 regex.  Each following string matches one capturing group.
 
 ```clojure
-    user> (re-find #"Time: (..):(..):(..)"
-                   "At the chime it is Time: 09:58:10.")
-    ["Time: 09:58:10" "09" "58" "10"]
+user> (re-find #"Time: (..):(..):(..)"
+               "At the chime it is Time: 09:58:10.")
+["Time: 09:58:10" "09" "58" "10"]
 ```
 
 The order of matching strings is the order that the left parens appear
 in the regex.
 
 ```clojure
-    user> (re-find #"(Time: ((..):(..))):(..)"
-                   "At the chime it is Time: 09:58:10.")
-    ["Time: 09:58:10" "Time: 09:58" "09:58" "09" "58" "10"]
+user> (re-find #"(Time: ((..):(..))):(..)"
+               "At the chime it is Time: 09:58:10.")
+["Time: 09:58:10" "Time: 09:58" "09:58" "09" "58" "10"]
 ```
 
 [Destructuring][destructuring] can be a handy way to give names to the
@@ -78,13 +78,13 @@ inside the regex itself.
 [destructuring]: http://clojure.org/special_forms#binding-forms
 
 ```clojure
-    user> (let [matches (re-find #"Time: (..):(..):(..)"
-                                 "At the chime it is Time: 09:58:10.")
-                [hours mins secs] (map #(bigint %) (rest matches))
-                t (+ (* 3600 hours) (* 60 mins) secs)]
-            (println (str t) "seconds since midnight"))
-    35890 seconds since midnight
-    nil
+user> (let [matches (re-find #"Time: (..):(..):(..)"
+                             "At the chime it is Time: 09:58:10.")
+            [hours mins secs] (map #(bigint %) (rest matches))
+            t (+ (* 3600 hours) (* 60 mins) secs)]
+        (println (str t) "seconds since midnight"))
+35890 seconds since midnight
+nil
 ```
 
 You can call `clojure.string/replace` and
@@ -95,10 +95,10 @@ return value from `re-find` as described above: a string if there are
 no capturing groups in the regex, or a vector of strings if there are.
 
 ```clojure
-    user> (s/replace "0x4e out of 0x64 dentists agree they prefer decimal"
-                     #"0x([0-9a-fA-F]+)"
-                     (fn [[_ s]] (str (BigInteger. s 16))))
-    "78 out of 100 dentists agree they prefer decimal"
+user> (s/replace "0x4e out of 0x64 dentists agree they prefer decimal"
+                 #"0x([0-9a-fA-F]+)"
+                 (fn [[_ s]] (str (BigInteger. s 16))))
+"78 out of 100 dentists agree they prefer decimal"
 ```
 
 A parenthesized subexpression is normally a capturing group.  If you
@@ -132,33 +132,33 @@ result of its last match.
 subexpression within the parentheses is optional,
 
 ```clojure
-    user> (re-find #"([a-zA-Z]+)?(\d)+" "word 587")
-    ["587" nil "7"]
-    user> (re-find #"([a-zA-Z]+)?(\d)+" "word587")
-    ["word587" "word" "7"]
+user> (re-find #"([a-zA-Z]+)?(\d)+" "word 587")
+["587" nil "7"]
+user> (re-find #"([a-zA-Z]+)?(\d)+" "word587")
+["word587" "word" "7"]
 
-    user> (re-find #"([a-zA-Z]+)?(\d+)" "word 587")
-    ["587" nil "587"]
-    user> (re-find #"([a-zA-Z]+)?(\d+)" "word587")
-    ["word587" "word" "587"]
+user> (re-find #"([a-zA-Z]+)?(\d+)" "word 587")
+["587" nil "587"]
+user> (re-find #"([a-zA-Z]+)?(\d+)" "word587")
+["word587" "word" "587"]
 
-    user> (re-find #"term: ([ab])*" "term: ")
-    ["term: " nil]
-    user> (re-find #"term: ([ab])*" "term: a")
-    ["term: a" "a"]
-    user> (re-find #"term: ([ab])*" "term: ab")
-    ["term: ab" "b"]
-    user> (re-find #"term: ([ab])*" "term: bbbbbbba")
-    ["term: bbbbbbba" "a"]
+user> (re-find #"term: ([ab])*" "term: ")
+["term: " nil]
+user> (re-find #"term: ([ab])*" "term: a")
+["term: a" "a"]
+user> (re-find #"term: ([ab])*" "term: ab")
+["term: ab" "b"]
+user> (re-find #"term: ([ab])*" "term: bbbbbbba")
+["term: bbbbbbba" "a"]
 
-    user> (re-find #"term: ([ab]*)" "term: ")
-    ["term: " ""]
-    user> (re-find #"term: ([ab]*)" "term: a")
-    ["term: a" "a"]
-    user> (re-find #"term: ([ab]*)" "term: ab")
-    ["term: ab" "ab"]
-    user> (re-find #"term: ([ab]*)" "term: bbbbbbba")
-    ["term: bbbbbbba" "bbbbbbba"]
+user> (re-find #"term: ([ab]*)" "term: ")
+["term: " ""]
+user> (re-find #"term: ([ab]*)" "term: a")
+["term: a" "a"]
+user> (re-find #"term: ([ab]*)" "term: ab")
+["term: ab" "ab"]
+user> (re-find #"term: ([ab]*)" "term: bbbbbbba")
+["term: bbbbbbba" "bbbbbbba"]
 ```
 
 
@@ -238,26 +238,26 @@ position of the match without.
 ## Misc code
 
 ```clojure
-    (defn re-group-posns
-      [^java.util.regex.Matcher m]
-      (let [gc (. m (groupCount))]
-        (if (zero? gc)
-          [(. m (start)) (. m (end))]
-          (loop [ret [] c 0]
-            (if (<= c gc)
-              (recur (conj ret (if (neg? (. m (start c)))
-                                 nil
-                                 [(. m (start c)) (. m (end c))]))
-                     (inc c))
-              ret)))))
+(defn re-group-posns
+  [^java.util.regex.Matcher m]
+  (let [gc (. m (groupCount))]
+    (if (zero? gc)
+      [(. m (start)) (. m (end))]
+      (loop [ret [] c 0]
+        (if (<= c gc)
+          (recur (conj ret (if (neg? (. m (start c)))
+                             nil
+                             [(. m (start c)) (. m (end c))]))
+                 (inc c))
+          ret)))))
 
-    (defn re-find-pos
-      ([^java.util.regex.Matcher m]
-       (when (. m (find))
-         (re-group-posns m)))
-      ([^java.util.regex.Pattern re s]
-       (let [m (re-matcher re s)]
-         (re-find-pos m))))
+(defn re-find-pos
+  ([^java.util.regex.Matcher m]
+   (when (. m (find))
+     (re-group-posns m)))
+  ([^java.util.regex.Pattern re s]
+   (let [m (re-matcher re s)]
+     (re-find-pos m))))
 ```
 
 Web app that takes a regex and parses it, explaining its pieces in

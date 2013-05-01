@@ -20,30 +20,30 @@ by sorting it.  Copy the array before sorting if you want to avoid
 this.
 
 ```clojure
-    user=> (def x (to-array [32 11]))
-    #'user/x
+user> (def x (to-array [32 11]))
+#'user/x
 
-    user=> (seq x)
-    (32 11)
+user> (seq x)
+(32 11)
 
-    user=> (def y (sort x))
-    #'user/y
+user> (def y (sort x))
+#'user/y
 
-    ;; Return sorted sequence
-    user=> y
-    (11 32)
+;; Return sorted sequence
+user> y
+(11 32)
 
-    user=> (class y)
-    clojure.lang.ArraySeq
+user> (class y)
+clojure.lang.ArraySeq
 
-    ;; but also modifies x, because it used the array to do the
-    ;; sorting.
-    user=> (seq x)
-    (11 32)
+;; but also modifies x, because it used the array to do the
+;; sorting.
+user> (seq x)
+(11 32)
 
-    ;; One way to avoid this is copying the array before sorting:
-    user=> (def y (sort (aclone x)))
-    #'user/y
+;; One way to avoid this is copying the array before sorting:
+user> (def y (sort (aclone x)))
+#'user/y
 ```
 
 See also:

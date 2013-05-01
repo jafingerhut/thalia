@@ -18,29 +18,29 @@ in Perl.
 Demonstration that `sort-by` calls `keyfn` multiple times per value:
 
 ```clojure
-    user> (defn square [x]
-            (println "square: x=" x)
-            (* x x))
-    #'user/square
+user> (defn square [x]
+        (println "square: x=" x)
+        (* x x))
+#'user/square
 
-    user> (sort-by square [-5 4 -1 3 -2])
-    square: x= 4
-    square: x= -5
-    square: x= -1
-    square: x= 4
-    square: x= 3
-    square: x= -1
-    square: x= 3
-    square: x= 4
-    square: x= 3
-    square: x= -1
-    square: x= -2
-    square: x= 4
-    square: x= -2
-    square: x= 3
-    square: x= -2
-    square: x= -1
-    (-1 -2 3 4 -5)
+user> (sort-by square [-5 4 -1 3 -2])
+square: x= 4
+square: x= -5
+square: x= -1
+square: x= 4
+square: x= 3
+square: x= -1
+square: x= 3
+square: x= 4
+square: x= 3
+square: x= -1
+square: x= -2
+square: x= 4
+square: x= -2
+square: x= 3
+square: x= -2
+square: x= -1
+(-1 -2 3 4 -5)
 ```
 
 Below is one way to compute `keyfn` exactly once per value.  It first
@@ -55,16 +55,16 @@ but this is quick, and the assumption here is that `keyfn` is
 expensive to compute.
 
 ```clojure
-    user> (map second                                 ; undecorate
-               (sort-by first                         ; sort by the decorated value
-                        (map (fn [x] [(square x) x])  ; decorate with (square x)
-                             [-5 4 -1 3 -2])))
-    square: x= -5
-    square: x= 4
-    square: x= -1
-    square: x= 3
-    square: x= -2
-    (-1 -2 3 4 -5)
+user> (map second                                 ; undecorate
+           (sort-by first                         ; sort by the decorated value
+                    (map (fn [x] [(square x) x])  ; decorate with (square x)
+                         [-5 4 -1 3 -2])))
+square: x= -5
+square: x= 4
+square: x= -1
+square: x= 3
+square: x= -2
+(-1 -2 3 4 -5)
 ```
 
 Below is another way to write the same code, except this time using
@@ -72,16 +72,16 @@ the threading operator `->>` so that the computation steps can be
 written in the order they occur.
 
 ```clojure
-    user> (->> [-5 4 -1 3 -2]
-               (map (fn [x] [(square x) x]))  ; decorate with (square x)
-               (sort-by first)                ; sort by the decorated value
-               (map second))                  ; undecorate
-    square: x= -5
-    square: x= 4
-    square: x= -1
-    square: x= 3
-    square: x= -2
-    (-1 -2 3 4 -5)
+user> (->> [-5 4 -1 3 -2]
+           (map (fn [x] [(square x) x]))  ; decorate with (square x)
+           (sort-by first)                ; sort by the decorated value
+           (map second))                  ; undecorate
+square: x= -5
+square: x= 4
+square: x= -1
+square: x= 3
+square: x= -2
+(-1 -2 3 4 -5)
 ```
 
 See also:

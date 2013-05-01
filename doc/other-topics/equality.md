@@ -54,28 +54,28 @@ Exceptions, or possible surprises:
 Equality in Clojure is most often tested using `=`.
 
 ```clojure
-    user> (= 2 (+ 1 1))
-    true
-    user> (= (str "fo" "od") "food")
-    true
+user> (= 2 (+ 1 1))
+true
+user> (= (str "fo" "od") "food")
+true
 ```
 
 Unlike Java's `equals` method, Clojure's `=` returns true for many
 values that do not have the same type as each other.
 
 ```clojure
-    user> (= (float 314.0) (double 314.0))
-    true
-    user> (= 3 3N)
-    true
+user> (= (float 314.0) (double 314.0))
+true
+user> (= 3 3N)
+true
 ```
 
 `=` does *not* always return true when two numbers have the same
 numeric value.
 
 ```clojure
-    user> (= 2 2.0)
-    false
+user> (= 2 2.0)
+false
 ```
 
 If you want to test for numeric equality, `==` is probably what you
@@ -85,21 +85,21 @@ Sequences, vectors, lists, and queues with equal elements in the same
 order are equal:
 
 ```clojure
-    user> (range 3)
-    (0 1 2)
-    user> (= [0 1 2] (range 3))
-    true
-    user> (= [0 1 2] '(0 1 2))
-    true
-    ;; not = because different order
-    user> (= [0 1 2] [0 2 1])
-    false
-    ;; not = because different number of elements
-    user> (= [0 1] [0 1 2])
-    false
-    ;; not = because 2 and 2.0 are not =
-    user> (= '(0 1 2) '(0 1 2.0))
-    false
+user> (range 3)
+(0 1 2)
+user> (= [0 1 2] (range 3))
+true
+user> (= [0 1 2] '(0 1 2))
+true
+;; not = because different order
+user> (= [0 1 2] [0 2 1])
+false
+;; not = because different number of elements
+user> (= [0 1] [0 1 2])
+false
+;; not = because 2 and 2.0 are not =
+user> (= '(0 1 2) '(0 1 2.0))
+false
 ```
 
 This is so even though sequences, vectors, etc. are not the same type.
@@ -107,18 +107,18 @@ There are some functions like `conj` where you can give them arguments
 that are all equal, but the return values are not equal:
 
 ```clojure
-    user> (def s1 (range 3))
-    #'user/s1
-    user> (def v1 [0 1 2])
-    #'user/v1
-    user> (= s1 v1)
-    true
-    user> (= (conj s1 4) (conj v1 4))
-    false
-    user> (conj s1 4)
-    (4 0 1 2)
-    user> (conj v1 4)
-    [0 1 2 4]
+user> (def s1 (range 3))
+#'user/s1
+user> (def v1 [0 1 2])
+#'user/v1
+user> (= s1 v1)
+true
+user> (= (conj s1 4) (conj v1 4))
+false
+user> (conj s1 4)
+(4 0 1 2)
+user> (conj v1 4)
+[0 1 2 4]
 ```
 
 This property of `=` has been true for a long time in Clojure (TBD:
@@ -129,16 +129,16 @@ Two sets are equal if they have equal elements.  The order of the
 elements is not considered, nor is whether the sets are sorted.
 
 ```clojure
-    user> (def s1 (hash-set 1 2000 30000))
-    #'user/s1
-    user> s1
-    #{1 30000 2000}
-    user> (def s2 (sorted-set 30000 2000 1))
-    #'user/s2
-    user> s2
-    #{1 2000 30000}
-    user> (= s1 s2)
-    true
+user> (def s1 (hash-set 1 2000 30000))
+#'user/s1
+user> s1
+#{1 30000 2000}
+user> (def s2 (sorted-set 30000 2000 1))
+#'user/s2
+user> s2
+#{1 2000 30000}
+user> (= s1 s2)
+true
 ```
 
 Two maps are equal if they have the same set of keys, and each key
@@ -146,16 +146,16 @@ maps to equal values in each map.  The order of the key/value pairs is
 not considered, nor is whether the maps are sorted.
 
 ```clojure
-    user> (def m1 (sorted-map-by > 3 -7 5 10 15 20))
-    #'user/m1
-    user> (def m2 {3 -7, 5 10, 15 20})
-    #'user/m2
-    user> m1
-    {15 20, 5 10, 3 -7}
-    user> m2
-    {3 -7, 5 10, 15 20}
-    user> (= m1 m2)
-    true
+user> (def m1 (sorted-map-by > 3 -7 5 10 15 20))
+#'user/m1
+user> (def m2 {3 -7, 5 10, 15 20})
+#'user/m2
+user> m1
+{15 20, 5 10, 3 -7}
+user> m2
+{3 -7, 5 10, 15 20}
+user> (= m1 m2)
+true
 ```
 
 Note that while it is possible to create a map that maps integers to
@@ -163,34 +163,34 @@ values, and do so in a way very similar to a vector, these are not
 considered `=` in Clojure:
 
 ```clojure
-    user> (def v1 ["a" "b" "c"])
-    #'user/v1
-    user> (def m1 {0 "a" 1 "b" 2 "c"})
-    #'user/m1
-    user> (v1 0)
-    "a"
-    user> (m1 0)
-    "a"
-    user> (= v1 m1)
-    false
+user> (def v1 ["a" "b" "c"])
+#'user/v1
+user> (def m1 {0 "a" 1 "b" 2 "c"})
+#'user/m1
+user> (v1 0)
+"a"
+user> (m1 0)
+"a"
+user> (= v1 m1)
+false
 ```
 
 Any metadata associated with Clojure collections is ignored when
 comparing them.
 
 ```clojure
-    user> (def s1 (with-meta #{1 2 3} {:key1 "set 1"}))
-    #'user/s1
-    user> (def s2 (with-meta #{1 2 3} {:key1 "set 2 here"}))
-    #'user/s2
-    user> (binding [*print-meta* true] (pr-str s1))
-    "^{:key1 \"set 1\"} #{1 2 3}"
-    user> (binding [*print-meta* true] (pr-str s2))
-    "^{:key1 \"set 2 here\"} #{1 2 3}"
-    user> (= s1 s2)
-    true
-    user> (= (meta s1) (meta s2))
-    false
+user> (def s1 (with-meta #{1 2 3} {:key1 "set 1"}))
+#'user/s1
+user> (def s2 (with-meta #{1 2 3} {:key1 "set 2 here"}))
+#'user/s2
+user> (binding [*print-meta* true] (pr-str s1))
+"^{:key1 \"set 1\"} #{1 2 3}"
+user> (binding [*print-meta* true] (pr-str s2))
+"^{:key1 \"set 2 here\"} #{1 2 3}"
+user> (= s1 s2)
+true
+user> (= (meta s1) (meta s2))
+false
 ```
 
 Clojure `=` behaves the same as Java's `equals` for all types except
@@ -294,12 +294,12 @@ exactly and must be approximated (or be out of range).  This is true
 for floating point numbers in any programming language.
 
 ```clojure
-    user> (def d1 (apply + (repeat 100 0.1)))
-    #'user/d1
-    user> d1
-    9.99999999999998
-    user> (== d1 10.0)
-    false
+user> (def d1 (apply + (repeat 100 0.1)))
+#'user/d1
+user> d1
+9.99999999999998
+user> (== d1 10.0)
+false
 ```
 
 There is a whole field called [Numerical Analysis][NumericalAnalysis]
@@ -329,12 +329,12 @@ that is not even equal to itself.
 [IEEE754NaN]: http://en.wikipedia.org/wiki/NaN
 
 ```clojure
-    user> (Math/sqrt -1)
-    Double/NaN
-    user> (= Double/NaN Double/NaN)
-    false
-    user> (== Double/NaN Double/NaN)
-    false
+user> (Math/sqrt -1)
+Double/NaN
+user> (= Double/NaN Double/NaN)
+false
+user> (== Double/NaN Double/NaN)
+false
 ```
 
 This leads to some odd behavior if this "value" appears in your data.
@@ -344,33 +344,33 @@ remove it using functions like `disj` or `dissoc`.  It will appear
 normally in sequences of those collections.
 
 ```clojure
-    user> (def s1 #{1.0 2.0 Double/NaN})
-    #'user/s1
-    user> s1
-    #{2.0 1.0 Double/NaN}
-    user> (s1 1.0)
-    1.0
-    user> (s1 1.5)
-    nil
-    user> (s1 Double/NaN)
-    nil
+user> (def s1 #{1.0 2.0 Double/NaN})
+#'user/s1
+user> s1
+#{2.0 1.0 Double/NaN}
+user> (s1 1.0)
+1.0
+user> (s1 1.5)
+nil
+user> (s1 Double/NaN)
+nil
 
-    user> (disj s1 2.0)
-    #{1.0 Double/NaN}
-    user> (disj s1 Double/NaN)
-    #{2.0 1.0 Double/NaN}
+user> (disj s1 2.0)
+#{1.0 Double/NaN}
+user> (disj s1 Double/NaN)
+#{2.0 1.0 Double/NaN}
 ```
 
 This also means that two sets with the same elements will not be `=`,
 if they contain `NaN`:
 
 ```clojure
-    user> (def s2 #{Double/NaN 2.0 1.0})
-    #'user/s2
-    user> s2
-    #{2.0 1.0 Double/NaN}
-    user> (= s1 s2)
-    false
+user> (def s2 #{Double/NaN 2.0 1.0})
+#'user/s2
+user> s2
+#{2.0 1.0 Double/NaN}
+user> (= s1 s2)
+false
 ```
 
 Similar issues exist if you create a map containing `NaN` as a key or
@@ -380,8 +380,8 @@ Java has a special case in its `equals` method for floating point
 values that makes `NaN` equal to itself.  Clojure `=` and `==` do not.
 
 ```clojure
-    user> (.equals Double/NaN Double/NaN)
-    true
+user> (.equals Double/NaN Double/NaN)
+true
 ```
 
 
@@ -408,12 +408,12 @@ of whether a sequence of `=` elements is in a sequence, vector, or
 list:
 
 ```clojure
-    user> (hash ["a" 5 :c])
-    1014033862
-    user> (hash (seq ["a" 5 :c]))
-    1014033862
-    user> (hash '("a" 5 :c))
-    1014033862
+user> (hash ["a" 5 :c])
+1014033862
+user> (hash (seq ["a" 5 :c]))
+1014033862
+user> (hash '("a" 5 :c))
+1014033862
 ```
 
 
@@ -427,19 +427,19 @@ also the case for some Float and Double values that are `=` to each
 other:
 
 ```clojure
-    user> (= (int -1) (long -1) (bigint -1) (biginteger -1))
-    true
-    user> (map hash [(int -1) (long -1) (bigint -1) (biginteger -1)])
-    (0 0 0 -1)
-    user> (hash-map (long -1) :minus-one (biginteger -1) :oops)
-    {-1 :minus-one, -1 :oops}
+user> (= (int -1) (long -1) (bigint -1) (biginteger -1))
+true
+user> (map hash [(int -1) (long -1) (bigint -1) (biginteger -1)])
+(0 0 0 -1)
+user> (hash-map (long -1) :minus-one (biginteger -1) :oops)
+{-1 :minus-one, -1 :oops}
 
-    user> (= (float 1.0e9) (double 1.0e9))
-    true
-    user> (map hash [(float 1.0e9) (double 1.0e9)])
-    (1315859240 1104006501)
-    user> (hash-map (float 1.0e9) :float-one (double 1.0e9) :oops)
-    {1.0E9 :oops, 1.0E9 :float-one}
+user> (= (float 1.0e9) (double 1.0e9))
+true
+user> (map hash [(float 1.0e9) (double 1.0e9)])
+(1315859240 1104006501)
+user> (hash-map (float 1.0e9) :float-one (double 1.0e9) :oops)
+{1.0E9 :oops, 1.0E9 :float-one}
 ```
 
 Until this is fixed, you may be able to work around it by using

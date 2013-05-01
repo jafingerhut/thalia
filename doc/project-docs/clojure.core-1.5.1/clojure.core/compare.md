@@ -44,8 +44,8 @@ sizes (ints, longs, BigIntegers, etc.), floats, doubles, and Clojure
 ratios.
 
 ```clojure
-    user> (sort [22/7 2.71828 Double/NEGATIVE_INFINITY 1 55 3N])
-    (-Infinity 1 2.71828 3N 22/7 55)
+user> (sort [22/7 2.71828 Double/NEGATIVE_INFINITY 1 55 3N])
+(-Infinity 1 2.71828 3N 22/7 55)
 ```
 
 Strings are sorted in [lexicographic order][lexicographic],
@@ -58,10 +58,10 @@ details are described in the Java documentation for `String`'s
 [StringcompareTo]: http://docs.oracle.com/javase/6/docs/api/java/lang/String.html#compareTo%28java.lang.String%29
 
 ```clojure
-    user> (def sset1 (sorted-set "aardvark" "boo" "a" "Antelope" "bar"))
-    #'user/sset1
-    user> sset1
-    #{"Antelope" "a" "aardvark" "bar" "boo"}
+user> (def sset1 (sorted-set "aardvark" "boo" "a" "Antelope" "bar"))
+#'user/sset1
+user> sset1
+#{"Antelope" "a" "aardvark" "bar" "boo"}
 ```
 
 Clojure symbols are sorted by their representation as strings, sorting
@@ -70,10 +70,10 @@ then by their name.  If no namespace is included, those symbols will
 be sorted before any symbol with a namespace.
 
 ```clojure
-    user> (def sset2 (sorted-set 'user/foo 'clojure.core/pprint 'bar 'clojure.core/apply 'user/zz))
-    #'user/sset2
-    user> sset2
-    #{bar clojure.core/apply clojure.core/pprint user/foo user/zz}
+user> (def sset2 (sorted-set 'user/foo 'clojure.core/pprint 'bar 'clojure.core/apply 'user/zz))
+#'user/sset2
+user> sset2
+#{bar clojure.core/apply clojure.core/pprint user/foo user/zz}
 ```
 
 Clojure keywords are sorted similarly to symbols.  The built-in
@@ -81,18 +81,18 @@ compare will not let you sort symbols and keywords in the same
 collection, though.
 
 ```clojure
-    user> (def smap1 (sorted-map :map-key 10, :amp [3 2 1], :blammo "kaboom"))
-    #'user/smap1
-    user> smap1
-    {:amp [3 2 1], :blammo "kaboom", :map-key 10}
+user> (def smap1 (sorted-map :map-key 10, :amp [3 2 1], :blammo "kaboom"))
+#'user/smap1
+user> smap1
+{:amp [3 2 1], :blammo "kaboom", :map-key 10}
 ```
 
 Clojure vectors are sorted by their length first, from shortest to
 longest, then lexicographically among equal-length vectors.
 
 ```clojure
-    user> (sort [[1 2] [1 -5] [10000] [4 -1 20] [3 2 5]])
-    ([10000] [1 -5] [1 2] [3 2 5] [4 -1 20])
+user> (sort [[1 2] [1 -5] [10000] [4 -1 20] [3 2 5]])
+([10000] [1 -5] [1 2] [3 2 5] [4 -1 20])
 ```
 
 You will get an exception if you try to make the default `compare`
@@ -103,10 +103,10 @@ examples of comparators that can be used to compare values of these
 different types.
 
 ```clojure
-    user> (sort [5 "a"])
-    ClassCastException java.lang.Long cannot be cast to java.lang.String  java.lang.String.compareTo (String.java:108)
-    user> (sort [:foo 'bar])
-    ClassCastException clojure.lang.Keyword cannot be cast to clojure.lang.Symbol  clojure.lang.Symbol.compareTo (Symbol.java:106)
+user> (sort [5 "a"])
+ClassCastException java.lang.Long cannot be cast to java.lang.String  java.lang.String.compareTo (String.java:108)
+user> (sort [:foo 'bar])
+ClassCastException clojure.lang.Keyword cannot be cast to clojure.lang.Symbol  clojure.lang.Symbol.compareTo (Symbol.java:106)
 ```
 
 Implementation detail: Clojure Refs can also be sorted using
@@ -120,10 +120,10 @@ Clojure][ComparatorsInClojure] for examples of comparators that can do
 this.
 
 ```clojure
-    user> (sort [#{1 2} {2 4}])
-    ClassCastException clojure.lang.PersistentArrayMap cannot be cast to java.lang.Comparable  clojure.lang.Util.compare (Util.java:153)
-    user> (sort [{:a 1 :b 3} {:c -2 :d 4}])
-    ClassCastException clojure.lang.PersistentArrayMap cannot be cast to java.lang.Comparable  clojure.lang.Util.compare (Util.java:153)
+user> (sort [#{1 2} {2 4}])
+ClassCastException clojure.lang.PersistentArrayMap cannot be cast to java.lang.Comparable  clojure.lang.Util.compare (Util.java:153)
+user> (sort [{:a 1 :b 3} {:c -2 :d 4}])
+ClassCastException clojure.lang.PersistentArrayMap cannot be cast to java.lang.Comparable  clojure.lang.Util.compare (Util.java:153)
 ```
 
 Implementation details: See [Clojure][ClojureGithub] source file

@@ -17,7 +17,7 @@ document.
 Examples:
 
 ```clojure
-user=> (sorted-map-by > 2 "two" 3 "three" 11 "eleven" 5 "five" 7 "seven")
+user> (sorted-map-by > 2 "two" 3 "three" 11 "eleven" 5 "five" 7 "seven")
 {11 "eleven", 7 "seven", 5 "five", 3 "three", 2 "two"}
 user> (def reverse-alpha (sorted-map-by #(compare %2 %1)
                                         "aardvark" "Orycteropus afer"
@@ -25,7 +25,7 @@ user> (def reverse-alpha (sorted-map-by #(compare %2 %1)
                                         "emperor penguin" "Aptenodytes forsteri"
                                         "platypus" "Ornithorhynchus anatinus"))
 #'user/reverse-alpha
-user=> (pprint reverse-alpha)
+user> (pprint reverse-alpha)
 {"platypus" "Ornithorhynchus anatinus",
  "lion" "Panthera leo",
  "emperor penguin" "Aptenodytes forsteri",
@@ -51,7 +51,7 @@ user> (def m2 (sorted-map-by case-insensitive-cmp
                              "emperor penguin" "Aptenodytes forsteri"
                              "platypus" "Ornithorhynchus anatinus"))
 #'user/m2
-user=> (pprint m2)
+user> (pprint m2)
 {"aardvark" "Orycteropus afer",
  "emperor penguin" "Aptenodytes forsteri",
  "lion" "Orycteropus afer",

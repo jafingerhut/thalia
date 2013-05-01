@@ -1,22 +1,22 @@
 Examples:
 
 ```clojure
-    user> (range 11)
-    (0 1 2 3 4 5 6 7 8 9 10)
+user> (range 11)
+(0 1 2 3 4 5 6 7 8 9 10)
 
-    user> (range 5 11)
-    (5 6 7 8 9 10)
+user> (range 5 11)
+(5 6 7 8 9 10)
 
-    user> (range 5 11 2)
-    (5 7 9)
+user> (range 5 11 2)
+(5 7 9)
 
-    ;; Just as when increasing, when decreasing the final value is not
-    ;; included in the result.
-    user> (range 11 0 -1)
-    (11 10 9 8 7 6 5 4 3 2 1)
+;; Just as when increasing, when decreasing the final value is not
+;; included in the result.
+user> (range 11 0 -1)
+(11 10 9 8 7 6 5 4 3 2 1)
 
-    user> (range 11 -1 -1)
-    (11 10 9 8 7 6 5 4 3 2 1 0)
+user> (range 11 -1 -1)
+(11 10 9 8 7 6 5 4 3 2 1 0)
 ```
 
 Note that one must be cautious when using float or double values, due
@@ -25,44 +25,44 @@ these round-off errors can accumulate and increase over a large number
 of values.
 
 ```clojure
-    user> (count (range 0 100 1))
-    100
+user> (count (range 0 100 1))
+100
 
-    user> (last (range 0 100 1))
-    99
+user> (last (range 0 100 1))
+99
 
-    user> (count (range 0.0 10.0 0.1))
-    101
+user> (count (range 0.0 10.0 0.1))
+101
 
-    user> (last (range 0.0 10.0 0.1))
-    9.99999999999998
+user> (last (range 0.0 10.0 0.1))
+9.99999999999998
 ```
 
 Functions like the ones below may be closer to what you want in some
 cases:
 
 ```clojure
-    (defn double-range [start end step]
-      (map #(+ start (* % step))
-           (range (/ (- end start) step))))
+(defn double-range [start end step]
+  (map #(+ start (* % step))
+       (range (/ (- end start) step))))
 
-    user> (count (double-range 0.0 10.0 0.1))
-    100
+user> (count (double-range 0.0 10.0 0.1))
+100
 
-    user> (last (double-range 0.0 10.0 0.1))
-    9.9
+user> (last (double-range 0.0 10.0 0.1))
+9.9
 
-    (defn rangef
-      "Returns a sequence of n numbers from start to end inclusive."
-      [start end n]
-      (for [i (range n)]
-        (+ start (* i (/ (- end start) (dec n))))))
+(defn rangef
+  "Returns a sequence of n numbers from start to end inclusive."
+  [start end n]
+  (for [i (range n)]
+    (+ start (* i (/ (- end start) (dec n))))))
 
-    user> (count (rangef 0.0 10.0 100))
-    100
+user> (count (rangef 0.0 10.0 100))
+100
 
-    ;; Note that rangef does *not* give the same last value as
-    ;; double-range above, by design.
-    user> (last (rangef 0.0 10.0 100))
-    10.0
+;; Note that rangef does *not* give the same last value as
+;; double-range above, by design.
+user> (last (rangef 0.0 10.0 100))
+10.0
 ```

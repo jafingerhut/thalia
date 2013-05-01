@@ -133,22 +133,22 @@ To sort numbers in decreasing order, simply write a comparator that
 calls `compare` with the arguments in the opposite order:
 
 ```clojure
-    user> (sort [4 2 3 1])
-    (1 2 3 4)
+user> (sort [4 2 3 1])
+(1 2 3 4)
 
-    user> (defn reverse-cmp [a b]
-            (compare b a))
-    #'user/reverse-cmp
-    user> (sort reverse-cmp [4 2 3 1])
-    (4 3 2 1)
+user> (defn reverse-cmp [a b]
+        (compare b a))
+#'user/reverse-cmp
+user> (sort reverse-cmp [4 2 3 1])
+(4 3 2 1)
 ```
 
 Such short functions are often written using Clojure's `#()` notation,
 where the two arguments are `%1` and `%2`, in that order.
 
 ```clojure
-    user> (sort #(compare %2 %1) [4 2 3 1])
-    (4 3 2 1)
+user> (sort #(compare %2 %1) [4 2 3 1])
+(4 3 2 1)
 ```
 
 `reverse-cmp` will also work for all other types that `compare` works
@@ -165,30 +165,30 @@ records.  This only works if the fields are already sorted by
 First we will show a way to do it that does not compare vectors.
 
 ```clojure
-    (def john1 {:name "John", :salary 35000.00, :company "Acme" })
-    (def mary  {:name "Mary", :salary 35000.00, :company "Mars Inc" })
-    (def john2 {:name "John", :salary 40000.00, :company "Venus Co" })
-    (def john3 {:name "John", :salary 30000.00, :company "Asteroids-R-Us" })
-    (def people [john1 mary john2 john3])
+(def john1 {:name "John", :salary 35000.00, :company "Acme" })
+(def mary  {:name "Mary", :salary 35000.00, :company "Mars Inc" })
+(def john2 {:name "John", :salary 40000.00, :company "Venus Co" })
+(def john3 {:name "John", :salary 30000.00, :company "Asteroids-R-Us" })
+(def people [john1 mary john2 john3])
 
-    (defn by-salary-name-co [x y]
-      ;; :salary values sorted in decreasing order because x and y
-      ;; swapped in this compare.
-      (let [c (compare (:salary y) (:salary x))]
+(defn by-salary-name-co [x y]
+  ;; :salary values sorted in decreasing order because x and y
+  ;; swapped in this compare.
+  (let [c (compare (:salary y) (:salary x))]
+    (if (not= c 0)
+      c
+      ;; :name and :company are sorted in increasing order
+      (let [c (compare (:name x) (:name y))]
         (if (not= c 0)
           c
-          ;; :name and :company are sorted in increasing order
-          (let [c (compare (:name x) (:name y))]
-            (if (not= c 0)
-              c
-              (let [c (compare (:company x) (:company y))]
-                c))))))
+          (let [c (compare (:company x) (:company y))]
+            c))))))
 
-    user> (pprint (sort by-salary-name-co people))
-    ({:name "John", :salary 40000.0, :company "Venus Co"}
-     {:name "John", :salary 35000.0, :company "Acme"}
-     {:name "Mary", :salary 35000.0, :company "Mars Inc"}
-     {:name "John", :salary 30000.0, :company "Asteroids-R-Us"})
+user> (pprint (sort by-salary-name-co people))
+({:name "John", :salary 40000.0, :company "Venus Co"}
+ {:name "John", :salary 35000.0, :company "Acme"}
+ {:name "Mary", :salary 35000.0, :company "Mars Inc"}
+ {:name "John", :salary 30000.0, :company "Asteroids-R-Us"})
 ```
 
 Below is the shorter way, by comparing Clojure vectors.  It behaves
@@ -196,15 +196,15 @@ exactly the same as above.  Note that as above, the field `:salary` is
 sorted in descending order because `x` and `y` are swapped.
 
 ```clojure
-    (defn by-salary-name-co2 [x y]
-      (compare [(:salary y) (:name x) (:company x)]
-               [(:salary x) (:name y) (:company y)]))
+(defn by-salary-name-co2 [x y]
+  (compare [(:salary y) (:name x) (:company x)]
+           [(:salary x) (:name y) (:company y)]))
 
-    user> (pprint (sort by-salary-name-co2 people))
-    ({:name "John", :salary 40000.0, :company "Venus Co"}
-     {:name "John", :salary 35000.0, :company "Acme"}
-     {:name "Mary", :salary 35000.0, :company "Mars Inc"}
-     {:name "John", :salary 30000.0, :company "Asteroids-R-Us"})
+user> (pprint (sort by-salary-name-co2 people))
+({:name "John", :salary 40000.0, :company "Venus Co"}
+ {:name "John", :salary 35000.0, :company "Acme"}
+ {:name "Mary", :salary 35000.0, :company "Mars Inc"}
+ {:name "John", :salary 30000.0, :company "Asteroids-R-Us"})
 ```
 
 The above is fine for key values that are inexpensive to compute from
@@ -231,11 +231,11 @@ Behind the scenes, when such a Clojure function `bool-cmp-fn` is
 return an `int` instead:
 
 ```clojure
-    (if (bool-cmp-fn x y)
-      -1     ; x < y
-      (if (bool-cmp-fn y x)  ; note the reversed argument order
-        1    ; x > y
-        0))  ; x = y
+(if (bool-cmp-fn x y)
+  -1     ; x < y
+  (if (bool-cmp-fn y x)  ; note the reversed argument order
+    1    ; x > y
+    0))  ; x = y
 ```
 
 You can see this by calling the `compare` method of any Clojure
@@ -244,31 +244,31 @@ that prints its arguments when it is called, so you can see the cases
 where it is called more than once:
 
 ```clojure
-    user> (defn my-< [a b]
-            (println "(my-<" a b ") returns " (< a b))
-            (< a b))
-    #'user/my-<
+user> (defn my-< [a b]
+        (println "(my-<" a b ") returns " (< a b))
+        (< a b))
+#'user/my-<
 
-    ;; (. o (compare a b)) calls the method named compare for object
-    ;; o, with arguments a and b.  In this case the object is the
-    ;; Clojure function my-<
-    user> (. my-< (compare 1 2))
-    (my-< 1 2 ) returns  true
-    -1
-    user> (. my-< (compare 2 1))
-    (my-< 2 1 ) returns  false
-    (my-< 1 2 ) returns  true
-    1
-    user> (. my-< (compare 1 1))
-    (my-< 1 1 ) returns  false
-    (my-< 1 1 ) returns  false
-    0
+;; (. o (compare a b)) calls the method named compare for object
+;; o, with arguments a and b.  In this case the object is the
+;; Clojure function my-<
+user> (. my-< (compare 1 2))
+(my-< 1 2 ) returns  true
+-1
+user> (. my-< (compare 2 1))
+(my-< 2 1 ) returns  false
+(my-< 1 2 ) returns  true
+1
+user> (. my-< (compare 1 1))
+(my-< 1 1 ) returns  false
+(my-< 1 1 ) returns  false
+0
 
-    ;; Calling a Clojure function in the normal way uses its invoke
-    ;; method, not compare.
-    user> (. my-< (invoke 2 1))
-    (my-< 2 1 ) returns  false
-    false
+;; Calling a Clojure function in the normal way uses its invoke
+;; method, not compare.
+user> (. my-< (invoke 2 1))
+(my-< 2 1 ) returns  false
+false
 ```
 
 See Clojure source file
@@ -328,16 +328,16 @@ same number but different strings.  Your first try might be to write
 something like `by-2nd`:
 
 ```clojure
-    (defn by-2nd [a b]
-      (compare (second a) (second b)))
+(defn by-2nd [a b]
+  (compare (second a) (second b)))
 ```
 
 But look what happens when you try to add multiple vectors with the
 same number.
 
 ```clojure
-    user> (sorted-set-by by-2nd ["a" 1] ["b" 1] ["c" 1])
-    #{["a" 1]}
+user> (sorted-set-by by-2nd ["a" 1] ["b" 1] ["c" 1])
+#{["a" 1]}
 ```
 
 Only one element is in the set, because `by-2nd` treats all three of
@@ -348,8 +348,8 @@ A common thought in such a case is to use a boolean comparator
 function based on `<=` instead of `<`:
 
 ```clojure
-    (defn by-2nd-<= [a b]
-      (<= (second a) (second b)))
+(defn by-2nd-<= [a b]
+  (<= (second a) (second b)))
 ```
 
 The boolean comparator `by-2nd-<=` seems to work correctly on the
@@ -357,16 +357,16 @@ first step of creating the set, but fails when testing whether
 elements are in the set.
 
 ```clojure
-    user> (def sset (sorted-set-by by-2nd-<= ["a" 1] ["b" 1] ["c" 1]))
-    #'user/sset
-    user> sset
-    #{["c" 1] ["b" 1] ["a" 1]}
-    user> (sset ["c" 1])
-    nil
-    user> (sset ["b" 1])
-    nil
-    user> (sset ["a" 1])
-    nil
+user> (def sset (sorted-set-by by-2nd-<= ["a" 1] ["b" 1] ["c" 1]))
+#'user/sset
+user> sset
+#{["c" 1] ["b" 1] ["a" 1]}
+user> (sset ["c" 1])
+nil
+user> (sset ["b" 1])
+nil
+user> (sset ["a" 1])
+nil
 ```
 
 The problem here is that `by-2nd-<=` gives inconsistent answers.  If
@@ -399,20 +399,20 @@ the first argument is to be treated as greater than the second, and 0
 if they are equal.
 
 ```clojure
-    user> (compare 10 20)
-    -1
-    user> (compare 20 10)
-    1
-    user> (compare 20 20)
-    0
+user> (compare 10 20)
+-1
+user> (compare 20 10)
+1
+user> (compare 20 20)
+0
 ```
 
 Because of this, you might be tempted to write a comparator by
 subtracting one numeric value from another, like so.
 
 ```clojure
-    user> (sort #(- %1 %2) [4 2 3 1])
-    (1 2 3 4)
+user> (sort #(- %1 %2) [4 2 3 1])
+(1 2 3 4)
 ```
 
 While this works in many cases, think twice (or three times) before
@@ -434,18 +434,18 @@ differing by less than 1 to be treated as equal, because a return
 value between -1 and 1 is truncated to the `int` 0:
 
 ```clojure
-    ;; This gives the correct answer
-    user> (sort #(- %1 %2) [10.0 9.0 8.0 7.0])
-    (7.0 8.0 9.0 10.0)
+;; This gives the correct answer
+user> (sort #(- %1 %2) [10.0 9.0 8.0 7.0])
+(7.0 8.0 9.0 10.0)
 
-    ;; but this does not, because all values are treated as equal by
-    ;; the bad comparator.
-    user> (sort #(- %1 %2) [1.0 0.9 0.8 0.7])
-    (1.0 0.9 0.8 0.7)
+;; but this does not, because all values are treated as equal by
+;; the bad comparator.
+user> (sort #(- %1 %2) [1.0 0.9 0.8 0.7])
+(1.0 0.9 0.8 0.7)
 
-    ;; .intValue converts all values between -1.0 and 1.0 to 0
-    user> (map #(.intValue %) [-1.0 -0.99 -0.1 0.1 0.99 1.0])
-    (-1 0 0 0 0 1)
+;; .intValue converts all values between -1.0 and 1.0 to 0
+user> (map #(.intValue %) [-1.0 -0.99 -0.1 0.1 0.99 1.0])
+(-1 0 0 0 0 1)
 ```
 
 This also leads to bugs when comparing integer values that differ by
@@ -455,22 +455,22 @@ pairs of long values are compared incorrectly by using subtraction as
 a comparator.
 
 ```clojure
-    ;; This looks good
-    user> (sort #(- %1 %2) [4 2 3 1])
-    (1 2 3 4)
+;; This looks good
+user> (sort #(- %1 %2) [4 2 3 1])
+(1 2 3 4)
 
-    ;; What the heck?
-    user> (sort #(- %1 %2) [2147483650 2147483651 2147483652 4 2 3 1])
-    (3 4 2147483650 2147483651 2147483652 1 2)
+;; What the heck?
+user> (sort #(- %1 %2) [2147483650 2147483651 2147483652 4 2 3 1])
+(3 4 2147483650 2147483651 2147483652 1 2)
 
-    user> [Integer/MIN_VALUE Integer/MAX_VALUE]
-    [-2147483648 2147483647]
+user> [Integer/MIN_VALUE Integer/MAX_VALUE]
+[-2147483648 2147483647]
 
-    ;; How .intValue truncates a few selected values.  Note especially
-    ;; the first and last ones.
-    user> (map #(.intValue %) [-2147483649 -2147483648 -1 0 1
-                                2147483647  2147483648])
-    (2147483647 -2147483648 -1 0 1 2147483647 -2147483648)
+;; How .intValue truncates a few selected values.  Note especially
+;; the first and last ones.
+user> (map #(.intValue %) [-2147483649 -2147483648 -1 0 1
+                            2147483647  2147483648])
+(2147483647 -2147483648 -1 0 1 2147483647 -2147483648)
 ```
 
 Java itself uses a subtraction comparator for strings and characters,
@@ -499,9 +499,9 @@ This case is easily implemented using a multi-field comparator as
 described in an earlier section.
 
 ```clojure
-    (defn by-number-then-string [[a-str a-num] [b-str b-num]]
-      (compare [a-num a-str]
-               [b-num b-str]))
+(defn by-number-then-string [[a-str a-num] [b-str b-num]]
+  (compare [a-num a-str]
+           [b-num b-str]))
 ```
 
 If the entire vector values can be compared with `compare`, because
@@ -510,9 +510,9 @@ elements can be compared to each other with `compare`, then you can
 also do this, using the entire vector values as the final tie-breaker:
 
 ```clojure
-    (defn by-number-then-whatever [a-vec b-vec]
-      (compare [(second a-vec) a-vec]
-               [(second b-vec) b-vec]))
+(defn by-number-then-whatever [a-vec b-vec]
+  (compare [(second a-vec) a-vec]
+           [(second b-vec) b-vec]))
 ```
 
 However, that will throw an exception if some element position in the
@@ -520,10 +520,10 @@ vectors contain types too different for `compare` to work on, and
 those vectors have the same second element:
 
 ```clojure
-    ;; compare throws exception if you try to compare a string and a
-    ;; keyword
-    user> (sort by-number-then-whatever [["a" 2] ["c" 3] [:b 2]])
-    ClassCastException java.lang.String cannot be cast to clojure.lang.Keyword  clojure.lang.Keyword.compareTo (Keyword.java:109)
+;; compare throws exception if you try to compare a string and a
+;; keyword
+user> (sort by-number-then-whatever [["a" 2] ["c" 3] [:b 2]])
+ClassCastException java.lang.String cannot be cast to clojure.lang.Keyword  clojure.lang.Keyword.compareTo (Keyword.java:109)
 ```
 
 `cc-cmp` ("cross class compare") below may be useful in such cases.
@@ -533,7 +533,6 @@ string that represents the type of the value.  It is not simply
 be sorted in numeric order.
 
 ```clojure
-
 ;; comparison-class throws exceptions for some types that might be
 ;; useful to include.
 
@@ -658,32 +657,32 @@ Here is a quick example demonstrating `cc-cmp`'s ability to compare
 values of different types.
 
 ```clojure
-    user> (pprint (sort cc-cmp [true false nil Double/MAX_VALUE 10
-                                Integer/MIN_VALUE :a "b" 'c (ref 5)
-                                [5 4 3] '(5 4) (seq [5]) (cons 6 '(1))
-                                #{1 2 3} #{2 1}
-                                {:a 1, :b 2} {:a 1, :b -2}
-                                (object-array [1 2 3 4])]))
-    (nil
-     {:a 1, :b -2}
-     {:a 1, :b 2}
-     #{1 2}
-     #{1 2 3}
-     :a
-     #<Ref@1493d9b3: 5>
-     (5)
-     (5 4)
-     [5 4 3]
-     (6 1)
-     c
-     false
-     true
-     -2147483648
-     10
-     1.7976931348623157E308
-     "b"
-     [1, 2, 3, 4])
-    nil
+user> (pprint (sort cc-cmp [true false nil Double/MAX_VALUE 10
+                            Integer/MIN_VALUE :a "b" 'c (ref 5)
+                            [5 4 3] '(5 4) (seq [5]) (cons 6 '(1))
+                            #{1 2 3} #{2 1}
+                            {:a 1, :b 2} {:a 1, :b -2}
+                            (object-array [1 2 3 4])]))
+(nil
+ {:a 1, :b -2}
+ {:a 1, :b 2}
+ #{1 2}
+ #{1 2 3}
+ :a
+ #<Ref@1493d9b3: 5>
+ (5)
+ (5 4)
+ [5 4 3]
+ (6 1)
+ c
+ false
+ true
+ -2147483648
+ 10
+ 1.7976931348623157E308
+ "b"
+ [1, 2, 3, 4])
+nil
 ```
 
 

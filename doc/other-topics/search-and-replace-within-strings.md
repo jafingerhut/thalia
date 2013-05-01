@@ -7,8 +7,8 @@ If you have a `:require` like this in your `ns` declaration, you can
 do the same in your code:
 
 ```clojure
-    (ns my.namespace.name
-      (:require [clojure.string :as s]))
+(ns my.namespace.name
+  (:require [clojure.string :as s]))
 ```
 
     | What to   |                            |                            |
@@ -48,28 +48,28 @@ returns a lazy sequence, so only the portion of the values you use
 will be computed.
 
 ```clojure
-    (defn index-seq
-      "Returns a lazy sequence of indices within s of successive
-    occurrences of the character or string ch-or-str.  Examples:
+(defn index-seq
+  "Returns a lazy sequence of indices within s of successive
+occurrences of the character or string ch-or-str.  Examples:
 
-        (index-seq \"It isn't there\" \"no match\")
-        => nil
+    (index-seq \"It isn't there\" \"no match\")
+    => nil
 
-        (thalia.stringsearch/index-seq \"Occurs more than once\" \\c)
-        => (1 2 19)
+    (thalia.stringsearch/index-seq \"Occurs more than once\" \\c)
+    => (1 2 19)
 
-    Note that if an index i is returned, the next index returned will
-    always be at least (+ i n), where n is the length of the string to
-    find:
+Note that if an index i is returned, the next index returned will
+always be at least (+ i n), where n is the length of the string to
+find:
 
-        (index-seq \"foo babababa done\" \"baba\")
-        => (4 8)       ; *not* (4 6 8)"
-      [^String s ch-or-str]
-      (let [^String find-s (if (char? ch-or-str) (str ch-or-str) ch-or-str)
-            len (int (count find-s))]
-        ((fn step [start-idx]
-           (let [idx (.indexOf s find-s (int start-idx))]
-             (when (not= idx -1)
-               (cons idx (lazy-seq (step (+ idx len)))))))
-         0)))
+    (index-seq \"foo babababa done\" \"baba\")
+    => (4 8)       ; *not* (4 6 8)"
+  [^String s ch-or-str]
+  (let [^String find-s (if (char? ch-or-str) (str ch-or-str) ch-or-str)
+        len (int (count find-s))]
+    ((fn step [start-idx]
+       (let [idx (.indexOf s find-s (int start-idx))]
+         (when (not= idx -1)
+           (cons idx (lazy-seq (step (+ idx len)))))))
+     0)))
 ```

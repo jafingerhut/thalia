@@ -25,8 +25,8 @@ could cause your application to execute arbitrary code while it is
 reading.  Example:
  
 ```clojure
-    user=> (read-string "#=(clojure.java.shell/sh \"echo\" \"hi\")")
-    {:exit 0, :out "hi\n", :err ""}
+user> (read-string "#=(clojure.java.shell/sh \"echo\" \"hi\")")
+{:exit 0, :out "hi\n", :err ""}
 ```
  
 It is straightforward to modify the example above into more
@@ -36,9 +36,9 @@ else's computer over the Internet, install Trojans, etc.
 Even if you do bind `*read-eval*` to false first, like so:
  
 ```clojure
-    (defn read-string-unsafely [s]
-      (binding [*read-eval* false]
-        (read-string s)))
+(defn read-string-unsafely [s]
+  (binding [*read-eval* false]
+    (read-string s)))
 ```
  
 you may hope you are safe reading untrusted data that way, but in
@@ -48,15 +48,15 @@ benign, but it only takes one to ruin your application's day.
 Examples that should scare you:
  
 ```clojure
-    ;; This causes a socket to be opened, as long as the JVM
-    ;; sandboxing allows it.
-    (read-string-unsafely "#java.net.Socket[\"www.google.com\" 80]")
- 
-    ;; This causes precious-file.txt to be created if it doesn't
-    ;; exist, or if it does exist, its contents will be erased (given
-    ;; appropriate JVM sandboxing permissions, and underlying OS file
-    ;; permissions).
-    (read-string-unsafely "#java.io.FileWriter[\"precious-file.txt\"]")
+;; This causes a socket to be opened, as long as the JVM
+;; sandboxing allows it.
+(read-string-unsafely "#java.net.Socket[\"www.google.com\" 80]")
+
+;; This causes precious-file.txt to be created if it doesn't
+;; exist, or if it does exist, its contents will be erased (given
+;; appropriate JVM sandboxing permissions, and underlying OS file
+;; permissions).
+(read-string-unsafely "#java.io.FileWriter[\"precious-file.txt\"]")
 ```
  
 The particular issue of executing arbitrary Java constructors used in
@@ -80,20 +80,20 @@ If you understand all of the above, and want to use `read` or
 `read-string` to read data from a _trusted_ source, continue on below.
  
 ```clojure
-    ;; read wants its reader arg (or *in*) to be a
-    ;; java.io.PushbackReader.  with-open closes r after the with-open
-    ;; body is done.  *read-eval* specifies whether to allow #=()
-    ;; forms when reading, and evaluate them as a side effect while
-    ;; reading.
+;; read wants its reader arg (or *in*) to be a
+;; java.io.PushbackReader.  with-open closes r after the with-open
+;; body is done.  *read-eval* specifies whether to allow #=()
+;; forms when reading, and evaluate them as a side effect while
+;; reading.
 
-    (defn read-from-file-with-trusted-contents [filename]
-      (with-open [r (java.io.PushbackReader.
-                      (clojure.java.io/reader filename))]
-        (binding [*read-eval* false]
-          (read r))))
+(defn read-from-file-with-trusted-contents [filename]
+  (with-open [r (java.io.PushbackReader.
+                  (clojure.java.io/reader filename))]
+    (binding [*read-eval* false]
+      (read r))))
 
-    user=> (spit "testfile.txt" "{:a 1 :b 2 :c 3}")
-    nil
-    user=> (read-from-file-with-trusted-contents "testfile.txt")
-    {:a 1, :b 2, :c 3}
+user> (spit "testfile.txt" "{:a 1 :b 2 :c 3}")
+nil
+user> (read-from-file-with-trusted-contents "testfile.txt")
+{:a 1, :b 2, :c 3}
 ```

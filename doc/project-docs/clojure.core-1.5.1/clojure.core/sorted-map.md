@@ -74,17 +74,17 @@ user> (def births (sorted-map -428 "Plato"
                               -410 "Eudoxus"
                               -262 "Apollonius"))
 #'user/births
-user=> (first births)
+user> (first births)
 [-624 "Thales"]
-user=> (last births)
+user> (last births)
 [90 "Ptolemy"]
-user=> (take 5 births)
+user> (take 5 births)
 ([-624 "Thales"] [-570 "Pythagoras"] [-535 "Heraclitus"] [-510 "Anaxagoras"] [-469 "Socrates"])
-user=> (drop 10 births)
+user> (drop 10 births)
 ([-310 "Aristarchus"] [-262 "Apollonius"] [-190 "Hipparchus"] [90 "Ptolemy"])
-user=> (keys births)
+user> (keys births)
 (-624 -570 -535 -510 -469 -460 -428 -410 -384 -320 -310 -262 -190 90)
-user=> (vals births)
+user> (vals births)
 ("Thales" "Pythagoras" "Heraclitus" "Anaxagoras" "Socrates" ["Democritus" "Thucydides"] "Plato" "Eudoxus" "Aristotle" "Euclid" "Aristarchus" "Apollonius" "Hipparchus" "Ptolemy")
 ```
 
@@ -95,15 +95,15 @@ way such that it is linear in the number of key/value pairs in the
 range, not the number of key/value pairs in the entire map.
 
 ```clojure
-user=> (def m (sorted-map "Dijkstra" "Edsger",
-                          "Knuth" "Donald",
-                          "Tarjan" "Robert",
-                          "Lamport" "Leslie",
-                          "Lampson" "Butler",
-                          "Johnson" "David",
-                          "Garey" "Michael"))
+user> (def m (sorted-map "Dijkstra" "Edsger",
+                         "Knuth" "Donald",
+                         "Tarjan" "Robert",
+                         "Lamport" "Leslie",
+                         "Lampson" "Butler",
+                         "Johnson" "David",
+                         "Garey" "Michael"))
 #'user/m
-user=> (pprint m)
+user> (pprint m)
 {"Dijkstra" "Edsger",
  "Garey" "Michael",
  "Johnson" "David",
@@ -112,13 +112,13 @@ user=> (pprint m)
  "Lampson" "Butler",
  "Tarjan" "Robert"}
 nil
-user=> (subseq m > "M")
+user> (subseq m > "M")
 (["Tarjan" "Robert"])
-user=> (subseq m > "Hopcroft")
+user> (subseq m > "Hopcroft")
 (["Johnson" "David"] ["Knuth" "Donald"] ["Lamport" "Leslie"] ["Lampson" "Butler"] ["Tarjan" "Robert"])
-user=> (subseq m > "Hopcroft" < "Sipser")
+user> (subseq m > "Hopcroft" < "Sipser")
 (["Johnson" "David"] ["Knuth" "Donald"] ["Lamport" "Leslie"] ["Lampson" "Butler"])
-user=> (rsubseq m < "K")
+user> (rsubseq m < "K")
 (["Johnson" "David"] ["Garey" "Michael"] ["Dijkstra" "Edsger"])
 ```
 
@@ -133,12 +133,12 @@ No pair of these keys are `=` to each other, so they can all be keys
 together in an unsorted map.
 
 ```clojure
-user=> (def unsorted (hash-map 1.0 "floatone" 1 "intone" 1.0M "bigdecone"
-                               1.5M "bigdec1.5" 3/2 "ratio1.5"))
+user> (def unsorted (hash-map 1.0 "floatone" 1 "intone" 1.0M "bigdecone"
+                              1.5M "bigdec1.5" 3/2 "ratio1.5"))
 #'user/unsorted
-user=> unsorted
+user> unsorted
 {1.0 "floatone", 1 "intone", 3/2 "ratio1.5", 1.5M "bigdec1.5", 1.0M "bigdecone"}
-user=> (dissoc unsorted 1 3/2)
+user> (dissoc unsorted 1 3/2)
 {1.0 "floatone", 1.5M "bigdec1.5", 1.0M "bigdecone"}
 ```
 
@@ -150,23 +150,23 @@ the associated value is replaced.  That is why `sorted` below ends up
 with the key `1.0` but the value `"bigdecone"`:
 
 ```clojure
-user=> (def sorted (sorted-map 1.0 "floatone" 1 "intone" 1.0M "bigdecone"
-                               1.5M "bigdec1.5" 3/2 "ratio1.5"))
+user> (def sorted (sorted-map 1.0 "floatone" 1 "intone" 1.0M "bigdecone"
+                              1.5M "bigdec1.5" 3/2 "ratio1.5"))
 #'user/sorted
-user=> sorted
+user> sorted
 {1.0 "bigdecone", 1.5M "ratio1.5"}
-user=> (dissoc sorted 1 3/2)
+user> (dissoc sorted 1 3/2)
 {}
 ```
 
 You may search an unsorted map for any value with no exception.
 
 ```clojure
-user=> (unsorted "a")
+user> (unsorted "a")
 nil
-user=> (unsorted "a" :not-found)
+user> (unsorted "a" :not-found)
 :not-found
-user=> (unsorted 1)
+user> (unsorted 1)
 "intone"
 ```
 
@@ -175,13 +175,13 @@ and some of the keys in the map, which may throw an exception if they
 are not comparable.
 
 ```clojure
-user=> (sorted "a")
+user> (sorted "a")
 ClassCastException java.lang.Double cannot be cast to java.lang.String  java.lang.String.compareTo (String.java:108)
 
-user=> (sorted "a" :not-found)
+user> (sorted "a" :not-found)
 ClassCastException java.lang.Double cannot be cast to java.lang.String  java.lang.String.compareTo (String.java:108)
 
-user=> (sorted 1)
+user> (sorted 1)
 "bigdecone"
 ```
 
