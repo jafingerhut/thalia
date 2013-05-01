@@ -1,8 +1,8 @@
 `hash` returns a 32-bit integer hash value for any object.  It is
-similar to Java's `hashCode`.  However, `hash` is consistent with
-Clojure `=` (with a few exceptions documented in the
+similar to Java's [`hashCode`][Java-hashCode].  However, `hash` is
+consistent with Clojure `=` (with a few exceptions documented in the
 [Equality][Equality] document), whereas `hashCode` is consistent with
-Java's `equals`.
+Java's [`equals`][Java-equals].
 
 When we say a hash function is consistent with `=`, it means that for
 any two values `x1` and `x2` where `(= x1 x2)` is true, `(= (hash x1)
@@ -13,4 +13,6 @@ Clojure's `hash-set` and `hash-map`.
 See [Equality][Equality] for more documentation on `hash`, including
 some exceptions to the consistency property in Clojure 1.5.1.
 
+[Java-hashCode]: http://docs.oracle.com/javase/6/docs/api/java/lang/Object.html#hashCode%28%29
 [Equality]: https://github.com/jafingerhut/thalia/blob/master/doc/other-topics/equality.md
+[Java-equals]: http://docs.oracle.com/javase/6/docs/api/java/lang/Object.html#equals%28java.lang.Object%29
