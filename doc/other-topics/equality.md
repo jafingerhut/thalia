@@ -25,6 +25,7 @@ Clojure's `=` is true when called with two values, if:
 * Both arguments are sets, with equal elements, ignoring order.
 * Both arguments are maps, with equal key/value pairs, ignoring order.
 * Both arguments are symbols, or both keywords, with equal namespaces and names.
+* For types defined with `deftype`, the `equiv` method return value is used.
 * Java's `equals` is true for the values.  The result should be
   unsurprising for nil, booleans, characters, and strings.
 
@@ -41,7 +42,7 @@ Exceptions, or possible surprises:
   and Doubles.  This leads to odd behavior if you use them as set
   elements or map keys.  Convert BigIntegers to BigInt using `(bigint
   x)`, and floats and doubles to a common type with `(float x)` or
-  `(double x)`, to work around this issue.
+  `(double x)`, to avoid this issue.
 * `=` and `==` are false for BigDecimal values with different scales,
   e.g. `(== 1.50M 1.500M)` is false.
 * "Not a Number" values Float/NaN and Double/NaN are not `=` or `==`
@@ -442,9 +443,18 @@ user> (hash-map (float 1.0e9) :float-one (double 1.0e9) :oops)
 {1.0E9 :oops, 1.0E9 :float-one}
 ```
 
-Until this is fixed, you may be able to work around it by using
-explicit conversion of `BigInteger`s to `BigInt`s and floats to
-doubles in your code.
+Rich Hickey has decided that changing this inconsistency in hash
+values for these types is out of scope for Clojure.
+
+You can avoid the `BigInteger` issue by not using values of that type.
+You are most likely to encounter them in Clojure through interop with
+Java libraries.  In that case, converting them to `BigInt` via the
+`bigint` function at the Clojure/Java boundary would be safest.
+
+You can avoid the `Float` vs `Double` hash inconsistency by
+consistently using one or the other types in floating point code.
+Clojure defaults to doubles for floating point values, so that may be
+the most convenient choice.
 
 [CLJ-1118]: http://dev.clojure.org/jira/browse/CLJ-1118
 [CLJ-1036]: http://dev.clojure.org/jira/browse/CLJ-1036
