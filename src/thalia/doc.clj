@@ -2,7 +2,7 @@
 
 
 (defn alter-doc! [v new-docstring]
-  (alter-meta! v (fn [m] (assoc m :doc new-docstring))))
+  (alter-meta! v assoc :doc new-docstring))
 
 
 (defn append-doc! [v additional-docstring]
