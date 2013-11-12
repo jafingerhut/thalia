@@ -85,3 +85,39 @@
          101))
   (is (= (last (range 0.0 10.0 0.1))
          9.99999999999998)))
+
+
+(deftest test-re-find
+  (is (= (re-find #"\d+" "abc123def")
+         "123"))
+  (is (= (re-find #"\d+" "abcdef")
+         nil))
+  (is (= (re-find #"(?:\d+)" "abc123def")
+         "123"))
+  (let [line " RX packets:1871 errors:5 dropped:48 overruns:9"]
+    (is (= (re-find #"(\S+):(\d+)" line)
+           ["packets:1871" "packets" "1871"]))
+    (is (= (re-find #"(\S+:(\d+)) \S+:\d+" line)
+           ["packets:1871 errors:5" "packets:1871" "1871"])))
+  (is (= (re-find #"(\S+):(\d+)" ":2 numbers but not 1 word-and-colon: before")
+         nil))
+  (is (= (re-find #"(\D+)|(\d+)" "word then number 57")
+         ["word then number " "word then number " nil]))
+  (is (= (re-find #"(\D+)|(\d+)" "57 number then word")
+         ["57" nil "57"]))
+  (is (= (re-find #"(\d*)(\S)\S+" "lots o' digits 123456789")
+         ["lots" "" "l"])))
+
+
+(deftest test-subs
+  (is (= (subs "abcdef" 1 3)
+         "bc"))
+  (is (= (subs "abcdef" 1)
+         "bcdef"))
+  (is (= (subs "abcdef" 4 6)
+         "ef"))
+  (is (thrown? StringIndexOutOfBoundsException
+               #"String index out of range: 7"
+               (subs "abcdef" 4 7)))
+  (is (= (subs "abcdef" 5/3 6.28)   ; args converted to ints
+         "bcdef")))
