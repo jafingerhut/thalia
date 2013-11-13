@@ -169,6 +169,55 @@
          '([8.67 -5] [5 1] [5 0] [-22/7 3.0]))))
 
 
+(deftest test-sorted-map
+  (is (= (sorted-map :d 0 :b -5 :a 1)
+         {:a 1, :b -5, :d 0}))
+  (is (= (assoc (sorted-map :d 0 :b -5 :a 1) :c 57)
+         {:a 1, :b -5, :c 57, :d 0}))
+  (let [births (sorted-map -428 "Plato"      -384 "Aristotle" -469 "Socrates"
+                           -320 "Euclid"     -310 "Aristarchus" 90 "Ptolemy"
+                           -570 "Pythagoras" -624 "Thales"    -410 "Eudoxus")]
+    (is (= (first births)
+           [-624 "Thales"]))
+    (is (= (take 4 births)
+           [[-624 "Thales"] [-570 "Pythagoras"] [-469 "Socrates"] [-428 "Plato"]]))
+    (is (= (keys births)
+           [-624 -570 -469 -428 -410 -384 -320 -310 90]))
+    (is (= (vals births)
+           ["Thales" "Pythagoras" "Socrates" "Plato" "Eudoxus" "Aristotle" "Euclid" "Aristarchus" "Ptolemy"]))
+    (is (= (subseq births > -400)
+           [[-384 "Aristotle"] [-320 "Euclid"] [-310 "Aristarchus"] [90 "Ptolemy"]]))
+    (is (= (subseq births > -400 < -100)
+           [[-384 "Aristotle"] [-320 "Euclid"] [-310 "Aristarchus"]]))
+    (is (= (rsubseq births > -400 < -100)
+           [[-310 "Aristarchus"] [-320 "Euclid"] [-384 "Aristotle"]])))
+
+  (let [m1 (hash-map 1.0 "floatone" 1 "intone" 1.0M "bigdecone"
+                     1.5M "bigdec1.5" 3/2 "ratio1.5")
+        m2 (sorted-map 1.0 "floatone" 1 "intone" 1.0M "bigdecone"
+                       1.5M "bigdec1.5" 3/2 "ratio1.5")]
+    (is (= m1
+           {1.0 "floatone", 1 "intone", 3/2 "ratio1.5", 1.5M "bigdec1.5",
+            1.0M "bigdecone"}))
+    (is (= (dissoc m1 1 3/2)
+           {1.0 "floatone", 1.5M "bigdec1.5", 1.0M "bigdecone"}))
+    (is (= m2
+           {1.0 "bigdecone", 1.5M "ratio1.5"}))
+    (is (= (dissoc m2 1 3/2)
+           {}))
+
+    (is (= (m1 1)
+           "intone"))
+    (is (= (m1 "a")
+           nil))
+
+    (is (= (m2 1)
+           "bigdecone"))
+    (is (thrown? ClassCastException
+                 #"java.lang.Double cannot be cast to java.lang.String"
+                 (m2 "a")))))
+
+
 (deftest test-subs
   (is (= (subs "abcdef" 1 3)
          "bc"))
