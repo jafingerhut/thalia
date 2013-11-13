@@ -109,6 +109,15 @@
          ["lots" "" "l"])))
 
 
+(deftest test-re-matches
+  (is (= (re-find #"\d+" "abc123def")
+         "123"))
+  (is (= (re-matches #"\d+" "abc123def")
+         nil))
+  (is (= (re-matches #"\d+" "123")
+         "123")))
+
+
 (deftest test-sort
   (is (= (sort [3 -7 10 8 5.3 9/5 -7.1])
          '(-7.1 -7 9/5 3 5.3 8 10)))
