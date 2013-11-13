@@ -235,10 +235,37 @@ data structures.
 
 hash is consistent with =, except for some BigIntegers, Floats, and
 Doubles.  This leads to incorrect behavior if you use them as set
-elements or map keys.  Convert BigIntegers to BigInt using (bigint x),
-and floats and doubles to a common type with (float x) or
-(double x), to avoid this issue.  This behavior is by choice:
-http://dev.clojure.org/jira/browse/CLJ-1036
+elements or map keys (see example below).  Convert BigIntegers to
+BigInt using (bigint x), and floats and doubles to a common type
+with (float x) or (double x), to avoid this issue.  This behavior is
+by choice: http://dev.clojure.org/jira/browse/CLJ-1036
+
+Examples:
+
+    user=> (def x 8589934588)
+    #'user/x
+    user=> (= (bigint x) (biginteger x))
+    true
+    user=> (= (hash (bigint x)) (hash (biginteger x)))
+    false         ; hash is not consistent with = for all BigInteger values
+    user=> (def s1 (hash-set (bigint x)))
+    #'user/s1
+    user=> (def s2 (hash-set (biginteger x)))
+    #'user/s2
+    user=> s1
+    #{8589934588N}
+    user=> s2
+    #{8589934588}     ; s1 and s2 look the same
+    user=> (= (first s1) (first s2))
+    true              ; their elements are =
+    ;; However, the sets are not = because of hash inconsistency.
+    user=> (= s1 s2)
+    false
+
+    user=> (= (float 1.0e9) (double 1.0e9))
+    true
+    user=> (= (hash (float 1.0e9)) (hash (double 1.0e9)))
+    false       ; hash is not consistent with = for all float/double values
 
 See also: (topic Equality)  (TBD)"]
 
@@ -332,7 +359,7 @@ string.
 See also: re-seq, re-matches, re-pattern, clojure.string/replace,
 clojure.string/replace-first, re-matcher, re-groups
 
-See 'Memory use warning' for function subs."]
+See docs for function subs, section 'Memory use warning'."]
 
    [#'clojure.core/re-matches
     "(re-matches regex s) is the same as (re-find regex s), except that
@@ -354,7 +381,7 @@ regex.
 See also: re-find, re-seq, re-pattern, clojure.string/replace,
 clojure.string/replace-first, re-matcher, re-groups
 
-See 'Memory use warning' for function subs."]
+See docs for function subs, section 'Memory use warning'."]
 
    [#'clojure.core/read
     "You *SHOULD NOT* use clojure.core/read or clojure.core/read-string
@@ -510,6 +537,19 @@ the end of the string like similar functions in some other programming
 languages.  If you use non-integer values for start or end, they will
 be auto-converted to integers as if by (int x).
 
+Examples:
+
+    user=> (subs \"abcdef\" 1 3)
+    \"bc\"
+    user=> (subs \"abcdef\" 1)
+    \"bcdef\"
+    user=> (subs \"abcdef\" 4 6)
+    \"ef\"
+    user=> (subs \"abcdef\" 4 7)
+    StringIndexOutOfBoundsException String index out of range: 7  java.lang.String.substring (String.java:1907)
+    user=> (subs \"abcdef\" 5/3 6.28)   ; args converted to ints 1 6
+    \"bcdef\"
+
 Memory use warning:
 
 subs, and many other functions that return substrings of a larger
@@ -530,20 +570,7 @@ are kept to the original.
     http://www.javaadvent.com/2012/12/changes-to-stringsubstring-in-java-7.html
 
 If you wish to force the copying behavior, you can use the String
-constructor (String. s).
-
-Examples:
-
-    user=> (subs \"abcdef\" 1 3)
-    \"bc\"
-    user=> (subs \"abcdef\" 1)
-    \"bcdef\"
-    user=> (subs \"abcdef\" 4 6)
-    \"ef\"
-    user=> (subs \"abcdef\" 4 7)
-    StringIndexOutOfBoundsException String index out of range: 7  java.lang.String.substring (String.java:1907)
-    user=> (subs \"abcdef\" 5/3 6.28)   ; args converted to ints
-    \"bcdef\""]
+constructor (String. s)."]
 
    ])
 

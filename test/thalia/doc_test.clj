@@ -66,6 +66,18 @@
                (sort [{:a 1 :b 3} {:c -2 :d 4}]))))
 
 
+(deftest test-hash
+  (let [x 8589934588]
+    (is (= (bigint x) (biginteger x)))
+    (is (not (= (hash (bigint x)) (hash (biginteger x)))))
+    (let [s1 (hash-set (bigint x))
+          s2 (hash-set (biginteger x))]
+      (is (= (first s1) (first s2)))
+      (is (not (= s1 s2)))))
+  (is (= (float 1.0e9) (double 1.0e9)))
+  (is (not (= (hash (float 1.0e9)) (hash (double 1.0e9))))))
+
+
 (deftest test-range
   (is (= (range 11)
          [0 1 2 3 4 5 6 7 8 9 10]))
