@@ -133,11 +133,9 @@ Examples:
     CompilerException java.lang.RuntimeException: Can't take value of a macro: #'clojure.core/and, compiling:(NO_SOURCE_PATH:1:1)"]
 
    [#'clojure.core/compare
-    "compare is the default [comparator][Comparators] for
-sorting with sort and sort-by, for ordering the elements of a
-sorted-set, and for ordering the keys of a sorted-map.
-
-[Comparators]: https://github.com/jafingerhut/thalia/blob/master/doc/other-topics/comparators.md
+    "compare is the default comparator for sorting with sort and sort-by,
+for ordering the elements of a sorted-set, and for ordering the keys
+of a sorted-map.  See (topic Comparators).
 
 As for all 3-way comparators, it takes two arguments x and y.  It
 returns an int that is negative if x should come before y, positive if
@@ -335,6 +333,153 @@ See also: re-seq, re-matches, re-pattern, clojure.string/replace,
 clojure.string/replace-first, re-matcher, re-groups
 
 See 'Memory use warning' for function subs."]
+
+   [#'clojure.core/read
+    "You *SHOULD NOT* use clojure.core/read or clojure.core/read-string
+to read data from untrusted sources.  They were designed only for
+reading Clojure code and data from trusted sources (e.g. files that
+you know you wrote yourself, and no one else has permission to modify
+them).
+
+Instead, either:
+
+1. Use another data serialization format such as JSON, XML, etc. and a
+   library for reading them that you trust not to have
+   vulnerabilities, or
+
+2. if you want a serialization format that can be read safely and
+   looks like Clojure data structures, use edn.  For Clojure 1.3 and
+   later, the tools.reader contrib library provides an edn reader.
+   There is also clojure.edn/read and clojure.edn/read-string provided
+   in Clojure 1.5.
+
+[edn]: https://github.com/edn-format/edn
+[tools.reader]: http://github.com/clojure/tools.reader
+
+You definitely should not use clojure.core/read or read-string if
+*read-eval* has its default value of true, because an attacker
+could cause your application to execute arbitrary code while it is
+reading.  Example:
+
+    user> (read-string \"#=(clojure.java.shell/sh \\\"echo\\\" \\\"hi\\\")\")
+    {:exit 0, :out \"hi\\n\", :err \"\"}
+
+It is straightforward to modify the example above into more
+destructive ones that remove all of your files, copy them to someone
+else's computer over the Internet, install Trojans, etc.
+
+Even if you bind *read-eval* to false first, like so:
+
+    (defn read-string-unsafely [s]
+      (binding [*read-eval* false]
+        (read-string s)))
+
+you may hope you are safe reading untrusted data that way, but in
+Clojure 1.4 and earlier, an attacker can send data that causes your
+system to execute arbitrary Java constructors.  Most of these are
+benign, but it only takes one to ruin your application's day.
+Examples that should scare you:
+
+    ;; This causes a socket to be opened, as long as the JVM
+    ;; sandboxing allows it.
+    (read-string-unsafely \"#java.net.Socket[\\\"www.google.com\\\" 80]\")
+
+    ;; This causes precious-file.txt to be created if it doesn't
+    ;; exist, or if it does exist, its contents will be erased (given
+    ;; appropriate JVM sandboxing permissions, and underlying OS file
+    ;; permissions).
+    (read-string-unsafely \"#java.io.FileWriter[\\\"precious-file.txt\\\"]\")
+
+The particular issue of executing arbitrary Java constructors used in
+the examples above no longer works in Clojure 1.5 when *read-eval*
+is false.  Even so, you *SHOULD NEVER USE* clojure.core/read or
+clojure.core/read-string for reading untrusted data.  Use an edn
+reader or a different data serialization format.
+
+Why should I do this, you may ask, if Clojure 1.5 closes the Java
+constructor hole?  Because clojure.core/read and read-string are
+designed to be able to do dangerous things, and they are not
+documented nor promised to be safe from unwanted side effects.  If you
+use them for reading untrusted data, and a dangerous side effect is
+found in the future, you will be told that you are using the wrong
+tool for the job.  clojure.edn/read and read-string, and the
+tools.reader.edn library, are documented to be safe from unwanted
+side effects, and if any bug is found in this area it should get quick
+attention and corrected.
+
+If you understand all of the above, and want to use read or
+read-string to read data from a _trusted_ source, continue on below.
+
+    ;; read wants its reader arg (or *in*) to be a
+    ;; java.io.PushbackReader.  with-open closes r after the with-open
+    ;; body is done.  *read-eval* specifies whether to allow #=()
+    ;; forms when reading, and evaluate them as a side effect while
+    ;; reading.
+
+    (defn read-from-file-with-trusted-contents [filename]
+      (with-open [r (java.io.PushbackReader.
+                      (clojure.java.io/reader filename))]
+        (binding [*read-eval* false]
+          (read r))))
+
+    user> (spit \"testfile.txt\" \"{:a 1 :b 2 :c 3}\")
+    nil
+    user> (read-from-file-with-trusted-contents \"testfile.txt\")
+    {:a 1, :b 2, :c 3}"]
+
+   [#'clojure.core/read-string
+    "WARNING: You *SHOULD NOT* use clojure.core/read-string to read data
+from untrusted sources.  See clojure.core/read docs.  The same
+security issues exist for both read and read-string."]
+
+   [#'clojure.core/sort
+    "If you supply a comparator, it must implement the Java Comparator
+interface, but this includes Clojure functions that implement a 3-way
+or boolean comparator.  See (topic Comparators) for details on boolean
+comparators.
+
+sort is guaranteed to be stable, since it is implemented using the
+sort method of Java's java.util.Arrays class.  This means that if two
+values in the input collection are considered equal by the comparator,
+they are guaranteed to remain in the same relative order in the output
+as they had in the input.
+
+Examples:
+
+    user=> (sort [3 -7 10 8 5.3 9/5 -7.1])
+    (-7.1 -7 9/5 3 5.3 8 10)
+    user=> (sort #(compare %2 %1) '(apple banana aardvark zebra camel))
+    (zebra camel banana apple aardvark)
+
+    user=> (def x (to-array [32 9 11]))
+    #'user/x
+    user=> (seq x)
+    (32 9 11)
+    user=> (sort x)   ; returns sorted sequence
+    (9 11 32)
+    user=> (seq x)    ; but also modifies Java array x
+    (9 11 32)
+    user=> (sort (aclone x))   ; can avoid this by copying the array
+    (9 11 32)
+    ;; Such copying is unnecessary for args that are not a Java array
+
+See also: sort-by, compare, (topic Comparators)"]
+
+   [#'clojure.core/sort-by
+    "See extended docs for sort, all of which applies to sort-by.
+
+Examples:
+
+    user=> (sort-by count [\"lummox\" \"antidisestablishmentarianism\" \"a\"])
+    (\"a\" \"lummox\" \"antidisestablishmentarianism\")
+    user=> (sort-by first > [[8.67 -5] [5 1] [-22/7 3.0] [5 0]])
+    ([8.67 -5] [5 1] [5 0] [-22/7 3.0])
+
+The example in sort extended docs demonstrating a Java array being
+modified applies to sort-by, too, including using aclone to copy the
+array before sorting to avoid that issue.
+
+See also: sort, compare, (topic Comparators)"]
 
    [#'clojure.core/subs
     "The index of the first character is 0.  An exception will be

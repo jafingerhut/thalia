@@ -109,6 +109,32 @@
          ["lots" "" "l"])))
 
 
+(deftest test-sort
+  (is (= (sort [3 -7 10 8 5.3 9/5 -7.1])
+         '(-7.1 -7 9/5 3 5.3 8 10)))
+  (is (= (sort #(compare %2 %1) '(apple banana aardvark zebra camel))
+         '(zebra camel banana apple aardvark)))
+  (let [x (to-array [32 9 11])]
+    (is (= (seq x)
+           '(32 9 11)))
+    (is (= (sort x)
+           '(9 11 32)))
+    (is (= (seq x)
+           '(9 11 32))))
+  (let [x (to-array [32 9 11])]
+    (is (= (sort (aclone x))
+           '(9 11 32)))
+    (is (= (seq x)
+           '(32 9 11)))))
+
+
+(deftest test-sort-by
+  (is (= (sort-by count ["lummox" "antidisestablishmentarianism" "a"])
+         '("a" "lummox" "antidisestablishmentarianism")))
+  (is (= (sort-by first > [[8.67 -5] [5 1] [-22/7 3.0] [5 0]])
+         '([8.67 -5] [5 1] [5 0] [-22/7 3.0]))))
+
+
 (deftest test-subs
   (is (= (subs "abcdef" 1 3)
          "bc"))
