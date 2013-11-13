@@ -6,7 +6,7 @@
 
 
 (defn append-doc! [v additional-docstring]
-  (let [orig-doc (:doc (meta v))]
+  (let [^String orig-doc (:doc (meta v))]
     (alter-doc! v
                 (str orig-doc
                      (if (.endsWith orig-doc "\n")

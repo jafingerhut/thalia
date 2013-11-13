@@ -37,7 +37,7 @@
 (def prog-name "lein2 run")
 
 
-(defn dot-clj-file [f]
+(defn dot-clj-file [^File f]
   (and (not (. f (isDirectory)))
        (let [s (str f)
              n (count s)]
@@ -214,7 +214,7 @@ encoding and before decoding."
             (die "Internal error in encode-url-component or decode-url-component, because '%s' encodes as '%s', and then decodes as '%s', which is not equal to the original string"
                  orig-s encoded-str encoded-then-decoded-str))
           encoded-str)
-        (let [[_ unreserved reserved s]
+        (let [[_ unreserved ^String reserved s]
               (re-find #"(?x) ^
                          (  [-._~a-zA-Z0-9]* )
                          ( [^-._~a-zA-Z0-9]* )

@@ -5,5 +5,6 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :main thalia.core
   :dependencies [[org.clojure/clojure "1.5.1"]
-                 [org.clojure/tools.reader "0.7.3"]
+                 ;;[org.clojure/clojure "1.6.0-alpha2"]
+                 [org.clojure/tools.reader "0.7.10"]
                  [cheshire "5.0.2"]])
