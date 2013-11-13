@@ -130,6 +130,19 @@
          "123")))
 
 
+(deftest test-re-seq
+  (is (= (re-seq #"\d" "Mac OS X 10.6.8")
+         ["1" "0" "6" "8"]))
+  (is (= (re-seq #"\d+" "Mac OS X 10.6.8")
+         ["10" "6" "8"]))
+  (is (= (re-seq #"ZZ" "Mac OS X 10.6.8")
+         nil))
+  (is (= (re-seq #"\S+:\d+" " RX pkts:18 err:5 drop:48")
+         ["pkts:18" "err:5" "drop:48"]))
+  (is (= (re-seq #"(\S+):(\d+)" " RX pkts:18 err:5 drop:48")
+         [["pkts:18" "pkts" "18"] ["err:5" "err" "5"] ["drop:48" "drop" "48"]])))
+
+
 (deftest test-sort
   (is (= (sort [3 -7 10 8 5.3 9/5 -7.1])
          '(-7.1 -7 9/5 3 5.3 8 10)))
