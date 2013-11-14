@@ -114,6 +114,8 @@ Examples:
     user=> (== 2 \"a\")
     ClassCastException java.lang.String cannot be cast to java.lang.Number  clojure.lang.Numbers.equiv (Numbers.java:206)"]
 
+   ;; --A--
+
    [#'clojure.core/apply
     "f is a function and the last argument args is a sequence.  Calls f
 with the elements of args as its arguments.  If more arguments are
@@ -131,6 +133,8 @@ Examples:
     ;; This doesn't work because and is a macro, not a function
     user=> (apply and [true false true])
     CompilerException java.lang.RuntimeException: Can't take value of a macro: #'clojure.core/and, compiling:(NO_SOURCE_PATH:1:1)"]
+
+   ;; --C--
 
    [#'clojure.core/compare
     "compare is the default comparator for sorting with sort and sort-by,
@@ -221,6 +225,8 @@ comparators that can do this.
 Implementation detail: Clojure Refs can also be sorted using
 compare.  They are sorted in the order they were created."]
 
+   ;; --H--
+
    [#'clojure.core/hash
     "hash returns a 32-bit integer hash value for any object.  It is
 similar to Java's hashCode, but it is consistent with Clojure = (with
@@ -268,6 +274,8 @@ Examples:
     false       ; hash is not consistent with = for all float/double values
 
 See also: (topic Equality)  (TBD)"]
+
+   ;; --R--
 
    [#'clojure.core/range
     "Examples:
@@ -505,6 +513,8 @@ read-string to read data from a _trusted_ source, continue on below.
     "WARNING: You *SHOULD NOT* use clojure.core/read-string to read data
 from untrusted sources.  See clojure.core/read docs.  The same
 security issues exist for both read and read-string."]
+
+   ;; --S--
 
    [#'clojure.core/sort
     "If you supply a comparator, it must implement the Java Comparator
