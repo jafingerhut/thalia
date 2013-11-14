@@ -257,6 +257,14 @@
            [25 30 35 40 45 50 55]))))
 
 
+(deftest test-sorted-set-by
+  (is (= (seq (sorted-set-by compare "Food" "good" "air" "My" "AiR" "My"))
+         ["AiR" "Food" "My" "air" "good"]))
+  (is (= (seq (sorted-set-by case-insensitive-cmp
+                             "Food" "good" "air" "My" "AiR" "My"))
+         ["air" "Food" "good" "My"])))
+
+
 (deftest test-subs
   (is (= (subs "abcdef" 1 3)
          "bc"))
