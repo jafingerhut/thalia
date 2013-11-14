@@ -239,6 +239,24 @@
          [["lion" "Orycteropus afer"]])))
 
 
+(deftest test-sorted-set
+  (is (= (seq (sorted-set 4 2 1))
+         [1 2 4]))
+  (is (= (seq (conj (sorted-set 4 2 1) 3))
+         [1 2 3 4]))
+  (let [ss (apply sorted-set (range 100 0 -5))]
+    (is (= (seq ss)
+           [5 10 15 20 25 30 35 40 45 50 55 60 65 70 75 80 85 90 95 100]))
+    (is (= (first ss)
+           5))
+    (is (= (last ss)
+           100))
+    (is (= (subseq ss >= 80)
+           [80 85 90 95 100]))
+    (is (= (subseq ss > 20 < 60)
+           [25 30 35 40 45 50 55]))))
+
+
 (deftest test-subs
   (is (= (subs "abcdef" 1 3)
          "bc"))
