@@ -1,6 +1,7 @@
 (ns thalia.doc-test
   (:use clojure.test
         thalia.doc)
+  (:require [clojure.string :as str])
   (:import (clojure.lang Compiler Compiler$CompilerException)))
 
 
@@ -216,6 +217,26 @@
     (is (thrown? ClassCastException
                  #"java.lang.Double cannot be cast to java.lang.String"
                  (m2 "a")))))
+
+
+(defn case-insensitive-cmp [s1 s2]
+  (compare (str/lower-case s1) (str/lower-case s2)))
+
+
+(deftest test-sorted-map-by
+  (is (= (seq (sorted-map-by > 2 "two" 3 "three" 11 "eleven" 5 "five" 7 "seven"))
+         [[11 "eleven"] [7 "seven"] [5 "five"] [3 "three"] [2 "two"]]))
+  (is (= (seq (sorted-map-by #(compare %2 %1)
+                             "aardvark" "Orycteropus afer"
+                             "lion" "Panthera leo"
+                             "platypus" "Ornithorhynchus anatinus"))
+         [["platypus" "Ornithorhynchus anatinus"]
+          ["lion" "Panthera leo"]
+          ["aardvark" "Orycteropus afer"]]))
+  (is (= (seq (sorted-map-by case-insensitive-cmp
+                             "lion" "normal lion"
+                             "Lion" "Orycteropus afer"))
+         [["lion" "Orycteropus afer"]])))
 
 
 (deftest test-subs
