@@ -1,4 +1,5 @@
-(ns thalia.doc)
+(ns thalia.doc
+  (:require [clojure.pprint :as pp]))
 
 
 (defn alter-doc! [v new-docstring]
@@ -881,13 +882,21 @@ constructor (String. s)."]
    ])
 
 
-(defn add-extra-docs! []
+(defn add-extra-docs! [& args]
   (doseq [[var additional-docstring] extra-docs]
-    (append-doc! var additional-docstring)))
+    (append-doc! var additional-docstring))
+  (when (= args [:verbose])
+    (println (format "Added extra docs for the following %d symbols:"
+                     (count extra-docs)))
+    (pp/pprint (sort (map (comp str first) extra-docs)))))
 
-(println "Call add-extra-docs! to modify doc strings in clojure.core")
+
+(println
+ (format "Call (add-extra-docs!) to modify doc strings of %d out of %d symbols in clojure.core"
+         (count extra-docs)
+         (count (ns-publics (the-ns 'clojure.core)))))
 
 
 (comment
-(in-ns 'user) (use 'clojure.repl) (require 'thalia.doc) (thalia.doc/add-extra-docs!)
+(in-ns 'user) (use 'clojure.repl) (require 'thalia.doc) (thalia.doc/add-extra-docs! :verbose)
 )
