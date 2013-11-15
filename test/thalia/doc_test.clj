@@ -67,6 +67,39 @@
                (sort [{:a 1 :b 3} {:c -2 :d 4}]))))
 
 
+(deftest test-contains?
+    (is (= (contains? #{:a :b 5 nil} :b)
+           true))
+    (is (= (contains? #{:a :b 5 nil} 2)
+           false))
+    (is (= (contains? #{:a :b 5 nil} nil)
+           true))
+    (is (= (contains? #{:a :b 5} nil)
+           false))
+    (is (= (contains? {:a "a" nil "nil"} :a)
+           true))
+    (is (= (contains? {:a "a" nil "nil"} :b)
+           false))
+    (is (= (contains? {:a "a" nil "nil"} nil)
+           true))
+    (is (= (contains? {:a "a"} nil)
+           false))
+    (is (= (contains? "abcdef" 5)
+           true))
+    (is (= (contains? [:a :b :c] 1)
+           true))
+    (is (= (contains? (int-array [28 35 42 49]) 10)
+           false))
+    (is (= (contains? "abc" (+ 4 (* 4 Integer/MAX_VALUE)))
+           true))
+    (is (= (contains? "abc" -0.99)
+           true))
+    (is (= (contains? [:a :b :c] (+ 4 (* 4 Integer/MAX_VALUE)))
+           true))
+    (is (= (contains? [:a :b :c] 0.5)
+           false)))
+
+
 (deftest test-hash
   (let [x 8589934588]
     (is (= (bigint x) (biginteger x)))
