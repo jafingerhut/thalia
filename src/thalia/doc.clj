@@ -395,7 +395,7 @@ after removing their most significant bits.
     user=> (get [:a :b :c] long-truncates-to-int-0)
     :a
 
-See also: contains?"]
+See also: contains?, get-in, find"]
 
    ;; --H--
 
