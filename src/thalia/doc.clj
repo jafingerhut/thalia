@@ -232,11 +232,10 @@ compare.  They are sorted in the order they were created."]
 a vector or array contains a value.  See 'some' if that is what you
 want.
 
-contains? is most useful for checking whether a map has a particular
-key in one of its key/value pairs, or a set contains a particular
-element.  For these cases it can be more useful than 'get', especially
-in cases where you explicitly wish to allow a key, value, or set
-element to be nil.
+contains? is good for checking whether a map has a mapping for a key,
+or a set contains an element.  It can be easier to use correctly than
+'get', especially if you wish to allow a key, value, or set element to
+be nil.
 
 Examples:
 
@@ -257,6 +256,9 @@ Examples:
     true
     user=> (contains? {:a \"a\"} nil)            ; but not here
     false
+
+contains? also works for Java collections implementing interfaces
+java.util.Set or java.util.Map.
 
 It is not as useful, but contains? can also determine whether a number
 lies within the range of defined indices of a vector, string, or Java
