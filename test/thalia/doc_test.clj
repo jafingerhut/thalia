@@ -5,6 +5,16 @@
   (:import (clojure.lang Compiler Compiler$CompilerException)))
 
 
+;; This value is useful to demonstrate some weirdness with
+;; array/vector indexing.
+
+(def long-truncates-to-int-0 (bit-shift-left 1 33))
+
+(deftest test-long-truncates-to-int-0
+  (is (not (= 0 long-truncates-to-int-0)))
+  (is (= 0 (unchecked-int long-truncates-to-int-0))))
+
+
 (deftest test-=
   (is (= 3 3N))
   (is (not (= 2 2.0)))
@@ -26,7 +36,7 @@
   (is (== 5 5N (float 5.0) (double 5.0) (biginteger 5)))
   (is (not (== 5 5.0M)))  ; this is likely a bug
   (is (not (== Double/NaN Double/NaN)))
-  (is (thrown? ClassCastException 
+  (is (thrown? ClassCastException
                "java.lang.String cannot be cast to java.lang.Number"
                (== 2 "a"))))
 
@@ -90,14 +100,120 @@
            true))
     (is (= (contains? (int-array [28 35 42 49]) 10)
            false))
-    (is (= (contains? "abc" (+ 4 (* 4 Integer/MAX_VALUE)))
+    (is (= (contains? "abc" long-truncates-to-int-0)
            true))
     (is (= (contains? "abc" -0.99)
            true))
-    (is (= (contains? [:a :b :c] (+ 4 (* 4 Integer/MAX_VALUE)))
+    (is (= (contains? [:a :b :c] long-truncates-to-int-0)
            true))
     (is (= (contains? [:a :b :c] 0.5)
            false)))
+
+
+(deftest test-get
+  (is (= (get #{"a" 'b 5 nil} 'b)
+         'b))
+  (is (= (get #{"a" 'b 5 nil} 2)
+         nil))
+  (is (= (get #{"a" 'b 5 nil} nil)
+         nil))
+  (is (= (get #{"a" 'b 5} nil)
+         nil))
+  (is (= (get #{"a" 'b 5} nil :not-found)
+         :not-found))
+  (is (= (get #{"a" 'b 5 nil} nil :not-found)
+         nil))
+  (is (= (get {"a" 1, "b" nil} "b")
+         nil))
+  (is (= (get {"a" 1, "b" nil} "b" :not-found)
+         nil))
+  (is (= (get {"a" 1, "b" nil} "c" :not-found)
+         :not-found))
+  (is (= (get [:a :b :c] 50)
+         nil))
+  (let [vec1 [:a :b :c]]
+    (is (= (vec1 2)
+           :c))
+    (is (thrown? IndexOutOfBoundsException
+                 #".*"
+                 (vec1 3)))
+    (is (thrown? clojure.lang.ArityException
+                 #"Wrong number of args (2) passed to: PersistentVector"
+                 (vec1 3 :not-found))))
+  (let [map1 {:a 1 :b 2}]
+    (is (= (map1 :a)
+           1))
+    (is (= (map1 :c)
+           nil))
+    (is (= (map1 :c :not-found)
+           :not-found)))
+  (is (= (get [:a :b :c] 1.7)
+         nil))
+  (is (= (get (int-array [5 6 7]) -0.99)
+         5))
+  (is (= (get "abc" long-truncates-to-int-0)
+         \a))
+  (is (= (get [:a :b :c] long-truncates-to-int-0)
+         :a))
+
+  ;; Try all combinations of a data type from list 1, and an index
+  ;; from list 2, both with and without a not-found value, and with
+  ;; and without get.
+
+  ;; list 1: vector, string, Java array
+  ;; list 2: :a -0.99 0 1/2 (count v) long-truncates-to-int-0
+  (doseq [[coll-kind coll elem0] [ [:vector [:x :y :z] :x]
+                                   [:array "abc" \a]
+                                   [:array (int-array [5 10 15]) 5] ]]
+    (doseq [[idx idx-kind] [ [:a :not-a-number]
+                             [-0.99 :non-integer-which-rounds-to-0]
+                             [0 :integer-0]
+                             [1/2 :non-integer-which-rounds-to-0]
+                             [3 :integer-out-of-range]
+                             [long-truncates-to-int-0
+                              :integer-out-of-range-intValue-converts-to-0] ]]
+      (doseq [use-get? [false true]]
+        (doseq [not-found-arg? [false true]]
+          (let [test-desc-str (str "coll-kind: " coll-kind
+                                   "  idx-kind: " idx-kind
+                                   "  use-get? " use-get?
+                                   "  not-found-arg? " not-found-arg?)
+                expected-ret-val-if-not-found (if not-found-arg?
+                                                :not-found)
+                expected-exception-type
+                (cond
+                 use-get? nil
+                 (= coll-kind :array) ClassCastException
+                 not-found-arg? clojure.lang.ArityException
+                 (#{:not-a-number :non-integer-which-rounds-to-0} idx-kind) IllegalArgumentException
+                 (= idx-kind :integer-out-of-range) IndexOutOfBoundsException
+                 :else nil)
+                expected-ret-val
+                (case idx-kind
+                  :not-a-number expected-ret-val-if-not-found
+                  :non-integer-which-rounds-to-0 (case coll-kind
+                                                   :vector expected-ret-val-if-not-found
+                                                   :array elem0)
+                  :integer-out-of-range expected-ret-val-if-not-found
+                  :integer-out-of-range-intValue-converts-to-0 elem0
+                  :integer-0 elem0)]
+            (if (nil? expected-exception-type)
+              (is (= (case [use-get? not-found-arg?]
+                       [true true] (get coll idx :not-found)
+                       [true false] (get coll idx)
+                       [false true] (coll idx :not-found)
+                       [false false] (coll idx))
+                     expected-ret-val)
+                  test-desc-str)
+              (is (thrown?
+                   Exception
+                   #".*"
+                   (case [use-get? not-found-arg?]
+                     [true true] (get coll idx :not-found)
+                     [true false] (get coll idx)
+                     [false true] (coll idx :not-found)
+                     [false false] (coll idx)))
+                  test-desc-str))))))))
 
 
 (deftest test-hash
