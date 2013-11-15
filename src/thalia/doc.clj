@@ -300,12 +300,13 @@ See also: some, get"]
    ;; --G--
 
    [#'clojure.core/get
-    "'get' works on:
+    "'get' works for several types of arg 'map', not only maps:
 
 * maps, including records and Java objects implementing java.util.Map
 * sets, but not Java objects implementing java.util.Set
 * vectors, where the key is the index of the element to get
 * strings and Java arrays, where again the key is the index
+* nil, for which get always returns not-found or nil
 
 Examples:
 
