@@ -34,15 +34,12 @@
 " prog-name prog-name prog-name prog-name))
 
 
-(def prog-name "lein2 run")
+(def prog-name "lein run")
 
 
-(defn dot-clj-file [^File f]
+(defn file-with-suffix [^File f suffix]
   (and (not (. f (isDirectory)))
-       (let [s (str f)
-             n (count s)]
-         (and (>= n 4)
-              (= ".clj" (subs s (- n 4) n))))))
+       (.endsWith (str f) suffix)))
 
 
 (defn get-sym-info
@@ -80,7 +77,7 @@
 
 (defn cdocs-data-from-all-clj-files-in-dir [dir]
   (->> (file-seq (io/file dir))
-       (filter dot-clj-file)
+       (filter #(file-with-suffix % ".clj"))
        (map (fn [f]
               [(str f) (clojuredocs-file-data f)]))
        (into {})
@@ -231,7 +228,8 @@ encoding and before decoding."
         symbol-name (second args)
         fname-suffix (if (>= (count args) 3) (nth args 2))]
     (str root-dir
-         "/" (encode-url-component (str project-name "-" project-version))
+         "/" (encode-url-component project-name)
+         "/" (encode-url-component project-version)
          (if namespace-name
            (str "/" (encode-url-component namespace-name))
            "")
@@ -282,7 +280,8 @@ encoding and before decoding."
   (let [root-dir (:root-dir cb-data)
         symbol-file-name (doc-file-name root-dir (project-data "name")
                                         (project-data "version") ns-name-str
-                                        (sym-info "name") ".md")]
+                                        (sym-info "name")
+                                        (:filename-suffix cb-data))]
     (make-doc-file! symbol-file-name (:dry-run? cb-data))))
 
 
@@ -319,7 +318,8 @@ encoding and before decoding."
             (cdocs-data-from-all-clj-files-in-dir "./doc/clojuredocs")]
         (iterate-over-cdocs-data fname-to-data
                                  {:root-dir "./doc/project-docs"
-                                  :dry-run? false}
+                                  :dry-run? false
+                                  :filename-suffix ".txt"}
                                  make-project-dir
                                  make-namespace-dir
                                  nil    ;; before all public symbols
