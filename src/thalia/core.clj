@@ -30,7 +30,7 @@
     %s [ help ]
     %s json2edn
     %s cdocs-summary
-    %s create-empty-doc-files
+    %s create-empty-doc-files <language>
 " prog-name prog-name prog-name prog-name))
 
 
@@ -314,18 +314,24 @@ encoding and before decoding."
                                  print-private-symbol-name))
 
       "create-empty-doc-files"
-      (let [fname-to-data
-            (cdocs-data-from-all-clj-files-in-dir "./doc/clojuredocs")]
-        (iterate-over-cdocs-data fname-to-data
-                                 {:root-dir "./doc/project-docs"
-                                  :dry-run? false
-                                  :filename-suffix ".txt"}
-                                 make-project-dir
-                                 make-namespace-dir
-                                 nil    ;; before all public symbols
-                                 make-public-symbol-doc-file
-                                 nil    ;; before all private symbols
-                                 nil))  ;; per private symbol
+      (do
+        (when-not (= 1 (count args))
+          (iprintf *err* "Must specify language\n")
+          (show-usage prog-name)
+          (System/exit 1))
+        (let [lang (first args)
+              fname-to-data
+              (cdocs-data-from-all-clj-files-in-dir "./doc/clojuredocs")]
+          (iterate-over-cdocs-data fname-to-data
+                                   {:root-dir (str "./doc/project-docs/" lang)
+                                    :dry-run? false
+                                    :filename-suffix ".txt"}
+                                   make-project-dir
+                                   make-namespace-dir
+                                   nil    ;; before all public symbols
+                                   make-public-symbol-doc-file
+                                   nil    ;; before all private symbols
+                                   nil)))  ;; per private symbol
       
       ;; default case
       (do (iprintf *err* "Urecognized first arg '%s'\n" action)
