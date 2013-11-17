@@ -24,9 +24,17 @@ algo.monads)
     PROJ_TYPE="clojure-contrib"
     ;;
 clojure)
+    # When I tried this with Clojure 1.5.1 and JDK6, I got this
+    # warning message.  This would probably go away if I used JDK7
+    # instead.
+    # [+] Processing clojure.parallel...
+    # Unable to parse /Users/jafinger/clj/thalia/temp-checkouts/clojure/src/clj/clojure/parallel.clj: java.lang.ClassNotFoundException: jsr166y.forkjoin.ParallelArray
     SHORT_NAME=${LIB_NAME}
     VERSION="1.5.1"
     PROJ_TYPE="clojure"
+    ;;
+core.async)
+    # TBD
     ;;
 core.cache)
     SHORT_NAME=${LIB_NAME}
@@ -40,14 +48,22 @@ core.contracts)
     #
     # [-] Writing output to core.contracts-0.0.5-SNAPSHOT.json.gz
     # com.fasterxml.jackson.core.JsonGenerationException: Cannot JSON encode object of class: class clojure.lang.Var: #'clojure.core/==
+    #
+    # It might have something to do with the source file
+    # constraints.clj in core.contracts, which has this in the ns
+    # declaration near the top, and then later I believe it redefines
+    # == in a different way:
+    #   (:refer-clojure :exclude [== = not=])
     SHORT_NAME=${LIB_NAME}
-    VERSION="0.0.4"
+    # TBD: Changed from 0.0.4 on 2013-11-17
+    VERSION="0.0.5"
     PROJ_TYPE="clojure-contrib"
-    PROJECT_CLJ_FILE="core.contracts-0.0.4-project.clj"
+    PROJECT_CLJ_FILE="${LIB_NAME}-${VERSION}-project.clj"
     ;;
 core.incubator)
     SHORT_NAME=${LIB_NAME}
-    VERSION="0.1.2"
+    # TBD: Changed from 0.1.2 on 2013-11-17
+    VERSION="0.1.3"
     PROJ_TYPE="clojure-contrib"
     ;;
 core.logic)
@@ -58,14 +74,16 @@ core.logic)
     # and thus cadastre and lein-clojuredocs fail to get info about
     # that namespace.
     SHORT_NAME=${LIB_NAME}
-    VERSION="0.8.1"
+    # TBD: Changed from 0.8.1 on 2013-11-17
+    VERSION="0.8.4"
     PROJ_TYPE="clojure-contrib"
     ;;
 core.match)
     SHORT_NAME=${LIB_NAME}
-    VERSION="0.2.0-alpha12"
+    # TBD: Changed from 0.2.0-alpha12 on 2013-11-17
+    VERSION="0.2.0"
     PROJ_TYPE="clojure-contrib"
-    PROJECT_CLJ_FILE="core.match-0.2.0-alpha12-project.clj"
+    PROJECT_CLJ_FILE="${LIB_NAME}-${VERSION}-project.clj"
     ;;
 core.memoize)
     # TBD: lein-clojuredocs 1.0.2 fails on the step "lein clojuredocs"
@@ -80,16 +98,21 @@ core.memoize)
     # [+] Processing clojure.core.memoize...
     # Unable to parse /Users/jafinger/clj/thalia/temp-checkouts/core.memoize/src/main/clojure/clojure/core/memoize.clj: java.lang.RuntimeException: No such var: clojure.core.cache/through, compiling:(clojure/core/memoize.clj:53:3)
     SHORT_NAME=${LIB_NAME}
-    VERSION="0.5.3"
+    # TBD: Changed from 0.5.3 on 2013-11-17
+    VERSION="0.5.6"
     PROJ_TYPE="clojure-contrib"
-    PROJECT_CLJ_FILE="core.memoize-0.5.3-project.clj"
+    PROJECT_CLJ_FILE="${LIB_NAME}-${VERSION}-project.clj"
+    ;;
+core.rrb-vector)
+    # TBD
     ;;
 core.typed)
     SHORT_NAME=${LIB_NAME}
-    VERSION="master"
+    # TBD: Changed from master on 2013-11-17
+    VERSION="0.2.19"
     PROJ_TYPE="clojure-contrib"
-    PROJECT_CLJ_FILE="core.typed-master-project.clj"
-    echo "TBD: Gives several errors when attempting to do 'lein clojuredocs', some of which might be because 'mvn package' also fails to build this code as of Mar 22 2013."
+    PROJECT_CLJ_FILE="${LIB_NAME}-${VERSION}-project.clj"
+    echo "TBD: Generates a .json.gz file, but with a different version number than what my script expects, so /bin/mv fails."
     exit 1
     ;;
 core.unify)
@@ -112,12 +135,16 @@ data.finger-tree)
     VERSION="0.0.1"
     PROJ_TYPE="clojure-contrib"
     ;;
+data.fressian)
+    # TBD
+    ;;
 data.generators)
     SHORT_NAME=${LIB_NAME}
     VERSION="0.1.2"
     PROJ_TYPE="clojure-contrib"
     ;;
 data.json)
+    # The following comments apply to data.json version 0.2.1, at least:
     # File src/main/clojure/clojure/data/json.clj does (load
     # "json_compat_0_1") near the end, and that file has no 'ns' form,
     # instead beginning with (in-ns 'clojure.data.json), so there is
@@ -127,12 +154,14 @@ data.json)
     # json_compat_0_1.clj are there, although it appears that they are
     # listed as being in file json.clj, not json_compat_0_1.clj.
     SHORT_NAME=${LIB_NAME}
-    VERSION="0.2.1"
+    # TBD: Changed from 0.2.1 on 2013-11-17
+    VERSION="0.2.3"
     PROJ_TYPE="clojure-contrib"
     ;;
 data.priority-map)
     SHORT_NAME=${LIB_NAME}
-    VERSION="0.0.2"
+    # TBD: Changed from 0.0.2 on 2013-11-17
+    VERSION="0.0.4"
     PROJ_TYPE="clojure-contrib"
     ;;
 data.xml)
@@ -154,11 +183,12 @@ java.data)
     SHORT_NAME=${LIB_NAME}
     VERSION="0.1.1"
     PROJ_TYPE="clojure-contrib"
-    PROJECT_CLJ_FILE="java.data-0.1.1-project.clj"
+    PROJECT_CLJ_FILE="${LIB_NAME}-${VERSION}-project.clj"
     ;;
 java.jdbc)
     SHORT_NAME=${LIB_NAME}
-    VERSION="0.2.3"
+    # TBD: Changed from 0.2.3 on 2013-11-17
+    VERSION="0.3.0-beta1"
     PROJ_TYPE="clojure-contrib"
     ;;
 java.jmx)
@@ -167,6 +197,7 @@ java.jmx)
     PROJ_TYPE="clojure-contrib"
     ;;
 jvm.tools.analyzer)
+    # This comment applies to jvm.tools.analyzer version 0.3.1, at least:
     # TBD: Two source files have (set! *warn-on-reflection* val) forms
     # before their ns forms, which messes up cadastre's ability to
     # extract their namespace name.  I've filed ticket JVMTA-1 to
@@ -174,12 +205,14 @@ jvm.tools.analyzer)
     # error message more clear in explaining that this is the issue
     # with the file.
     SHORT_NAME=${LIB_NAME}
-    VERSION="0.3.1"
+    # TBD: Changed from 0.3.1 on 2013-11-17
+    VERSION="0.5.2"
     PROJ_TYPE="clojure-contrib"
     ;;
 math.combinatorics)
     SHORT_NAME=${LIB_NAME}
-    VERSION="0.0.3"
+    # TBD: Changed from 0.0.3 on 2013-11-17
+    VERSION="0.0.7"
     PROJ_TYPE="clojure-contrib"
     ;;
 math.numeric-tower)
@@ -198,13 +231,18 @@ test.generative)
     # output:
     # [!] I don't know how to coerce clojure.core$long
     SHORT_NAME=${LIB_NAME}
-    VERSION="0.4.0"
+    # TBD: Changed from 0.4.0 on 2013-11-17
+    VERSION="0.5.1"
     PROJ_TYPE="clojure-contrib"
-    PROJECT_CLJ_FILE="test.generative-0.4.0-project.clj"
+    PROJECT_CLJ_FILE="${LIB_NAME}-${VERSION}-project.clj"
+    ;;
+tools.analyzer)
+    # TBD
     ;;
 tools.cli)
     SHORT_NAME=${LIB_NAME}
-    VERSION="0.2.2"
+    # TBD: Changed from 0.2.2 on 2013-11-17
+    VERSION="0.2.3"
     PROJ_TYPE="clojure-contrib"
     ;;
 tools.logging)
@@ -214,30 +252,36 @@ tools.logging)
     ;;
 tools.macro)
     SHORT_NAME=${LIB_NAME}
-    VERSION="0.1.2"
+    # TBD: Changed from 0.1.2 on 2013-11-17
+    VERSION="0.1.5"
     PROJ_TYPE="clojure-contrib"
     ;;
 tools.namespace)
     SHORT_NAME=${LIB_NAME}
-    VERSION="0.2.2"
+    # TBD: Changed from 0.2.2 on 2013-11-17
+    VERSION="0.2.4"
     PROJ_TYPE="clojure-contrib"
     ;;
 tools.nrepl)
+    # This comment applies to tools.nrepl version 0.2.2 at least:
     # TBD: lein-clojuredocs 1.0.2 fails on the step "lein clojuredocs"
     # below.  I've filed an issue on the lein-clojuredocs Github repo
     # on March 22, 2013
     SHORT_NAME=${LIB_NAME}
-    VERSION="0.2.2"
+    # TBD: Changed from 0.2.2 on 2013-11-17
+    VERSION="0.2.3"
     PROJ_TYPE="clojure-contrib"
     ;;
 tools.reader)
     SHORT_NAME=${LIB_NAME}
-    VERSION="0.7.3"
+    # TBD: Changed from 0.7.3 on 2013-11-17
+    VERSION="0.7.10"
     PROJ_TYPE="clojure-contrib"
     ;;
 tools.trace)
     SHORT_NAME=${LIB_NAME}
-    VERSION="0.7.5"
+    # TBD: Changed from 0.7.5 on 2013-11-17
+    VERSION="0.7.6"
     PROJ_TYPE="clojure-contrib"
     ;;
 *)
