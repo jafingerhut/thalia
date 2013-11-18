@@ -2,8 +2,55 @@
 
 A collection of documentation for Clojure functions, macros, and other
 vars.  This extra documentation can easily be added to the doc strings
-in a running Clojure process, such that `(doc sorted-set)` will show
-the standard doc string, plus the extra documentation.
+in a running Clojure process, such that `(doc ==)` will show the
+standard doc string, plus the extra documentation.  Here is the output
+of `(doc ==)` with unmodified Clojure 1.5.1:
+
+    user=> (doc ==)
+    -------------------------
+    clojure.core/==
+    ([x] [x y] [x y & more])
+      Returns non-nil if nums all have the equivalent
+      value (type-independent), otherwise false
+
+Here is the output of `(doc ==)` after loading thalia extended doc
+strings (no modification to Clojure source code is required):
+
+    user=> (doc ==)
+    -------------------------
+    clojure.core/==
+    ([x] [x y] [x y & more])
+      Returns non-nil if nums all have the equivalent
+      value (type-independent), otherwise false
+    --------- ^^^ original docs --------- VVV unofficial extra docs ---------
+    (== x y) is true if x and y are both numbers, and represent
+    numerically equal values.  Unlike =, there are no separate
+    'categories' of numeric values that are treated as always unequal to
+    each other.  If you call == with more than two arguments, the result
+    will be true when all consecutive pairs are ==.  An exception is
+    thrown if any argument is not a numeric value.
+    
+    Exceptions, or possible surprises:
+    
+    * == is false for BigDecimal values with different scales, e.g. (==
+      1.50M 1.500M) is false.  http://dev.clojure.org/jira/browse/CLJ-1118
+    * 'Not a Number' values Float/NaN and Double/NaN are not equal to any
+      value, not even themselves.
+    
+    Examples:
+    
+        user=> (= 2 2.0)   ; = has different categories integer and floating point
+        false
+        user=> (== 2 2.0)  ; but == sees same numeric value
+        true
+        user=> (== 5 5N (float 5.0) (double 5.0) (biginteger 5))
+        true
+        user=> (== 5 5.0M) ; this is likely a bug
+        false
+        user=> (== Double/NaN Double/NaN)  ; this is normal
+        false
+        user=> (== 2 "a")
+        ClassCastException java.lang.String cannot be cast to java.lang.Number  clojure.lang.Numbers.equiv (Numbers.java:206)
 
 This documentation is intended to describe the way things behave in
 particular versions of Clojure, including examples, bugs, and issues
