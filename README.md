@@ -85,13 +85,98 @@ strings for use in the REPL rather than web browsing.
 
 The basic flow is:
 
-* Create text files of extended doc strings in the directory
-  doc/project-docs with a particular directory structure.  The 
+* Create text files containing extended doc strings in a directory
+  beneath the `doc/project-docs` directory.  See 'Directory structure'
+  below for the path names that should be used.
 
-* Edit those text files to provide examples, details, and warnings to
-  developers about Clojure functions, macros, etc.
+* Create one file `resource/<language>.clj` per language for all
+  extended doc strings written in that language.  See 'Create language
+  resource files' below.
 
-* 
+* Use Leiningen to create a JAR file containing a little bit of
+  Clojure code and the files in the `resource` directory.  This is
+  deployed for others to use, e.g. on clojars.org.  See 'Create JAR
+  file' below.
+
+
+### Directory structure
+
+The path name of each text file should be of the following form, where
+`/` characters are used as on Mac OS X and Linux to separate directory
+names in the path.
+
+    doc/project-docs/<language>/<project-name>/<version>/<namespace>/<symbol>.txt
+
+Below are some example paths for the language US English, abbreviated
+`en_US`.  Execute the expression `(str (java.util.Locale/getDefault))`
+at the REPL to see the abbreviation for your language.
+
+The project is `clojure.core`, version 1.5.1, namespace
+`clojure.string`, symbol `replace`:
+
+    doc/project-docs/en_US/clojure.core/1.5.1/clojure.string/replace.txt
+
+Below is an example for everything the same as above, except the
+namespace is `clojure.core` and the symbol is `==`.  The file name has
+been modified in a way similar to how special characters are modified
+when they appear in URLs.  If you have a project, version, namespace,
+or symbol name with any characters that are not ASCII alphabetic,
+numeric, nor the `-` character, you can use the function
+`thalia.core/encode-url-component` to see what the file name should
+be.
+
+    doc/project-docs/en_US/clojure.core/1.5.1/clojure.core/%3D%3D.txt
+
+
+### Create language resource files
+
+Run this command, ensuring that `:main thalia.core` is present and
+uncommented in the `project.clj` file:
+
+    lein run create-doc-rsrc en_US
+
+Other languages besides US English may be supported in the future, if
+someone writes doc strings in those languages.
+
+
+### Create JAR file
+
+Run this command.  In this case `:main thalia.core` must be commented
+out or deleted before doing this.  If someone knows a way to avoid
+having to edit `project.clj` to achieve this (perhaps using Leiningen
+profiles?), let me know.
+
+To install in your local Maven repo (usually in `$HOME/.m2`):
+
+    lein install
+
+To create a JAR file locally:
+
+    lein jar
+
+To deploy to clojars.org:
+
+    lein deploy
+
+
+### Creating directory tree skeleton
+
+These instructions have only been tested with Mac OS X and Linux,
+although they might work on Windows with Cygwin installed.  They are
+not expected to work with Windows because of bash scripts involved.
+
+TBD: Flesh these instructions out.  They involve using
+lein-clojuredocs:
+
+    https://github.com/clojuredocs/lein-clojuredocs
+
+Also these commands:
+
+    lein run json2edn
+    lein run create-empty-doc-files
+
+For Clojure contrib libraries, the bash script `scripts/gen-most.sh`
+may be useful.
 
 
 ## License
