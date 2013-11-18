@@ -8,5 +8,5 @@
   :resource-paths ["resource"]
   ;; Uncomment the following line to enable 'lein run' commands
   ;; defined in namespace thalia.core
-  ;;:main thalia.core
+  :main thalia.core
   )

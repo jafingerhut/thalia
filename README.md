@@ -81,6 +81,19 @@ strings for use in the REPL rather than web browsing.
 [Equality]: https://github.com/jafingerhut/thalia/blob/master/doc/other-topics/equality.md
 
 
+## Developer documentation
+
+The basic flow is:
+
+* Create text files of extended doc strings in the directory
+  doc/project-docs with a particular directory structure.  The 
+
+* Edit those text files to provide examples, details, and warnings to
+  developers about Clojure functions, macros, etc.
+
+* 
+
+
 ## License
 
 Copyright © 2013 Andy Fingerhut
