@@ -72,7 +72,21 @@
                     (swap! missing-namespaces-warned conj ns-name-str)))))))))))
 
 
-(defn add-extra-docs! [& args]
+(defn add-extra-docs!
+  "Modify the doc strings of vars, by adding extra docs specified in a
+resource file.  Options can be given as args: key1 val1 key2 val2 ...
+
+Examples:
+    (add-extra-docs!)
+    (add-extra-docs! :debug true :language \"en_US\")
+
+    :language - A string naming the language of the extra docs to add.
+                Defaults to the language of your default locale in the
+                JVM, e.g. \"en_US\" is US English.
+
+    :debug - A boolean indicating whether to print extra debug
+             messages.  Defaults to false."
+  [& args]
   (let [default-locale (str (java.util.Locale/getDefault))
         opts (merge {:language default-locale}
                     (apply hash-map args))
