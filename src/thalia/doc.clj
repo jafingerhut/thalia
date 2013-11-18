@@ -4,19 +4,22 @@
             [thalia.utils :refer [iprintf read-safely]]))
 
 
-(defn- alter-doc! [v new-docstring]
-  (alter-meta! v assoc :doc new-docstring))
-
-
 (defn- append-doc! [v additional-docstring]
-  (let [^String orig-doc (:doc (meta v))]
-    (alter-doc! v
-                (str orig-doc
+  (let [m (meta v)
+        ;; Save the original doc string if we have not done so earlier
+        m (if (:thalia/original-doc meta)
+            m
+            (assoc m :thalia/original-doc (:doc m)))
+        ^String orig-doc (:thalia/original-doc m)
+        new-doc (str orig-doc
                      (if (.endsWith orig-doc "\n")
                        ""
                        "\n")
 "--------- ^^^ original docs --------- VVV unofficial extra docs ---------\n"
-                     additional-docstring))))
+                     additional-docstring)
+        m (assoc m :doc new-doc)]
+    (reset-meta! v m)))
+
 
 ;; TBD: Find somewhere appropriate to describe the behavior of
 ;; keywords looking themselves up in collections via (:keyword coll)
