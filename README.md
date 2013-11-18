@@ -64,8 +64,13 @@ To test it, look at the output of `(doc ==)`.
 It is expected that this collection of documentation will grow slowly
 over time, as it is written.
 
-Here are links to parts of it that are reasonably complete.  Comments
-and corrections are welcome.
+
+## Web docs
+
+Here are links to some docs that were written in Markdown format for
+browsing on Github.  I am not sure whether I will be enhancing these
+in the future.  My current thinking is to focus on making enhanced doc
+strings for use in the REPL rather than web browsing.
 
 * [Comparators in Clojure][ComparatorsInClojure], including the "See
   also" links within it to functions for sorted maps and sets, and
