@@ -130,8 +130,7 @@ be.
 
 ### Create language resource files
 
-Run this command, ensuring that `:main thalia.core` is present and
-uncommented in the `project.clj` file:
+Run this command:
 
     lein run create-doc-rsrc en_US
 
@@ -141,12 +140,8 @@ someone writes doc strings in those languages.
 
 ### Create JAR file
 
-Run this command.  In this case the line `:main thalia.core` in
-`project.clj` must be commented out or deleted before doing this.  If
-someone knows a way to avoid having to edit `project.clj` to achieve
-this (perhaps using Leiningen profiles?), let me know.
-
-To install in your local Maven repo (usually in `$HOME/.m2`):
+Run one or more of the following commands.  To install in your local
+Maven repo (usually in `$HOME/.m2`):
 
     lein install
 

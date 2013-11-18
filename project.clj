@@ -5,9 +5,9 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.5.1"]]
   :profiles {:dev {:dependencies [[cheshire "5.0.2"]
-                                  [me.raynes/fs "1.4.3"]]}}
-  :resource-paths ["resource"]
-  ;; Uncomment the following line to enable 'lein run' commands
-  ;; defined in namespace thalia.core
-  :main thalia.core
-  )
+                                  [me.raynes/fs "1.4.3"]]
+                   ;; The following line interferes with creating
+                   ;; small JAR files via 'lein install/jar/deploy',
+                   ;; so only include it in the dev profile.
+                   :main thalia.core}}
+  :resource-paths ["resource"])
