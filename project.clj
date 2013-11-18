@@ -1,4 +1,4 @@
-(defproject thalia "0.1.0"
+(defproject thalia "0.2.0-SNAPSHOT"
   :description "Documentation for Clojure functions, macros, protocols, vars"
   :url "http://github.com/jafingerhut/thalia"
   :license {:name "Eclipse Public License"
