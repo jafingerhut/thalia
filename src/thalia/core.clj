@@ -4,21 +4,12 @@
   (:require [clojure.java.io :as io]
             [clojure.pprint :as pp]
             [clojure.string :as str]
-            [clojure.tools.reader.edn :as edn]
+            [thalia.doc :as doc :refer [iprintf]]
+            [clojure.edn :as edn]
             [cheshire.core :as cheshire]))
 
 
-(def ^:dynamic *auto-flush* true)
-
-(defn printf-to-writer [w fmt-str & args]
-  (binding [*out* w]
-    (apply clojure.core/printf fmt-str args)
-    (when *auto-flush* (flush))))
-
-(defn iprintf [fmt-str-or-writer & args]
-  (if (instance? CharSequence fmt-str-or-writer)
-    (apply printf-to-writer *out* fmt-str-or-writer args)
-    (apply printf-to-writer fmt-str-or-writer args)))
+(def path-sep (get (System/getProperties) "file.separator"))
 
 (defn die [fmt-str & args]
   (apply iprintf *err* fmt-str args)
@@ -31,7 +22,8 @@
     %s json2edn
     %s cdocs-summary
     %s create-empty-doc-files <language>
-" prog-name prog-name prog-name prog-name))
+    %s create-doc-rsrc <language>
+" prog-name prog-name prog-name prog-name prog-name))
 
 
 (def prog-name "lein run")
@@ -57,6 +49,10 @@
 (defn map-vals [f m]
   (into (empty m)
         (for [[k v] m] [k (f v)])))
+
+(defn filter-keys [f m]
+  (into (empty m)
+        (filter (fn [[k _]] (f k)) m)))
 
 (defn filter-vals [f m]
   (into (empty m)
@@ -172,14 +168,14 @@ Thus to convert a URL to a string, take consecutive sequences of %HH
 escape sequences, where HH are hex digits, convert them to bytes, and
 treat those bytes as strings encoded using UTF-8."
   [s]
-  (clojure.string/replace s
-                          #"((%..)+)"
-                          (fn [escapes]
-                            (String. (->> (first escapes)
-                                          (re-seq #"%..")
-                                          (map one-hex-escape-to-byte)
-                                          byte-array)
-                                     "UTF-8"))))
+  (str/replace s
+               #"((%..)+)"
+               (fn [escapes]
+                 (String. (->> (first escapes)
+                               (re-seq #"%..")
+                               (map one-hex-escape-to-byte)
+                               byte-array)
+                          "UTF-8"))))
 
 
 (defn- one-byte-to-hex-escape [b]
@@ -285,6 +281,50 @@ encoding and before decoding."
     (make-doc-file! symbol-file-name (:dry-run? cb-data))))
 
 
+(defn project-doc-name-components [^String fname root-dir fname-suffix]
+  (if (.startsWith fname root-dir)
+    (let [;; remove root-dir prefix
+          fname (subs fname (count root-dir))
+          ;; remove leading path separator if there is one
+          fname (if (.startsWith fname path-sep)
+                  (subs fname 1)
+                  fname)
+          ;; remove fname-suffix if it is there
+          fname (if (.endsWith fname fname-suffix)
+                  (subs fname 0 (- (count fname) (count fname-suffix)))
+                  fname)
+          ;; break path name up into separate components
+          sep-pat (re-pattern (str "\\Q" path-sep "\\E"))
+          [lang lib version ns sym] (map decode-url-component
+                                         (str/split fname sep-pat))]
+      {:language lang, :library lib, :version version, :ns ns, :symbol sym})))
+
+
+(defn non-empty-project-docs [dir lang]
+  (let [fname-suffix ".txt"]
+    (->> (file-seq (io/file (str dir path-sep lang)))
+         (filter #(file-with-suffix % fname-suffix))
+         (map (fn [f] {:filename (str f) :extended-docstring (slurp f)}))
+         ;; remove any files that are completely blank
+         (remove #(str/blank? (:extended-docstring %)))
+         ;; parse file names for project name, version, namespace, and symbol
+         (map #(merge % (project-doc-name-components (:filename %)
+                                                     dir fname-suffix)))
+         (group-by #(select-keys % [:language :library :version]))
+
+         ;; After grouping, we don't need the keys :language :library
+         ;; :version in every map, nor do we need :filename any
+         ;; longer.
+         (map-vals (fn [map-list]
+                     (map #(dissoc % :language :library :version :filename)
+                          map-list))))))
+
+
+(def clojuredocs-files-root "./doc/clojuredocs")
+(def project-docs-root "./doc/project-docs")
+(def resource-root-dir "./resource")
+
+
 (defn -main [& args]
   (when (or (= 0 (count args))
             (#{"help"} (first args)))
@@ -302,7 +342,7 @@ encoding and before decoding."
             show-publics (arg-set "public-symbols")
             show-privates (arg-set "private-symbols")
             fname-to-data
-            (cdocs-data-from-all-clj-files-in-dir "./doc/clojuredocs")]
+            (cdocs-data-from-all-clj-files-in-dir clojuredocs-files-root)]
         (iterate-over-cdocs-data fname-to-data
                                  {:show-public-symbol-names show-publics
                                   :show-private-symbol-names show-privates}
@@ -321,9 +361,9 @@ encoding and before decoding."
           (System/exit 1))
         (let [lang (first args)
               fname-to-data
-              (cdocs-data-from-all-clj-files-in-dir "./doc/clojuredocs")]
+              (cdocs-data-from-all-clj-files-in-dir clojuredocs-files-root)]
           (iterate-over-cdocs-data fname-to-data
-                                   {:root-dir (str "./doc/project-docs/" lang)
+                                   {:root-dir (str project-docs-root "/" lang)
                                     :dry-run? false
                                     :filename-suffix ".txt"}
                                    make-project-dir
@@ -333,6 +373,21 @@ encoding and before decoding."
                                    nil    ;; before all private symbols
                                    nil)))  ;; per private symbol
       
+      "create-doc-rsrc"
+      (do
+        (when-not (= 1 (count args))
+          (iprintf *err* "Must specify language\n")
+          (show-usage prog-name)
+          (System/exit 1))
+        (let [lang (first args)
+              non-empty-doc-files (non-empty-project-docs project-docs-root
+                                                          lang)]
+          (with-open [wrtr (io/writer (str resource-root-dir path-sep
+                                           path-sep lang ".clj"))]
+            (binding [*out* wrtr]
+              (pp/pprint (filter-keys #(= lang (:language %))
+                                      non-empty-doc-files))))))
+
       ;; default case
       (do (iprintf *err* "Urecognized first arg '%s'\n" action)
           (show-usage prog-name)
