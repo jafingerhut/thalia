@@ -314,7 +314,7 @@ esac
 
 # After setting the values above, hopefully the rest of this can be common
 
-set -x
+set -ex
 
 cd ${THALIA_TEMP_CHECKOUTS}
 git clone ${GIT_URL}
@@ -349,5 +349,19 @@ fi
 cd ..
 #/bin/rm -fr ${GIT_REPO_ROOT_DIR_NAME}
 
+
+# Mac OS X has gzcat, but at least some Ubuntu systems call it zcat.
+if [ `which gzcat | wc -l` == "1" ]
+then
+    GZCAT="gzcat"
+elif [ `which zcat | wc -l` == "1" ]
+then
+    GZCAT="zcat"
+else
+    echo "No gzcat or zcat installed.  Aborting."
+    exit 1
+fi
+
+
 cd ${THALIA_ROOT}
-gzcat ${THALIA_CLOJUREDOCS_FILES_DIR}/${LEIN_CLOJUREDOCS_ROOT_FILE_NAME}.json.gz | lein run json2edn > ${THALIA_CLOJUREDOCS_FILES_DIR}/${LEIN_CLOJUREDOCS_ROOT_FILE_NAME}.clj
+${GZCAT} ${THALIA_CLOJUREDOCS_FILES_DIR}/${LEIN_CLOJUREDOCS_ROOT_FILE_NAME}.json.gz | lein run json2edn > ${THALIA_CLOJUREDOCS_FILES_DIR}/${LEIN_CLOJUREDOCS_ROOT_FILE_NAME}.clj
