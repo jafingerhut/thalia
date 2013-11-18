@@ -141,10 +141,10 @@ someone writes doc strings in those languages.
 
 ### Create JAR file
 
-Run this command.  In this case `:main thalia.core` must be commented
-out or deleted before doing this.  If someone knows a way to avoid
-having to edit `project.clj` to achieve this (perhaps using Leiningen
-profiles?), let me know.
+Run this command.  In this case the line `:main thalia.core` in
+`project.clj` must be commented out or deleted before doing this.  If
+someone knows a way to avoid having to edit `project.clj` to achieve
+this (perhaps using Leiningen profiles?), let me know.
 
 To install in your local Maven repo (usually in `$HOME/.m2`):
 
