@@ -37,27 +37,30 @@
         opts (merge {:language default-locale}
                     (apply hash-map args))
         rsrc-name (str (:language opts) ".clj")
-        doc-data (read-safely (io/resource rsrc-name))]
-
-    ;; TBD: Is there a 'standard' way to check for libraries other
-    ;; than clojure.core what version is loaded?
-
-    (doseq [[{:keys [library version]} data-for-symbols] doc-data]
-      (doseq [one-sym-data data-for-symbols]
-        (let [ns (:ns one-sym-data)
-              sym (:symbol one-sym-data)
-              extended-docstring (:extended-docstring one-sym-data)]
-          (if (and ns sym extended-docstring)
-            (if-let [var (try (resolve (symbol ns sym))
-                              (catch Exception e nil))]
-              (append-doc! var extended-docstring)
-              (iprintf *err* "No such var %s/%s\n" ns sym))
-            ;; else
-            (do
-              (binding [*out* *err*]
-                (iprintf "Resource file has this record that is missing one of the keys [:ns :symbol :extended-docstring]:\n")
-                (pp/pprint one-sym-data))
-              )))))))
+        file (io/resource rsrc-name)]
+    (if-not file
+      (iprintf *err* "No resource file %s exists.  Either '%s' is not a language,
+or no one has written thalia docs in that language yet.\n"
+               rsrc-name (:language opts))
+      (let [doc-data (read-safely file)]
+        ;; TBD: Is there a 'standard' way to check for libraries other
+        ;; than clojure.core what version is loaded?
+        (doseq [[{:keys [library version]} data-for-symbols] doc-data]
+          (doseq [one-sym-data data-for-symbols]
+            (let [ns (:ns one-sym-data)
+                  sym (:symbol one-sym-data)
+                  extended-docstring (:extended-docstring one-sym-data)]
+              (if (and ns sym extended-docstring)
+                (if-let [var (try (resolve (symbol ns sym))
+                                  (catch Exception e nil))]
+                  (append-doc! var extended-docstring)
+                  (iprintf *err* "No such var %s/%s\n" ns sym))
+                ;; else
+                (do
+                  (binding [*out* *err*]
+                    (iprintf "Resource file has this record that is missing one of the keys [:ns :symbol :extended-docstring]:\n")
+                    (pp/pprint one-sym-data))
+                  )))))))))
 
 
 (comment
