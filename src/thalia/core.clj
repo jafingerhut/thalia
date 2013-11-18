@@ -4,14 +4,9 @@
   (:require [clojure.java.io :as io]
             [clojure.pprint :as pp]
             [clojure.string :as str]
-            [thalia.doc :as doc :refer [iprintf]]
             [clojure.edn :as edn]
+            [thalia.utils :refer :all]
             [cheshire.core :as cheshire]))
-
-
-(defn die [fmt-str & args]
-  (apply iprintf *err* fmt-str args)
-  (System/exit 1))
 
 
 (defn show-usage [prog-name]
@@ -38,23 +33,6 @@
   [x ns-name-str sym-str]
   (let [ns-info (get-in x ["namespaces" ns-name-str])]
     (first (filter #(= (get % "name") sym-str) ns-info))))
-
-
-(defn map-keys [f m]
-  (into (empty m)
-        (for [[k v] m] [(f k) v])))
-
-(defn map-vals [f m]
-  (into (empty m)
-        (for [[k v] m] [k (f v)])))
-
-(defn filter-keys [f m]
-  (into (empty m)
-        (filter (fn [[k _]] (f k)) m)))
-
-(defn filter-vals [f m]
-  (into (empty m)
-        (filter (fn [[_ v]] (f v)) m)))
 
 
 (defn symbols-in-namespaces

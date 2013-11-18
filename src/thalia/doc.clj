@@ -1,32 +1,14 @@
 (ns thalia.doc
   (:require [clojure.pprint :as pp]
             [clojure.java.io :as io]
-            [clojure.edn :as edn]))
+            [thalia.utils :refer [iprintf read-safely]]))
 
 
-(def ^:dynamic *auto-flush* true)
-
-(defn printf-to-writer [w fmt-str & args]
-  (binding [*out* w]
-    (apply clojure.core/printf fmt-str args)
-    (when *auto-flush* (flush))))
-
-(defn iprintf [fmt-str-or-writer & args]
-  (if (instance? CharSequence fmt-str-or-writer)
-    (apply printf-to-writer *out* fmt-str-or-writer args)
-    (apply printf-to-writer fmt-str-or-writer args)))
-
-
-(defn read-safely [x & opts]
-  (with-open [r (java.io.PushbackReader. (apply io/reader x opts))]
-    (edn/read r)))
-
-
-(defn alter-doc! [v new-docstring]
+(defn- alter-doc! [v new-docstring]
   (alter-meta! v assoc :doc new-docstring))
 
 
-(defn append-doc! [v additional-docstring]
+(defn- append-doc! [v additional-docstring]
   (let [^String orig-doc (:doc (meta v))]
     (alter-doc! v
                 (str orig-doc
@@ -43,7 +25,7 @@
 ;; TBD: Are the sequences returned by subseq and rsubseq lazy?
 
 
-(defn ns-if-loaded [ns-name-str]
+(defn- ns-if-loaded [ns-name-str]
   (try
     (the-ns (symbol ns-name-str))
     (catch Exception e
