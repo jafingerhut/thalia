@@ -158,7 +158,8 @@ To deploy to clojars.org:
 
 These instructions have only been tested with Mac OS X and Linux,
 although they might work on Windows with Cygwin installed.  They are
-not expected to work with Windows because of bash scripts involved.
+not expected to work with Windows (without Cygwin) because of the bash
+shell scripts involved.
 
 TBD: Flesh these instructions out.  They involve using
 lein-clojuredocs:
