@@ -9,8 +9,6 @@
             [cheshire.core :as cheshire]))
 
 
-(def path-sep (get (System/getProperties) "file.separator"))
-
 (defn die [fmt-str & args]
   (apply iprintf *err* fmt-str args)
   (System/exit 1))
@@ -219,20 +217,30 @@ encoding and before decoding."
                          (apply str escaped-bytes))))))))
 
 
+(def path-sep (get (System/getProperties) "file.separator"))
+(def path-sep-pat (re-pattern (str "\\Q" path-sep "\\E")))
+
+(defn path-from-parts [parts]
+  (apply str (interpose path-sep parts)))
+
+(defn parts-from-path [path]
+  (str/split path path-sep-pat))
+
+
 (defn doc-file-name [root-dir project-name project-version & args]
   (let [namespace-name (first args)
         symbol-name (second args)
         fname-suffix (if (>= (count args) 3) (nth args 2))]
-    (str root-dir
-         "/" (encode-url-component project-name)
-         "/" (encode-url-component project-version)
-         (if namespace-name
-           (str "/" (encode-url-component namespace-name))
-           "")
-         (if symbol-name
-           (str "/" (encode-url-component symbol-name))
-           "")
-         (or fname-suffix ""))))
+    (path-from-parts (concat
+                      [root-dir
+                       (encode-url-component project-name)
+                       (encode-url-component project-version)]
+                      (if namespace-name
+                        [ (encode-url-component namespace-name) ])
+                      (if symbol-name
+                        [ (encode-url-component symbol-name) ])
+                      (if fname-suffix
+                        fname-suffix)))))
 
 (defn make-dir! [dir-name dry-run?]
   (let [^File dir-file (io/file dir-name)]
@@ -294,15 +302,14 @@ encoding and before decoding."
                   (subs fname 0 (- (count fname) (count fname-suffix)))
                   fname)
           ;; break path name up into separate components
-          sep-pat (re-pattern (str "\\Q" path-sep "\\E"))
           [lang lib version ns sym] (map decode-url-component
-                                         (str/split fname sep-pat))]
+                                         (parts-from-path fname))]
       {:language lang, :library lib, :version version, :ns ns, :symbol sym})))
 
 
 (defn non-empty-project-docs [dir lang]
   (let [fname-suffix ".txt"]
-    (->> (file-seq (io/file (str dir path-sep lang)))
+    (->> (file-seq (io/file (path-from-parts [dir lang])))
          (filter #(file-with-suffix % fname-suffix))
          (map (fn [f] {:filename (str f) :extended-docstring (slurp f)}))
          ;; remove any files that are completely blank
@@ -320,9 +327,9 @@ encoding and before decoding."
                           map-list))))))
 
 
-(def clojuredocs-files-root "./doc/clojuredocs")
-(def project-docs-root "./doc/project-docs")
-(def resource-root-dir "./resource")
+(def clojuredocs-files-root (path-from-parts ["." "doc" "clojuredocs"]))
+(def project-docs-root (path-from-parts ["." "doc" "project-docs"]))
+(def resource-root-dir (path-from-parts ["." "resource"]))
 
 
 (defn -main [& args]
@@ -363,7 +370,8 @@ encoding and before decoding."
               fname-to-data
               (cdocs-data-from-all-clj-files-in-dir clojuredocs-files-root)]
           (iterate-over-cdocs-data fname-to-data
-                                   {:root-dir (str project-docs-root "/" lang)
+                                   {:root-dir (path-from-parts
+                                               [project-docs-root lang])
                                     :dry-run? false
                                     :filename-suffix ".txt"}
                                    make-project-dir
@@ -382,8 +390,8 @@ encoding and before decoding."
         (let [lang (first args)
               non-empty-doc-files (non-empty-project-docs project-docs-root
                                                           lang)]
-          (with-open [wrtr (io/writer (str resource-root-dir path-sep
-                                           path-sep lang ".clj"))]
+          (with-open [wrtr (io/writer (path-from-parts [resource-root-dir
+                                                        (str lang ".clj")]))]
             (binding [*out* wrtr]
               (pp/pprint (filter-keys #(= lang (:language %))
                                       non-empty-doc-files))))))
