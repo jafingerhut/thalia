@@ -6,7 +6,8 @@
             [clojure.string :as str]
             [clojure.edn :as edn]
             [thalia.utils :refer :all]
-            [cheshire.core :as cheshire]))
+            [cheshire.core :as cheshire]
+            [me.raynes.fs :as fs]))
 
 
 (defn show-usage [prog-name]
@@ -366,8 +367,11 @@ encoding and before decoding."
           (show-usage prog-name)
           (System/exit 1))
         (let [lang (first args)
+              lang-root (path-from-parts [project-docs-root lang])
               non-empty-doc-files (non-empty-project-docs project-docs-root
                                                           lang)]
+          (when-not (fs/exists? lang-root)
+            (die "Directory %s does not exist.  Aborting.\n" lang-root))
           (with-open [wrtr (io/writer (path-from-parts [resource-root-dir
                                                         (str lang ".clj")]))]
             (binding [*out* wrtr]
