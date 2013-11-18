@@ -36,48 +36,54 @@
         nil)))
 
 
-(defn- do-the-add! [opts rsrc-name doc-data]
+(defn- do-the-add! [opts rsrc-fname doc-data]
   ;; TBD: Is there a 'standard' way to check for libraries other
   ;; than clojure.core what version is loaded?
-  (doseq [[{:keys [library version]} data-for-symbols] doc-data]
-    (doseq [one-sym-data data-for-symbols]
-      (if-let [missing-keys (seq (set/difference #{:ns :symbol
-                                                   :extended-docstring}
-                                                 (set (keys one-sym-data))))]
-        (do
-          (binding [*out* *err*]
-            (iprintf "Resource file '%s' has the following map that is missing needed keys %s:\n"
-                     rsrc-name missing-keys)
-            (pp/pprint one-sym-data)
-            (println)))
-        (let [ns (:ns one-sym-data)
-              sym-name-str (:symbol one-sym-data)
-              extended-docstring (:extended-docstring one-sym-data)
-              sym (symbol ns sym-name-str)]
-          (if-let [var (try (resolve sym)
-                            (catch Exception e nil))]
-            (do
-              (append-doc! var extended-docstring)
-              (when (:debug opts)
-                (iprintf *err* "Added extended doc string for symbol %s\n" sym)))
-            (iprintf *err* "No such var %s/%s
-    -- do you have a different version of library '%s' than '%s'?
-"
-                     ns sym-name-str library version)))))))
+  (let [missing-namespaces-warned (atom #{})]
+    (doseq [[{:keys [library version]} data-for-symbols] doc-data]
+      (doseq [one-sym-data data-for-symbols]
+        (if-let [missing-keys (seq (set/difference #{:ns :symbol
+                                                     :extended-docstring}
+                                                   (set (keys one-sym-data))))]
+          (do
+            (binding [*out* *err*]
+              (iprintf "Resource file '%s' has the following map that is missing needed keys %s:\n"
+                       rsrc-fname missing-keys)
+              (pp/pprint one-sym-data)
+              (println)))
+          (let [ns-name-str (:ns one-sym-data)
+                sym-name-str (:symbol one-sym-data)
+                extended-docstring (:extended-docstring one-sym-data)
+                ns (find-ns (symbol ns-name-str))
+                sym (symbol ns-name-str sym-name-str)]
+            (if-let [var (try (resolve sym)
+                              (catch Exception e nil))]
+              (do
+                (append-doc! var extended-docstring)
+                (when (:debug opts)
+                  (iprintf *err* "Added extended doc string for symbol %s\n" sym)))
+              (if ns
+                (iprintf *err* "Resource file '%s' has extra docs for var %s in namespace %s, but you have no such symbol in that namespace -- do you have a different version of library '%s' than '%s'?\n"
+                         rsrc-fname sym-name-str ns-name-str library version)
+                (do
+                  (when-not (@missing-namespaces-warned ns-name-str)
+                    (iprintf *err* "Skipping extra docs for namespace %s in resource file '%s -- no such namespace is loaded\n"
+                             ns-name-str rsrc-fname)
+                    (swap! missing-namespaces-warned conj ns-name-str)))))))))))
 
 
 (defn add-extra-docs! [& args]
   (let [default-locale (str (java.util.Locale/getDefault))
         opts (merge {:language default-locale}
                     (apply hash-map args))
-        rsrc-name (str (:language opts) ".clj")
-        file (io/resource rsrc-name)]
+        rsrc-fname (str (:language opts) ".clj")
+        file (io/resource rsrc-fname)]
     (if-not file
       (iprintf *err* "No resource file %s exists.  Either '%s' is not a language,
 or no one has written thalia docs in that language yet.\n"
-               rsrc-name (:language opts))
+               rsrc-fname (:language opts))
       (let [doc-data (read-safely file)]
-        (do-the-add! opts rsrc-name doc-data)))))
+        (do-the-add! opts rsrc-fname doc-data)))))
 
 
 (comment
