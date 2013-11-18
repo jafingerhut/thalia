@@ -175,6 +175,26 @@ For Clojure contrib libraries, the bash script `scripts/gen-most.sh`
 may be useful.
 
 
+## To do
+
+Write extended doc strings for many more vars.
+
+Create a function or macro (topic <topic-name>) that can be used to
+show documentation about topics that are not necessarily about a
+particular var, similary to Python's 'topics' in its help system.
+There are already references to (topic Equality) and (topic
+Comparators) in existing doc strings.
+
+Try to enable (optional) less-like pager behavior for long doc
+strings.  The following StackOverflow page may lead to a solution:
+
+    http://stackoverflow.com/questions/19665348/send-clojure-doc-output-through-pager
+
+If we ever have a lot of these, consider making a version of the
+tooltip-enabled Clojure cheat sheet with the longer doc strings, with
+a line limit much longer than the current 15 lines.
+
+
 ## License
 
 Copyright © 2013 Andy Fingerhut
