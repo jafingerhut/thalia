@@ -131,6 +131,8 @@
          :not-found))
   (is (= (get [:a :b :c] 50)
          nil))
+  (is (= (get \t "foo")
+         nil))
   (let [vec1 [:a :b :c]]
     (is (= (vec1 2)
            :c))
@@ -160,11 +162,13 @@
   ;; from list 2, both with and without a not-found value, and with
   ;; and without get.
 
-  ;; list 1: vector, string, Java array
+  ;; list 1: vector, map, string, Java array, character
   ;; list 2: :a -0.99 0 1/2 (count v) long-truncates-to-int-0
   (doseq [[coll-kind coll elem0] [ [:vector [:x :y :z] :x]
+                                   [:map {0 "xyzzy", 2/3 :foo} "xyzzy"]
                                    [:array "abc" \a]
-                                   [:array (int-array [5 10 15]) 5] ]]
+                                   [:array (int-array [5 10 15]) 5]
+                                   [:char \t nil] ]]
     (doseq [[idx idx-kind] [ [:a :not-a-number]
                              [-0.99 :non-integer-which-rounds-to-0]
                              [0 :integer-0]
@@ -183,20 +187,27 @@
                 expected-exception-type
                 (cond
                  use-get? nil
-                 (= coll-kind :array) ClassCastException
+                 (not (contains? #{:vector :map} coll-kind)) ClassCastException
+                 (= coll-kind :map) nil
                  not-found-arg? clojure.lang.ArityException
                  (#{:not-a-number :non-integer-which-rounds-to-0} idx-kind) IllegalArgumentException
                  (= idx-kind :integer-out-of-range) IndexOutOfBoundsException
                  :else nil)
                 expected-ret-val
-                (case idx-kind
-                  :not-a-number expected-ret-val-if-not-found
-                  :non-integer-which-rounds-to-0 (case coll-kind
-                                                   :vector expected-ret-val-if-not-found
-                                                   :array elem0)
-                  :integer-out-of-range expected-ret-val-if-not-found
-                  :integer-out-of-range-intValue-converts-to-0 elem0
-                  :integer-0 elem0)]
+                (case coll-kind
+                  :char expected-ret-val-if-not-found
+                  :map (if (= idx-kind :integer-0)
+                         elem0
+                         expected-ret-val-if-not-found)
+                  (:vector :array)
+                  (case idx-kind
+                    :not-a-number expected-ret-val-if-not-found
+                    :non-integer-which-rounds-to-0 (case coll-kind
+                                                     :vector expected-ret-val-if-not-found
+                                                     :array elem0)
+                    :integer-out-of-range expected-ret-val-if-not-found
+                    :integer-out-of-range-intValue-converts-to-0 elem0
+                    :integer-0 elem0))]
             (if (nil? expected-exception-type)
               (is (= (case [use-get? not-found-arg?]
                        [true true] (get coll idx :not-found)

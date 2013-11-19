@@ -1,10 +1,11 @@
-'get' works for several types of arg 'map', not only maps:
+'get' has useful behavior for several types of arg 'map', not only
+maps:
 
 * maps, including records and Java objects implementing java.util.Map
 * sets, but not Java objects implementing java.util.Set
 * vectors, where the key is the index of the element to get
 * strings and Java arrays, where again the key is the index
-* nil, for which get always returns not-found or nil
+* _any other type_, for which get always returns not-found or nil
 
 Examples:
 
@@ -44,10 +45,13 @@ The only conditions in which 'get' will throw an exception is
 indirectly, e.g. because you called it on a sorted set or map, and the
 comparator function throws an exception when comparing two values.  It
 will not even throw an exception if you use an out-of-bounds index for
-a vector or array:
+a vector or array, or call it with a first arg that is nothing like a
+map or vector:
 
     user=> (get [:a :b :c] 50)
     nil
+    user=> (get \t "foo")
+    nil      ; not sure if this is useful, but it is how it behaves
 
 Clojure allows you to leave out the 'get' to achieve a more concise
 syntax for vectors and maps.  Differences:
