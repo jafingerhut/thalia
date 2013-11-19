@@ -269,6 +269,23 @@
   (is (not (= (hash (float 1.0e9)) (hash (double 1.0e9))))))
 
 
+(deftest test-identical?
+    (let [my-contains? (fn [coll key]
+                         (let [not-found-sentinel (Object.)]
+                           (not (identical? not-found-sentinel
+                                            (get coll key not-found-sentinel)))))]
+      (is (= (my-contains? {:a nil, nil nil} :a)
+             true))
+      (is (= (my-contains? {:a nil, nil nil} nil)
+             true))
+      (is (= (my-contains? {:a nil, nil nil} :b)
+             false)))
+    (is (= (identical? 500 500)
+           false))
+    (is (= (identical? 5.0 5.0)
+           false)))
+
+
 (deftest test-range
   (is (= (range 11)
          [0 1 2 3 4 5 6 7 8 9 10]))

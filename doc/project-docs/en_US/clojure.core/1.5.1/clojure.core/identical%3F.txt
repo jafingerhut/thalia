@@ -1,0 +1,36 @@
+There are not many places in Clojure where identical? is useful.  You
+should use = or == in cases when you want to know if two values or
+numbers are equal.
+
+identical? is useful primarily in dealing with mutable Java objects.
+It can also be useful if you need some kind of unique 'sentinel'
+object to compare against -- one that is guaranteed not to be the same
+as any other value or object.
+
+In the function my-contains? below we have a function similar in
+behavior to contains?.  It works for arbitrary values in the map,
+including nil, because the not-found-sentinel object given to function
+get is freshly allocated, and thus guaranteed not identical to any
+object that is part of any previously existing data structure.
+
+    user=> (defn my-contains? [coll key]
+             (let [not-found-sentinel (Object.)]
+               (not (identical? not-found-sentinel
+                               (get coll key not-found-sentinel)))))
+    #'user/my-contains?
+    user=> (my-contains? {:a nil, nil nil} :a)
+    true
+    user=> (my-contains? {:a nil, nil nil} nil)
+    true
+    user=> (my-contains? {:a nil, nil nil} :b)
+    false
+
+Most values that are = or == to each other are typically not
+identical.
+
+    user=> (identical? 500 500)
+    false
+    user=> (identical? 5.0 5.0)
+    false
+
+See also: =, ==
