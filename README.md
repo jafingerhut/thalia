@@ -216,8 +216,10 @@ In their current form, running the tests is quite simple:
 It would be preferable not to do so, e.g. by having an automated way
 to extract the examples from the doc strings and execute them,
 verifying the output is as shown in the example.  If someone knows of
-a good way to do that, please let me know.
+a good way to do that, please let me know.  Something like
+[`doctest`][doctest] in Python, described here:
 
+[doctest]: http://docs.python.org/2/library/doctest.html
 
 ### Creating directory tree skeleton
 
@@ -227,9 +229,9 @@ not expected to work with Windows (without Cygwin) because of the bash
 shell scripts involved.
 
 TBD: Flesh these instructions out.  They involve using
-lein-clojuredocs:
+[`lein-clojuredocs`][lein-clojuredocs].
 
-    https://github.com/clojuredocs/lein-clojuredocs
+[lein-clojuredocs]: https://github.com/clojuredocs/lein-clojuredocs
 
 Also these commands:
 
