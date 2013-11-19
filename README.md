@@ -217,7 +217,7 @@ It would be preferable not to do so, e.g. by having an automated way
 to extract the examples from the doc strings and execute them,
 verifying the output is as shown in the example.  If someone knows of
 a good way to do that, please let me know.  Something like
-[`doctest`][doctest] in Python, described here:
+[`doctest`][doctest] in Python would be good.
 
 [doctest]: http://docs.python.org/2/library/doctest.html
 
