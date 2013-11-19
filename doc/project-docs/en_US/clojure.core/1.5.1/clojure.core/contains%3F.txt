@@ -59,4 +59,4 @@ values shown to 0, which is in the range [0,2] of indices.
     user=> (contains? [:a :b :c] 0.5)
     false       ; only integer values can return true for vectors
 
-See also: some, get
+See also: some, get, find
