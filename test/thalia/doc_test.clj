@@ -227,6 +227,36 @@
                   test-desc-str))))))))
 
 
+(deftest test-get-in
+    (let [str-matrix [["abc" "def" "ghi"]
+                      ["jkl" "mno" "pqr"]
+                      ["stu" "vwx" "yz"]]]
+      (is (= (get-in str-matrix [2])
+             ["stu" "vwx" "yz"]))
+      (is (= (get-in str-matrix [2 0])
+             "stu"))
+      (is (= (get-in str-matrix [2 0 1])
+             \t))
+      (is (= (get-in str-matrix [2 0 1 5])
+             nil))
+      (is (= (get-in str-matrix [2 0 1 5] :not-found)
+             :not-found))
+      (is (= (get-in str-matrix [2 :x])
+             nil))
+      (is (= (get-in str-matrix [2 :x "foo"])
+             nil)))
+    (let [benchmark-result {:test "bench1", :run-times [5.2 5.7 4.9],
+                            :platform {:os "Linux",
+                                       :distribution "Ubuntu",
+                                       :version-parts [12 4 3]}}]
+      (is (= (get-in benchmark-result [:run-times 2])
+             4.9))
+      (is (= (get-in benchmark-result [:platform :distribution])
+             "Ubuntu"))
+      (is (= (get-in benchmark-result [:platform :version-parts 2])
+             3))))
+
+
 (deftest test-hash
   (let [x 8589934588]
     (is (= (bigint x) (biginteger x)))
