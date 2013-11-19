@@ -92,7 +92,8 @@ Add this to the dependencies of your Leiningen project:
 ```
 
 If you wish it to be part of the dependencies in all of your Leiningen
-projects at the REPL, add this to your `~/.lein/profiles.clj` file:
+projects at the REPL, add this to your `$HOME/.lein/profiles.clj`
+file:
 
 ```clojure
 {:repl {:dependencies [[thalia "0.1.0"]]}}
@@ -145,6 +146,10 @@ The basic flow is:
   deployed for others to use, e.g. on clojars.org.  See 'Create JAR
   file' below.
 
+* Create tests in `test/thalia/doc_test.clj`, or some other test file.
+  These should test all examples given in the extended doc strings,
+  and perhaps more.  See 'Run tests' below.
+
 
 ### Directory structure
 
@@ -187,18 +192,31 @@ someone writes doc strings in those languages.
 
 ### Create JAR file
 
-Run one or more of the following commands.  To install in your local
-Maven repo (usually in `$HOME/.m2`):
+Run one or more of the following commands.
 
+    # To install in your local Maven repo, usually in $HOME/.m2
     lein install
-
-To create a JAR file locally:
-
+    
+    # To create a JAR file locally
     lein jar
+    
+    # To deploy to clojars.org
+    lein deploy clojars
 
-To deploy to clojars.org:
 
-    lein deploy
+### Run tests
+
+There is definitely repetition involved here in having the same or
+similar code in both the doc string text files and the unit tests.
+
+In their current form, running the tests is quite simple:
+
+    lein test
+
+It would be preferable not to do so, e.g. by having an automated way
+to extract the examples from the doc strings and execute them,
+verifying the output is as shown in the example.  If someone knows of
+a good way to do that, please let me know.
 
 
 ### Creating directory tree skeleton
