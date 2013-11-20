@@ -9,10 +9,13 @@
 ;; array/vector indexing.
 
 (def long-truncates-to-int-0 (bit-shift-left 1 33))
+(def bigint-truncates-to-int-0 (*' (bit-shift-left 1 33) (bit-shift-left 1 33)))
 
-(deftest test-long-truncates-to-int-0
+(deftest test-truncates-to-int-0
   (is (not (= 0 long-truncates-to-int-0)))
-  (is (= 0 (unchecked-int long-truncates-to-int-0))))
+  (is (= 0 (unchecked-int long-truncates-to-int-0)))
+  (is (not (= 0 bigint-truncates-to-int-0)))
+  (is (= 0 (unchecked-int bigint-truncates-to-int-0))))
 
 
 (deftest test-=
@@ -102,9 +105,13 @@
            false))
     (is (= (contains? "abc" long-truncates-to-int-0)
            true))
+    (is (= (contains? "abc" bigint-truncates-to-int-0)
+           true))
     (is (= (contains? "abc" -0.99)
            true))
     (is (= (contains? [:a :b :c] long-truncates-to-int-0)
+           true))
+    (is (= (contains? [:a :b :c] bigint-truncates-to-int-0)
            true))
     (is (= (contains? [:a :b :c] 0.5)
            false)))
@@ -155,7 +162,11 @@
          5))
   (is (= (get "abc" long-truncates-to-int-0)
          \a))
+  (is (= (get "abc" bigint-truncates-to-int-0)
+         \a))
   (is (= (get [:a :b :c] long-truncates-to-int-0)
+         :a))
+  (is (= (get [:a :b :c] bigint-truncates-to-int-0)
          :a))
 
   ;; Try all combinations of a data type from list 1, and an index
@@ -175,6 +186,8 @@
                              [1/2 :non-integer-which-rounds-to-0]
                              [3 :integer-out-of-range]
                              [long-truncates-to-int-0
+                              :integer-out-of-range-intValue-converts-to-0]
+                             [bigint-truncates-to-int-0
                               :integer-out-of-range-intValue-converts-to-0] ]]
       (doseq [use-get? [false true]]
         (doseq [not-found-arg? [false true]]
