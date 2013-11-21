@@ -39,18 +39,18 @@
   (is (== 5 5N (float 5.0) (double 5.0) (biginteger 5)))
   (is (not (== 5 5.0M)))  ; this is likely a bug
   (is (not (== Double/NaN Double/NaN)))
-  (is (thrown? ClassCastException
-               "java.lang.String cannot be cast to java.lang.Number"
-               (== 2 "a"))))
+  (is (thrown-with-msg? ClassCastException
+                        #"java.lang.String cannot be cast to java.lang.Number"
+                        (== 2 "a"))))
 
 
 (deftest test-apply
   (is (= (apply + [1 2]) 3))
   (is (= (apply + 1 2 [3 4 5 6]) 21))
   (is (= (apply + []) 0))
-  (is (thrown? Compiler$CompilerException
-               #"Can't take value of a macro"
-               (eval '(apply and [true false true])))))
+  (is (thrown-with-msg? Compiler$CompilerException
+                        #"Can't take value of a macro"
+                        (eval '(apply and [true false true])))))
 
 
 (deftest test-compare
@@ -66,18 +66,18 @@
          {:amp [3 2 1], :blammo "kaboom", :map-key 10}))
   (is (= (sort [[1 2] [1 -5] [10000] [4 -1 20] [3 2 5]])
          '([10000] [1 -5] [1 2] [3 2 5] [4 -1 20])))
-  (is (thrown? ClassCastException
-               #"java.lang.Long cannot be cast to java.lang.String"
-               (sort [5 "a"])))
-  (is (thrown? ClassCastException
-               #"clojure.lang.Keyword cannot be cast to clojure.lang.Symbol"
-               (sort [:foo 'bar])))
-  (is (thrown? ClassCastException
-               #"clojure.lang.PersistentArrayMap cannot be cast to java.lang.Comparable"
-               (sort [#{1 2} {2 4}])))
-  (is (thrown? ClassCastException
-               #"clojure.lang.PersistentArrayMap cannot be cast to java.lang.Comparable"
-               (sort [{:a 1 :b 3} {:c -2 :d 4}]))))
+  (is (thrown-with-msg? ClassCastException
+                        #"java.lang.Long cannot be cast to java.lang.String"
+                        (sort [5 "a"])))
+  (is (thrown-with-msg? ClassCastException
+                        #"clojure.lang.Keyword cannot be cast to clojure.lang.Symbol"
+                        (sort [:foo 'bar])))
+  (is (thrown-with-msg? ClassCastException
+                        #"clojure.lang.PersistentArrayMap cannot be cast to java.lang.Comparable"
+                        (sort [#{1 2} {2 4}])))
+  (is (thrown-with-msg? ClassCastException
+                        #"clojure.lang.PersistentArrayMap cannot be cast to java.lang.Comparable"
+                        (sort [{:a 1 :b 3} {:c -2 :d 4}]))))
 
 
 (deftest test-contains?
@@ -144,11 +144,10 @@
     (is (= (vec1 2)
            :c))
     (is (thrown? IndexOutOfBoundsException
-                 #".*"
                  (vec1 3)))
-    (is (thrown? clojure.lang.ArityException
-                 #"Wrong number of args (2) passed to: PersistentVector"
-                 (vec1 3 :not-found))))
+    (is (thrown-with-msg? clojure.lang.ArityException
+                          #"Wrong number of args \(2\) passed to: PersistentVector"
+                          (vec1 3 :not-found))))
   (let [map1 {:a 1 :b 2}]
     (is (= (map1 :a)
            1))
@@ -229,14 +228,12 @@
                        [false false] (coll idx))
                      expected-ret-val)
                   test-desc-str)
-              (is (thrown?
-                   Exception
-                   #".*"
-                   (case [use-get? not-found-arg?]
-                     [true true] (get coll idx :not-found)
-                     [true false] (get coll idx)
-                     [false true] (coll idx :not-found)
-                     [false false] (coll idx)))
+              (is (thrown? Exception
+                           (case [use-get? not-found-arg?]
+                             [true true] (get coll idx :not-found)
+                             [true false] (get coll idx)
+                             [false true] (coll idx :not-found)
+                             [false false] (coll idx)))
                   test-desc-str))))))))
 
 
@@ -434,9 +431,9 @@
 
     (is (= (m2 1)
            "bigdecone"))
-    (is (thrown? ClassCastException
-                 #"java.lang.Double cannot be cast to java.lang.String"
-                 (m2 "a")))))
+    (is (thrown-with-msg? ClassCastException
+                          #"java.lang.Double cannot be cast to java.lang.String"
+                          (m2 "a")))))
 
 
 (defn case-insensitive-cmp [s1 s2]
@@ -492,8 +489,8 @@
          "bcdef"))
   (is (= (subs "abcdef" 4 6)
          "ef"))
-  (is (thrown? StringIndexOutOfBoundsException
-               #"String index out of range: 7"
-               (subs "abcdef" 4 7)))
+  (is (thrown-with-msg? StringIndexOutOfBoundsException
+                        #"String index out of range: 7"
+                        (subs "abcdef" 4 7)))
   (is (= (subs "abcdef" 5/3 6.28)   ; args converted to ints
          "bcdef")))
