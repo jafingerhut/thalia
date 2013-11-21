@@ -10,4 +10,5 @@
                    ;; small JAR files via 'lein install/jar/deploy',
                    ;; so only include it in the dev profile.
                    :main thalia.core}}
+  :repl-options {:init-ns user}
   :resource-paths ["resource"])
