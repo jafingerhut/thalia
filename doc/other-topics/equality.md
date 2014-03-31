@@ -443,13 +443,18 @@ user> (hash-map (float 1.0e9) :float-one (double 1.0e9) :oops)
 {1.0E9 :oops, 1.0E9 :float-one}
 ```
 
-Rich Hickey has decided that changing this inconsistency in hash
-values for these types is out of scope for Clojure.
+The hash inconsistency for Java type `BigInteger` was corrected in
+Clojure 1.6.0 with [this
+commit](https://github.com/clojure/clojure/commit/96e72517615cd2ccdb4fdbbeb6ffba5ad99dbdac).
 
-You can avoid the `BigInteger` issue by not using values of that type.
-You are most likely to encounter them in Clojure through interop with
-Java libraries.  In that case, converting them to `BigInt` via the
-`bigint` function at the Clojure/Java boundary would be safest.
+Rich Hickey has decided that changing this inconsistency in hash
+values for types `Float` and `Double` is out of scope for Clojure.
+
+You can avoid the `BigInteger` issue in Clojure 1.5.1 by not using
+values of that type.  You are most likely to encounter them in Clojure
+through interop with Java libraries.  In that case, converting them to
+`BigInt` via the `bigint` function at the Clojure/Java boundary would
+be safest.
 
 You can avoid the `Float` vs `Double` hash inconsistency by
 consistently using one or the other types in floating point code.
