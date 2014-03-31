@@ -5,6 +5,9 @@
   (:import (clojure.lang Compiler Compiler$CompilerException)))
 
 
+(def clojure-15 (= ((juxt :major :minor) *clojure-version*) [1 5]))
+(def clojure-16 (= ((juxt :major :minor) *clojure-version*) [1 6]))
+
 ;; This value is useful to demonstrate some weirdness with
 ;; array/vector indexing.
 
@@ -33,11 +36,15 @@
   )
 
 
+;; Assertions from docs for clojure.core/==
+
 (deftest test-==
   (is (not (= 2 2.0)))
   (is (== 2 2.0))
   (is (== 5 5N (float 5.0) (double 5.0) (biginteger 5)))
-  (is (not (== 5 5.0M)))  ; this is likely a bug
+  (cond
+   clojure-15 (is (not (== 5 5.0M)))  ; this is bug CLJ-1118
+   clojure-16 (is (== 5 5.0M)))       ; fixed in Clojure 1.6.0
   (is (not (== Double/NaN Double/NaN)))
   (is (thrown-with-msg? ClassCastException
                         #"java.lang.String cannot be cast to java.lang.Number"
@@ -267,14 +274,21 @@
              3))))
 
 
+;; Assertions from docs for clojure.core/hash
+
 (deftest test-hash
   (let [x 8589934588]
     (is (= (bigint x) (biginteger x)))
-    (is (not (= (hash (bigint x)) (hash (biginteger x)))))
+    (cond
+     ;; This behavior was changed in Clojure 1.6.0.  See CLJ-1036
+     clojure-15 (is (not (= (hash (bigint x)) (hash (biginteger x)))))
+     clojure-16 (is (= (hash (bigint x)) (hash (biginteger x)))))
     (let [s1 (hash-set (bigint x))
           s2 (hash-set (biginteger x))]
       (is (= (first s1) (first s2)))
-      (is (not (= s1 s2)))))
+      (cond
+       clojure-15 (is (not (= s1 s2)))
+       clojure-16 (is (= s1 s2)))))
   (is (= (float 1.0e9) (double 1.0e9)))
   (is (not (= (hash (float 1.0e9)) (hash (double 1.0e9))))))
 
@@ -494,3 +508,6 @@
                         (subs "abcdef" 4 7)))
   (is (= (subs "abcdef" 5/3 6.28)   ; args converted to ints
          "bcdef")))
+
+;(deftest test-=
+;  (is (= 5 5)))

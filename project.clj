@@ -9,6 +9,7 @@
                    ;; The following line interferes with creating
                    ;; small JAR files via 'lein install/jar/deploy',
                    ;; so only include it in the dev profile.
-                   :main thalia.core}}
+                   :main thalia.core}
+             :1.6 {:dependencies [[org.clojure/clojure "1.6.0"]]}}
   :repl-options {:init-ns user}
   :resource-paths ["resource"])
