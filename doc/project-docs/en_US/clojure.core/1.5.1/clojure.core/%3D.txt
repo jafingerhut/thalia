@@ -30,6 +30,13 @@ Exceptions, or possible surprises:
 * 'Not a Number' values Float/NaN and Double/NaN are not equal to any
   value, not even themselves.  This leads to odd behavior if you use
   them as set elements or map keys.
+* Clojure regex's, e.g. #"a.*bc", are implemented using Java
+  java.util.regex.Pattern objects, and Java's equals on two Pattern
+  objects returns (identical? re1 re2).  Thus (= #"abc" #"abc")
+  returns false, and only returns true if two regex's happen to be the
+  same identical object in memory.  Recommendation: Don't use regex's
+  as set elements or keys.  If you feel the need to, consider
+  converting them to strings first, e.g. (str #"abc") -> "abc".
 
 Examples:
 
