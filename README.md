@@ -104,7 +104,7 @@ these commands:
 
 ```clojure
 user=> (require 'thalia.doc)
-user=> (thalia.doc/add-extra-docs!)
+user=> (thalia.doc/add-extra-docs!)  ; (thalia.doc/add-extra-docs! :language "en_US") if you get a locale related error
 ```
 
 To test it, look at the output of `(doc ==)`.
