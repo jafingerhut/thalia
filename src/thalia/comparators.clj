@@ -70,6 +70,10 @@
         ;; Comparable includes Boolean, Character, String, Clojure
         ;; refs, and many others.
         (instance? Comparable x) (.getName (class x))
+
+        (or (instance? java.lang.Class x) 
+            (instance? clojure.lang.Var x)) (.getName (class x))
+
         :else (throw
                (ex-info (format "cc-cmp does not implement comparison of values with class %s"
                                 (.getName (class x)))
@@ -182,6 +186,11 @@ above, e.g. Java arrays."
         y-cls (comparison-class y)
         c (compare x-cls y-cls)]
     (cond (not= c 0) c  ; different classes
+
+          ;; Compare Class instances by their names as converted to
+          ;; strings.
+          (#{"java.lang.Class" "clojure.lang.Var"} x-cls)
+          (compare (str x) (str y))
 
           ;; Compare sets to each other as sequences, with elements in
           ;; sorted order.
