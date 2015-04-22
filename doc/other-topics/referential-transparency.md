@@ -4,28 +4,33 @@ Note: I am not familiar enough with the literature and meaning of some
 of the terms mentioned in here to be authoritative on these matters.
 I am writing this as a way of learning.
 
-Here are a few descriptions given of referential transparency from
-several books on functional programming:
-
-    http://www.cas.mcmaster.ca/~kahl/reftrans.html
-
-The link below has several more answers to the question "What is
-referential transparency?", going back to the origins of the term in
-analytical philosophy, and their influence on Landin and Strachey when
-they were defining semantics of programming languages:
-
-    http://stackoverflow.com/questions/210835/what-is-referential-transparency
-
 At least some people seem to take the view that referential
-transparency means something similar to this:
+transparency in a programming language means something similar to
+this:
 
     A language is referentially transparent if, whenever two values
     `x` and `y` are equal, one can be substituted for the other in any
     expression where they appear, and the resulting expressions will
     evaluate to equal values.
 
-Or, perhaps that referential transparency is a more general property,
-with the above property as a special case.
+Or, perhaps referential transparency is a more general property, with
+the above property as a special case.
+
+The rough definition above is enough to understand the rest of this
+document.  The links in this section have more definitions and
+discussion about referential transparency, and are here only for those
+interested in diving deeper into the origins of the term.
+
+[This link](http://www.cas.mcmaster.ca/~kahl/reftrans.html) has a few
+descriptions given of referential transparency from several books on
+functional programming.
+
+[This
+link](http://stackoverflow.com/questions/210835/what-is-referential-transparency)
+has several more answers to the question "What is referential
+transparency?", going back to the origins of the term in analytical
+philosophy, and their influence on Landin and Strachey when they were
+defining semantics of programming languages:
 
 
 # Background
@@ -42,21 +47,14 @@ deterministic function of its arguments (function in the mathematical
 sense of the word), depending upon nothing except the values of the
 arguments, and perhaps other pure functions defined earlier.
 
-I have read Henry Baker's paper on egal, but can't claim to understand
-every one of its nuances.
+I have read Henry Baker's paper on [egal](egal), "Equal Rights for
+Functional Objects or, The More Things Change, The More They Are the
+Same", but can't claim to understand every one of its nuances.
+
+[egal]: http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.23.9999
 
 I have heard of denotational and operational semantics, but haven't
 studied them.  Similarly for monads.
-
-; comment, probably to be removed
-; The notation below intentionally looks more like Clojure than Haskell.
-; `(some-fn arg1 arg2)` represents a function call to a function named
-; `some-fn`.  I have avoided using the standard Clojure names for
-; functions, to avoid any confusion between how they are defined, and
-; how the functions described here are defined.  If I want to refer to a
-; particular Clojure function, I will qualify it with its full namespace
-; name, e.g. `clojure.core/contains?` (except in section titles, where
-; they are always in namespace `clojure.core`).
 
 
 # Motivation
@@ -76,8 +74,8 @@ learned from it.
 
 The most common example raised is that `conj` adds elements to lists
 at the beginning, but to vectors at the end.  Despite this difference,
-`=` returns true if given a list and a vector, if the items in them
-are equal, and in the same order.
+`=` returns true if given a list and a vector, the items in them are
+equal, and in the same order.
 
 ```clojure
 
@@ -104,9 +102,9 @@ clojure.lang.PersistentVector
 user=> (= '(1 2 3) [1 2 3])
 true
 
-;; conj is documented to add items at different 'places' for
-;; collections of different types.  At the beginning for lists, at the
-;; end for vectors.
+;; conj is documented to add items at different 'places' for different
+;; types of collections.  At the beginning for lists, at the end for
+;; vectors.
 
 user=> (conj '(1 2 3) 0)
 (0 1 2 3)
@@ -132,12 +130,14 @@ types of its arguments.
 
 I am not aware of anything like the example above in Haskell.  I would
 guess most Haskell developers would consider allowing equality between
-different types an unpleasant hack, and I think that unless one
-created a union type that included both lists and vectors, one would
-not be able to implement this in Haskell at all.
+different types an unpleasant hack.  Unless one created a [sum
+type](https://www.fpcomplete.com/school/to-infinity-and-beyond/pick-of-the-week/sum-types)
+that included both lists and vectors, one would not be able to
+implement this in Haskell at all.
 
-The root of this behavior: `=` is ignoring the type of its arguments
-when comparing lists, vectors, and sequences, by design choice.
+The root of this behavior: Clojure's `=` is ignoring the type of its
+arguments when comparing lists, vectors, and sequences, by design
+choice.
 
 
 ## Example 2: Interaction between Clojure's metadata and `=`
@@ -148,8 +148,7 @@ collection value.  It is ignored when comparing collections or dealing
 with their values in almost any way, except for a few functions like
 `meta` and `vary-meta` that can retrieve the metadata, or return a new
 collection with new metadata altered in a specified way from the
-original.  The returned collection is equal to the original according
-to `=`.
+original.
 
 [1] Other things besides collection values can have metadata, too, but
 we will ignore that here.
@@ -204,13 +203,11 @@ surprising if someone had developed something similar.
 
 ## Example 3: Interaction between Clojure's hash sets, `=`, and `seq`
 
-The following example is a bit more subtle, and I think it has a
-corresponding data structure implementation in Haskell with similar
-behavior.
+The following example is a bit more subtle, and it has a corresponding
+data structure implementation in Haskell with similar behavior.
 
 ```clojure
-
-;; Showing the Clojure version, since the function hash changed from
+;; Showing the Clojure version, since the function `hash` changed from
 ;; version 1.5.1 to 1.6.0, and it may change again in a future
 ;; version.
 
@@ -218,15 +215,14 @@ user=> (clojure-version)
 "1.6.0"
 
 ;; Demonstrate two particular integers that have equal hash values
-;; according to the function hash
 
 user=> (hash 0)
 0
 user=> (hash 92612215)
 0
 
-;; Create 2 hash sets with these integers added to them via conj, but
-;; in opposite orders.
+;; Create 2 hash sets with these integers added to them via `conj`,
+;; but in opposite orders.
 
 user=> (def empty-hash-set (hash-set))
 #'user/empty-hash-set
@@ -247,13 +243,13 @@ user=> s2
 user=> (= s1 s2)
 true
 
-;; The implementation of hash-set is roughly a trie lookup based on
-;; the element's hash value, and if there are multiple elements with
-;; the same hash value, a linked list of those elements.  The order of
-;; the elements in that linked list depends upon the order that the
+;; The implementation of hash-set is roughly a trie based on the
+;; element's hash value, and if there are multiple elements with the
+;; same hash value, a list of those elements at the trie leaf.  The
+;; order of the elements in that list depends upon the order that the
 ;; elements were added to the set.
 
-;; Thus sets equal according to = may be 'distinguishable' by seq,
+;; Thus sets equal according to `=` may be 'distinguishable' by `seq`,
 ;; which returns a sequence of a set's elements in some order.
 
 user=> (seq s1)
@@ -268,7 +264,9 @@ user=> (= (seq s1) (seq s2))
 false
 ```
 
-Haskell's Data.HashSet [2] is similar.  The corresponding names are:
+Haskell's
+[Data.HashSet](https://hackage.haskell.org/package/hashmap-1.0.0.2/docs/Data-HashSet.html)
+is similar.  The corresponding names are:
 
 * `hash-set` -> `HashSet`
 * `conj` -> `insert`
@@ -277,8 +275,6 @@ Haskell's Data.HashSet [2] is similar.  The corresponding names are:
 
 The particular integers used in the example below are different
 because Haskell's hash function is different than Clojure's.
-
-[2] https://hackage.haskell.org/package/hashmap-1.0.0.2/docs/Data-HashSet.html
 
 ```haskell
 % ghci
@@ -328,7 +324,7 @@ Prelude Data.Hashable Data.HashSet> toList s2
 [9223372036854775808,6860296727119291693]
 
 -- and of course lists with items in different orders are not equal in
--- Haskell, any more than they are in Clojure.
+-- Haskell.
 
 Prelude Data.Hashable Data.HashSet> toList s1 == toList s2
 False
@@ -339,10 +335,8 @@ The root of this behavior is a combination of the following facts.
 1. The implementation relies only on hashing and equality of set
    elements, not on anything more, e.g. a total order defined for the
    elements.
-
 2. `=` is defined to be true for sets with the same mathematical set
    of elements, regardless of the order that elements were added.
-
 3. `seq` returns an ordered sequence of all of a set's elements.
 
 Below we discusss alternatives to each of these.
@@ -366,13 +360,12 @@ return the same value.
 
 The definition of `=` in Clojure returns true for two sets with the
 same elements, even if the implementation has colliding elements in
-different orders in the linked lists.  This is a very natural desire
-for a definition of `=` for sets.
+different orders in the lists.  This is a very natural desire for a
+definition of `=` for sets.
 
 One could imagine instead defining `structural-=`, a function that
-returns false for two hash sets when colliding elements are in linked
-lists in different orders, even though the sets contain the same
-elements.
+returns false for two hash sets when colliding elements are in lists
+in different orders, even though the sets contain the same elements.
 
 I am not arguing that the proposed `structural-=` would be a useful
 definition of `=`, but it does have the property that if two sets are
@@ -385,35 +378,34 @@ In the Haskell library Data.HashSet, it defines `==` similar to
 Clojure's `=` for hash sets.  That is, two hash sets are equal if they
 contain equal elements, regardless of the order they were added.
 
-There is also what I think is called 'definitional equality' in
-Haskell, which is `=`.  At least some Haskell developers say that
-referential transparency only applies to values that are `=` to each
-other, not for values that are `==` to each other.  This is at least
-implied in the following paragraph from [3] (especially the last
-sentence):
+There is also what I think is called 'definitional equality' or
+'structural equality' in Haskell, which is `=`.  At least some Haskell
+developers say that referential transparency only applies to values
+that are `=` to each other, not for values that are `==` to each
+other.  This is at least implied in the following paragraph from [A
+Gentle Introduction to
+Haskell](https://www.haskell.org/tutorial/stdclasses.html) (especially
+the last sentence):
 
     In fact, we should provide our own definitions of equality and
     ordering predicates only with some trepidation, being careful to
     maintain the expected algebraic properties of equivalence
-    relations and total orders.  An intransitive (==) predicate, for
-    example, could be disastrous, confusing readers of the program and
-    confounding manual or automatic program transformations that rely
-    on the (==) predicate's being an approximation to definitional
-    equality.  Nevertheless, it is sometimes necessary to provide Eq
-    or Ord instances different from those that would be derived;
-    probably the most important example is that of an abstract data
-    type in which different concrete values may represent the same
-    abstract value.
+    relations and total orders.  [ ... ] Nevertheless, it is sometimes
+    necessary to provide Eq or Ord instances different from those that
+    would be derived; probably the most important example is that of
+    an abstract data type in which different concrete values may
+    represent the same abstract value.
 
-In particular, I think the last sentence is true of Data.HashSet.
-Multiple different concrete values, meaning different hash sets
-represented with colliding set elements in different orders, represent
-the same abstract value, that of the 'mathematical set' that has no
-notion of order.
+The last sentence is true of Data.HashSet.  Multiple different
+concrete values, meaning different hash sets represented with
+colliding set elements in different orders, represent the same
+abstract value, that of the 'mathematical set' that has no notion of
+order.
 
-Similarly, it is common for Haskell implementations of various
-abstract data types to have many different binary tree structures (for
-example) that represent the same abstract value.  `=` is only true
+For data structure implementations based on binary trees, not just in
+Haskell, but in any programming language, it is common to have many
+different possibly binary tree structures that represent the same
+abstract value.  Haskell's `=` (structural equality) is only true
 between trees with the same structure, but `==` is often defined to be
 true for many different tree structures, as long as it makes sense for
 the semantics of the desired data type.
@@ -421,7 +413,7 @@ the semantics of the desired data type.
 It also seems to be common to do one of the following two things with
 such a Haskell type:
 
-(2a) Define it in a module, and avoid exporting` any functions that
+(2a) Define it in a module, and avoid exporting any functions that
 make it visible to outside observers that two not-structurally-equal
 values (i.e. values `x` and `y` for which `x=y` is false), but
 abstract-equal values (i.e. `x == y` is true), have different return
@@ -487,8 +479,6 @@ conversation at [4]).
 
 
 References:
-
-[3] https://www.haskell.org/tutorial/stdclasses.html
 
 Some IRC discussion on the #haskell IRC channel (search for "andyf"
 and replies to me) about Example 3 below are at [4].
