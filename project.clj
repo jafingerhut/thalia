@@ -3,13 +3,15 @@
   :url "http://github.com/jafingerhut/thalia"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
-  :dependencies [[org.clojure/clojure "1.5.1"]]
+  :dependencies [[org.clojure/clojure "1.6.0"]]
   :profiles {:dev {:dependencies [[cheshire "5.0.2"]
-                                  [me.raynes/fs "1.4.3"]]
+                                  [me.raynes/fs "1.4.3"]
+                                  [org.clojure/core.memoize "0.5.7"]]
                    ;; The following line interferes with creating
                    ;; small JAR files via 'lein install/jar/deploy',
                    ;; so only include it in the dev profile.
                    :main thalia.core}
+             :1.5 {:dependencies [[org.clojure/clojure "1.5.1"]]}
              :1.6 {:dependencies [[org.clojure/clojure "1.6.0"]]}
              :1.7 {:dependencies [[org.clojure/clojure "1.7.0-beta1"]]}}
   :repl-options {:init-ns user}

@@ -42,7 +42,12 @@ link](http://stackoverflow.com/questions/210835/what-is-referential-transparency
 has several more answers to the question "What is referential
 transparency?", going back to the origins of the term in analytical
 philosophy, and their influence on Landin and Strachey when they were
-defining semantics of programming languages:
+defining semantics of programming languages.
+
+[Here](http://www.reddit.com/r/haskell/comments/xgq27/uday_reddy_sharpens_up_referential_transparency/)
+is a discussion on the Haskell sub-Reddit with people responding to
+Uday Reddy, a frequent commenter to the Stack Overflow question linked
+above.
 
 
 # Background
@@ -520,8 +525,130 @@ can be made observable by other functions you implement on the data
 structure (like `seq` / `toList`).
 
 I like the view taken by Chris Okasaki in his Edison library: do not
-leave out such functions that violate the property, if they are useful
-to have, but document them as such.
+omit functions that violate the property, if they are useful to have,
+but document them as such.
+
+
+# Consequences on memoization
+
+Memoization may not be the most important reason to think about this
+property, but it can help demonstrate odd things that can happen if a
+function does not satisfy it.  I realize that no one would ever want
+to memoize the particular functions in the examples below, since the
+functions given are very fast already, and memoization likely only
+makes them slower.
+
+We will go through the examples given earlier, and describe what would
+happen if you tried to memoize the particular function that violates
+the property.  Memoization compares arguments for equality with
+`clojure.core/=` with any arguments given previously and stored in a
+cache, and if it finds a match, returns the value saved in the cache
+that was returned before.
+
+TBD: Verify whether `=` is what `clojure.core.memoize` uses to compare
+arguments for equality.
+
+All of the transcripts below were created using Clojure 1.6.0 and the
+`core.memoize` library, version 0.5.7.
+
+
+## Example 1: Memoizing `conj`
+
+```clojure
+user=> (require '[clojure.core.memoize :as m])
+nil
+user=> (def memoized-conj (m/lu conj :lu/threshold 100))
+#'user/memoized-conj
+user=> (def s1 '(4 5 6))
+#'user/s1
+user=> (def s2 [4 5 6])
+#'user/s2
+user=> (memoized-conj s1 0)
+(0 4 5 6)
+
+;; The above is correct, because the original conj was called.  The
+;; result below is wrong because (= s2 s1) causes the cached value to
+;; be used.
+
+user=> (memoized-conj s2 0)
+(0 4 5 6)
+ser=> (conj s2 0)
+[4 5 6 0]
+```
+
+## Example 2: Memoizing `meta`
+
+It should not surprise you that trying to memoize `meta` will not
+work, since metadata is ignored by `=`, and that is what the
+memoization cache uses to match arguments to the memoized function.
+
+```clojure
+user=> (def memoized-meta (m/lu meta :lu/threshold 100))
+#'user/memoized-meta
+user=> (def v1 (with-meta [1 2 3] {:key1 "value1"}))
+#'user/v1
+user=> (def v2 (with-meta [1 2 3] {:key2 "value2"}))
+#'user/v2
+user=> (memoized-meta v1)
+{:key1 "value1"}
+
+;; The above is correct, because the original meta was called.  The
+;; result below is wrong because (= v2 v1) causes the cached value to
+;; be used.
+
+user=> (memoized-meta v2)
+{:key1 "value1"}
+```
+
+## Example 3: Memoizing `seq`
+
+```clojure
+user=> (def memoized-seq (m/lu seq :lu/threshold 100))
+#'user/memoized-seq
+user=> (def s1 (conj (hash-set) 0 92612215))
+#'user/s1
+user=> (def s2 (conj (hash-set) 92612215 0))
+#'user/s2
+user=> (memoized-seq s1)
+(0 92612215)
+
+;; The above is correct, because the original seq was called.  The
+;; result below is 'wrong' in that it is not equal to what is returned
+;; by (seq s2), but read further below.
+
+user=> (memoized-seq s2)
+(0 92612215)
+user=> (seq s2)
+(92612215 0)
+```
+
+Note that even though `memoized-seq` returns a value not equal to the
+one returned by `seq`, because of the memoization, but in this case I
+would argue that it is a difference that you are unlikely to care
+about, since you simply got the results back in different order for an
+unordered set.
+
+You can get incorrect results from `memoized-seq` if you mix using it
+on sorted and unsorted sets, though, as shown below.  This is because
+`=` between sorted and unsorted sets is true if the sets contain the
+same elements, ignoring order in the sorted set.
+
+```clojure
+user=> (def s3 (conj (hash-set) 5 4 3 2 1))
+#'user/s3
+user=> (def s4 (conj (sorted-set) 5 4 3 2 1))
+#'user/s4
+user=> (memoized-seq s3)
+(1 4 3 2 5)
+
+;; The above is a correct answer for hash-set s3, but the memoized-seq
+;; result below is wrong for sorted-set s4.
+
+user=> (memoized-seq s4)
+(1 4 3 2 5)
+user=> (seq s4)
+(1 2 3 4 5)
+```
 
 
 # Other References
