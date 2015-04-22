@@ -545,9 +545,6 @@ the property.  Memoization compares arguments for equality with
 cache, and if it finds a match, returns the value saved in the cache
 that was returned before.
 
-TBD: Verify whether `=` is what `clojure.core.memoize` uses to compare
-arguments for equality.
-
 All of the transcripts below were created using Clojure 1.6.0 and the
 `core.memoize` library, version 0.5.7.
 
@@ -623,15 +620,15 @@ user=> (seq s2)
 ```
 
 Note that even though `memoized-seq` returns a value not equal to the
-one returned by `seq`, because of the memoization, but in this case I
-would argue that it is a difference that you are unlikely to care
-about, since you simply got the results back in different order for an
+one returned by `seq`, because of the memoization, in this case I
+would argue that it is a difference you are unlikely to care about,
+since you simply got the elements back in a different order for an
 unordered set.
 
 You can get incorrect results from `memoized-seq` if you mix using it
 on sorted and unsorted sets, though, as shown below.  This is because
 `=` between sorted and unsorted sets is true if the sets contain the
-same elements, ignoring order in the sorted set.
+same elements, ignoring order.
 
 ```clojure
 user=> (def s3 (conj (hash-set) 5 4 3 2 1))
