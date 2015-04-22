@@ -2,7 +2,8 @@
 
 Note: I am not familiar enough with the literature and meaning of some
 of the terms mentioned in here to be authoritative on these matters.
-I am writing this as a way of learning.
+I am writing this as a way of learning.  Comments and corrections
+welcome at the author's email address in the Background section.
 
 At least some people seem to take the view that referential
 transparency in a programming language means something similar to
@@ -16,8 +17,19 @@ this:
 Or, perhaps referential transparency is a more general property, with
 the above property as a special case.
 
+Note that this issue is similar to ensuring that a hash function is
+consistent with equals in a language, i.e. if two values `x` and `y`
+are equal, then `hash(x)` is equal to `hash(y)`.  This property is
+necessary to ensure that hash table implementations using those values
+as keys will work correctly.  Referential transparency is like saying
+"and do that not only for the hash function, but for all functions".
+
+Among other things, referential transparency for at least a particular
+function `foo` is necessary to
+[memoize](http://en.wikipedia.org/wiki/Memoization) that function.
+
 The rough definition above is enough to understand the rest of this
-document.  The links in this section have more definitions and
+document.  The links below in this section have more definitions and
 discussion about referential transparency, and are here only for those
 interested in diving deeper into the origins of the term.
 
@@ -47,17 +59,16 @@ deterministic function of its arguments (function in the mathematical
 sense of the word), depending upon nothing except the values of the
 arguments, and perhaps other pure functions defined earlier.
 
-I have read Henry Baker's paper on [egal](egal), "Equal Rights for
-Functional Objects or, The More Things Change, The More They Are the
-Same", but can't claim to understand every one of its nuances.
-
-[egal]: http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.23.9999
+I have read Henry Baker's paper on
+[egal](http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.23.9999),
+"Equal Rights for Functional Objects or, The More Things Change, The
+More They Are the Same", but can't claim to understand every one of
+its nuances.
 
 I have heard of denotational and operational semantics, but haven't
 studied them.  Similarly for monads.
 
-
-# Motivation
+## Motivation for writing this
 
 Occasionally on the Clojure Google group a person will express
 displeasure that Clojure's definition of `=` returns true for some
@@ -70,7 +81,7 @@ in Haskell as well as in Clojure, and hopefully there is more to be
 learned from it.
 
 
-## Example 1: Interaction between Clojure's `conj` and `=`
+# Example 1: Interaction between Clojure's `conj` and `=`
 
 The most common example raised is that `conj` adds elements to lists
 at the beginning, but to vectors at the end.  Despite this difference,
@@ -140,7 +151,7 @@ arguments when comparing lists, vectors, and sequences, by design
 choice.
 
 
-## Example 2: Interaction between Clojure's metadata and `=`
+# Example 2: Interaction between Clojure's metadata and `=`
 
 Clojure immutable collection values can have metadata associated with
 them [1].  Metadata is a Clojure map value that is 'attached' to a
@@ -201,7 +212,7 @@ I am not aware of anything like metadata in Haskell.  It would not be
 surprising if someone had developed something similar.
 
 
-## Example 3: Interaction between Clojure's hash sets, `=`, and `seq`
+# Example 3: Interaction between Clojure's hash sets, `=`, and `seq`
 
 The following example is a bit more subtle, and it has a corresponding
 data structure implementation in Haskell with similar behavior.
