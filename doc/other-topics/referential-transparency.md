@@ -345,7 +345,7 @@ The root of this behavior is a combination of the following facts.
 
 1. The implementation relies only on hashing and equality of set
    elements, not on anything more, e.g. a total order defined for the
-   elements.
+   elements, like `<=` on numbers.
 2. `=` is defined to be true for sets with the same mathematical set
    of elements, regardless of the order that elements were added.
 3. `seq` returns an ordered sequence of all of a set's elements.
@@ -413,13 +413,13 @@ colliding set elements in different orders, represent the same
 abstract value, that of the 'mathematical set' that has no notion of
 order.
 
-For data structure implementations based on binary trees, not just in
-Haskell, but in any programming language, it is common to have many
-different possibly binary tree structures that represent the same
-abstract value.  Haskell's `=` (structural equality) is only true
-between trees with the same structure, but `==` is often defined to be
-true for many different tree structures, as long as it makes sense for
-the semantics of the desired data type.
+For data structure implementations based on binary trees, in any
+programming language, it is common to have many different binary tree
+structures that represent the same abstract value.  Haskell's `=`
+(structural equality) is only true between trees with the same
+structure, but `==` is often defined to be true for many different
+tree structures, as long as it makes sense for the semantics of the
+desired data type.
 
 It also seems to be common to do one of the following two things with
 such a Haskell type:
@@ -441,34 +441,40 @@ function whether it can permit internal structural differences between
 `==` values to 'leak out'.
 
 This appears to be the approach for a few functions exported by the
-Edison library by Chris Okasaki [5].  The `toSeq` function for
-collections where the elements can be observed is documented to be
-'ambiguous' [6], by which Okasaki means:
+[Edison](http://hackage.haskell.org/package/EdisonAPI-1.2.1/docs/Data-Edison.html)
+library by Chris Okasaki.  The `toSeq` function for collections where
+the elements can be observed is [documented to be
+ambiguous](http://hackage.haskell.org/package/EdisonAPI-1.2.1/docs/Data-Edison-Coll.html),
+by which Okasaki means:
 
     "For ambiguous functions, the result of applying the function may
     depend on otherwise unobservable internal state of the data
-    structure, such as the actual shape of a balanced tree." [5]
+    structure, such as the actual shape of a balanced tree."
 
 
 (3)
 
 The function `seq` returns an ordered sequence of a set's elements.
 
-If no such function were implemented for hash sets, and no other
-function defined for hash sets made two `=` sets distinguishable from
-each other by their return values, then this particular issue would
-not exist.
+One alternative is not to implement any function that returns a set's
+elements in any way whatsoever.  If no such function were implemented
+for hash sets, and no other function defined for hash sets made two
+Clojure `=` (Haskell `==`) sets distinguishable from each other by
+their return values, then this particular issue would not exist.
 
 The disadvantage is obvious: set types are much less useful if there
 is no way to enumerate their elements.
 
-(4)
+There is another suggested alternative that I do not understand yet.
+I may study enough about monads some day to grasp it.  Feel free to
+contact me (andy_fingerhut@alum.wustl.edu) if you like spending time
+teaching people about such things, but I can live happy not
+understanding it, too.
 
-This one I do not understand yet.  I would greatly appreciate anyone
-knowledgeable enough and interested to take the time to attempt to
-explain it to me.  It is the last statement from user "ski" on the
-Haskell IRC channel below that I do not understand.  (Excerpted from
-conversation at [4]).
+It is the last statement from user "ski" on the Haskell IRC channel
+below.  (Excerpted from [this conversation
+log](http://ircbrowse.net/day/haskell/2015/04/20) -- search for
+'andyf').
 
     ski: I would consider "a hash set type that has an (==) defined to
     be true when two sets contain the same set of elements, even if a
@@ -489,29 +495,18 @@ conversation at [4]).
     perhaps an `unsafeSelectNonDet :: NonDet a -> a')
 
 
-References:
-
-Some IRC discussion on the #haskell IRC channel (search for "andyf"
-and replies to me) about Example 3 below are at [4].
-
-[4] http://ircbrowse.net/day/haskell/2015/04/20
-
-[5] http://hackage.haskell.org/package/EdisonAPI-1.2.1/docs/Data-Edison.html
-
-[6] http://hackage.haskell.org/package/EdisonAPI-1.2.1/docs/Data-Edison-Coll.html
+# Other References
 
 Published academic papers that user 'ski' on the #haskell IRC channel
 recommended reading.
 
-[7] "Referential Transparency, Definiteness and Unfoldability", Harald
+"Referential Transparency, Definiteness and Unfoldability", Harald
 Søndergaard and Peter Sestoft, Acta Informatica 27, pp. 505-517 (1990)
 http://www.cs.tufts.edu/~nr/cs257/archive/peter-sestoft/ref-trans.pdf
 
 I scanned the paper below, and it seems to require more knowledge of
-lambda calculus and proof techniques related to them than I am
-familiar with.  Probably requires significant time to gain
-understanding of it.
+lambda calculus than I have now, and might ever choose to learn.
 
-[8] "What is a Purely Functional Language?", Amr Sabry, J. Functional
+"What is a Purely Functional Language?", Amr Sabry, J. Functional
 Programming, vol. 1 no. 1, January 1993, Cambridge University Press
 https://www.cs.indiana.edu/~sabry/papers/purelyFunctional.ps
