@@ -77,8 +77,10 @@ pair of values `v1` and `v2`, but other functions return different
 
 Below are several cases of this.  I find example 3 to be the most
 interesting, since it is more subtle than the others, appears to exist
-in Haskell as well as in Clojure, and hopefully there is more to be
-learned from it.
+in Haskell as well as in Clojure.  I'm not saying there is anything
+wrong with Haskell -- it is simply that if any programmers had thought
+about this issue deeply, it would probably be someone knowledgable of
+Haskell.
 
 
 # Example 1: Interaction between Clojure's `conj` and `=`
