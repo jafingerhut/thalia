@@ -10,6 +10,7 @@
                    ;; small JAR files via 'lein install/jar/deploy',
                    ;; so only include it in the dev profile.
                    :main thalia.core}
-             :1.6 {:dependencies [[org.clojure/clojure "1.6.0"]]}}
+             :1.6 {:dependencies [[org.clojure/clojure "1.6.0"]]}
+             :1.7 {:dependencies [[org.clojure/clojure "1.7.0-beta1"]]}}
   :repl-options {:init-ns user}
   :resource-paths ["resource"])
