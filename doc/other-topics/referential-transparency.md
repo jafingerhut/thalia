@@ -352,7 +352,7 @@ The root of this behavior is a combination of the following facts.
    of elements, regardless of the order that elements were added.
 3. `seq` returns an ordered sequence of all of a set's elements.
 
-Below we discusss alternatives to each of these.
+Below we discuss alternatives to each of these.
 
 
 (1)
@@ -495,6 +495,33 @@ log](http://ircbrowse.net/day/haskell/2015/04/20) -- search for
     be a monad expressing the indeterminacy of the operation (there
     would be an operation `selectNonDet :: NonDet a -> IO a', and
     perhaps an `unsafeSelectNonDet :: NonDet a -> a')
+
+
+# Conclusion
+
+In hindsight after writing this, it now seems clear to me that if one
+wants to maintain the property "x is equal to y implies f(x) is equal
+to f(y)" for all functions f, then it is pretty important to be clear
+on what "equal" means.
+
+As a silly example, if one gets to define their own equals for lists,
+and you decide to define lists as equal if they contain the same
+number of items, e.g. the list (1 2 3) is equal to the list (4 5 6)
+because they both have 3 items, then you are easily going to violate
+the property.
+
+Example 3 highlights this point: one can create implementations of
+data structures using only pure functions, and a 'reasonable'
+definition of equality, where the property can be violated.  The root
+of this issue is: sometimes reasonable definitions of equality regard
+two values as equal, intentionally ignoring internal implementation
+details of the data structure, but those differences ignored by equal
+can be made observable by other functions you implement on the data
+structure (like `seq` / `toList`).
+
+I like the view taken by Chris Okasaki in his Edison library: do not
+leave out such functions that violate the property, if they are useful
+to have, but document them as such.
 
 
 # Other References
