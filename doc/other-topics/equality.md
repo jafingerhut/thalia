@@ -38,13 +38,16 @@ Exceptions, or possible surprises:
 * When comparing collections with `=`, numbers within the collections
   are also compared with `=`, so the three numeric categories above
   are significant.
-* `hash` is consistent with `=`, except for some BigIntegers, Floats,
-  and Doubles.  This leads to odd behavior if you use them as set
-  elements or map keys.  Convert BigIntegers to BigInt using `(bigint
-  x)`, and floats and doubles to a common type with `(float x)` or
-  `(double x)`, to avoid this issue.
-* `=` and `==` are false for BigDecimal values with different scales,
-  e.g. `(== 1.50M 1.500M)` is false.
+* `hash` is consistent with `=`, except for some Floats and Doubles.
+  This leads to odd behavior if you use them as set elements or map
+  keys.  Convert floats and doubles to a common type with `(float x)`
+  or `(double x)`, to avoid this issue.
+* (Clojure 1.5.1) `hash` was not consistent with `=` for some
+  BigInteger values.  Convert them to BigInt using `(bigint x)`.
+  (Fixed in Clojure 1.6.0.)
+* (Clojure 1.5.1) `=` and `==` are false for BigDecimal values with
+  different scales, e.g. `(== 1.50M 1.500M)` is false.  (Fixed in
+  Clojure 1.6.0.)
 * "Not a Number" values Float/NaN and Double/NaN are not `=` or `==`
   to anything, not even themselves.  This leads to odd behavior if you
   use them as set elements or map keys.
