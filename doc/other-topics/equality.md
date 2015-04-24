@@ -3,13 +3,13 @@
 
 ## Version info
 
-This document discusses the behavior of equality in Clojure 1.5.1,
-including the functions `=`, `==`, and `identical?`, and how they
-differ from Java's `equals` method.  It also has some description of
-Clojure's `hash`, and how it differs from Java's `hashCode`.  Some of
-the behavior here has definitely changed since Clojure 1.3, and
-perhaps even since Clojure 1.4.  No attempt has yet been made to
-document these differences.
+This document discusses the behavior of equality in Clojure 1.5.1 and
+Clojure 1.6.0, including the functions `=`, `==`, and `identical?`,
+and how they differ from Java's `equals` method.  It also has some
+description of Clojure's `hash`, and how it differs from Java's
+`hashCode`.  Some of the behavior here has definitely changed since
+Clojure 1.3, and perhaps even since Clojure 1.4.  No attempt has yet
+been made to document these differences.
 
 
 ## Summary
@@ -31,7 +31,7 @@ Clojure's `=` is true when called with two values, if:
 
 You may call `=` or `==` with more than two arguments, and the result
 will be true when all consecutive pairs are `=` or `==`.  `hash` is
-consistent with `=`.
+consistent with `=`, with the exceptions given below.
 
 Exceptions, or possible surprises:
 
@@ -42,15 +42,18 @@ Exceptions, or possible surprises:
   This leads to odd behavior if you use them as set elements or map
   keys.  Convert floats and doubles to a common type with `(float x)`
   or `(double x)`, to avoid this issue.
-* (Clojure 1.5.1) `hash` was not consistent with `=` for some
+* "Not a Number" values Float/NaN and Double/NaN are not `=` or `==`
+  to anything, not even themselves.  This leads to odd behavior if you
+  use them as set elements or map keys.
+* `hash` is not consistent with `=` for objects with class `VecSeq`,
+  returned from calls like `(seq (vector-of :int 0 1 2))` (see
+  [CLJ-1364][CLJ-1364])
+* (Clojure 1.5.1) `hash` is not consistent with `=` for some
   BigInteger values.  Convert them to BigInt using `(bigint x)`.
   (Fixed in Clojure 1.6.0.)
 * (Clojure 1.5.1) `=` and `==` are false for BigDecimal values with
   different scales, e.g. `(== 1.50M 1.500M)` is false.  (Fixed in
   Clojure 1.6.0.)
-* "Not a Number" values Float/NaN and Double/NaN are not `=` or `==`
-  to anything, not even themselves.  This leads to odd behavior if you
-  use them as set elements or map keys.
 
 
 ## Introduction
@@ -452,6 +455,10 @@ commit](https://github.com/clojure/clojure/commit/96e72517615cd2ccdb4fdbbeb6ffba
 
 Rich Hickey has decided that changing this inconsistency in hash
 values for types `Float` and `Double` is out of scope for Clojure.
+Ticket [CLJ-1649][CLJ-1649] has been filed suggesting a change that
+`=` always return false when comparing floats to doubles, which would
+make `hash` consistent with `=` by eliminating the restriction on
+`hash`, but there is no decision on that yet.
 
 You can avoid the `BigInteger` issue in Clojure 1.5.1 by not using
 values of that type.  You are most likely to encounter them in Clojure
@@ -466,6 +473,8 @@ the most convenient choice.
 
 [CLJ-1118]: http://dev.clojure.org/jira/browse/CLJ-1118
 [CLJ-1036]: http://dev.clojure.org/jira/browse/CLJ-1036
+[CLJ-1364]: http://dev.clojure.org/jira/browse/CLJ-1364
+[CLJ-1649]: http://dev.clojure.org/jira/browse/CLJ-1649
 
 
 ## Implementation details
