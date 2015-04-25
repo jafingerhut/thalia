@@ -14,5 +14,6 @@
              :1.5 {:dependencies [[org.clojure/clojure "1.5.1"]]}
              :1.6 {:dependencies [[org.clojure/clojure "1.6.0"]]}
              :1.7 {:dependencies [[org.clojure/clojure "1.7.0-beta2"]]}}
+  :aliases {"test-all" ["with-profile" "dev,1.5:dev,1.6:dev,1.7" "test"]}
   :repl-options {:init-ns user}
   :resource-paths ["resource"])
