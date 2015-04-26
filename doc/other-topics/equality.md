@@ -7,9 +7,7 @@ This document discusses the behavior of equality in Clojure 1.5.1 and
 Clojure 1.6.0, including the functions `=`, `==`, and `identical?`,
 and how they differ from Java's `equals` method.  It also has some
 description of Clojure's `hash`, and how it differs from Java's
-`hashCode`.  Some of the behavior here has definitely changed since
-Clojure 1.3, and perhaps even since Clojure 1.4.  No attempt has yet
-been made to document these differences.
+`hashCode`.
 
 
 ## Summary
@@ -20,11 +18,15 @@ Clojure's `=` is true when called with two values, if:
   the same, where category is one of (integer or ratio), floating
   point, or BigDecimal.  Use `==` if you want to compare for numerical
   equality between different categories.
-* Both arguments are sequences, lists, vectors, or queues, with equal
-  elements in the same order.
-* Both arguments are sets, with equal elements, ignoring order.
-* Both arguments are maps, with equal key/value pairs, ignoring order.
-* Both arguments are symbols, or both keywords, with equal namespaces and names.
+* Both arguments are sequences, lists, vectors, or queues, with `=`
+  elements in the same order (including non-Clojure Java lists
+  implementing `java.util.List`).
+* Both arguments are sets, with `=` elements, ignoring order
+  (including non-Clojure Java sets implementing `java.util.Set`).
+* Both arguments are maps, with `=` key/value pairs, ignoring order
+  (including non-Clojure Java maps implementing `java.util.Map`).
+* Both arguments are symbols, or both keywords, with equal namespaces
+  and names.
 * For types defined with `deftype`, the `equiv` method return value is used.
 * Java's `equals` is true for the values.  The result should be
   unsurprising for nil, booleans, characters, and strings.
@@ -47,7 +49,7 @@ Exceptions, or possible surprises:
   if you use them as set elements or map keys.
 * (Clojure 1.6.0) `hash` is not consistent with `=` for immutable
   Clojure collections and their mutable Java counterparts.  Comparing
-  a Clojure immutable set to a non-Clojure Java object that implements
+  a Clojure immutable set to a non-Clojure Java object implementing
   `java.util.Set` with equal elements will be `=`, but their `hash`
   values will usually be different.  `hash` was consistent with `=`
   for these two kinds of collections in Clojure 1.5.1, before `hash`
@@ -433,8 +435,10 @@ user> (hash '("a" 5 :c))
 1014033862
 ```
 
-TBD: intro to examples below
-
+However, since `hash` is not consistent with `=` in Clojure 1.6.0 when
+comparing Clojure immutable collections with Java mutable collections,
+mixing the two can lead to undesirable behavior, as shown in the
+examples below.
 
 ```clojure
 ;; The return values below are for Clojure 1.6.0.  Comments show which
@@ -490,12 +494,12 @@ false                               ; was true with Clojure 1.5.1
 user=> (get (hash-map java-list 5) java-list)
 5
 user=> (get (hash-map java-list 5) clj-vec)
-nil
+nil                                 ; was 5 with Clojure 1.5.1
 
 user=> (conj #{} java-list clj-vec)
-#{[1 2 3] [1 2 3]}
+#{[1 2 3] [1 2 3]}                  ; was #{[1 2 3]} with Clojure 1.5.1
 user=> (hash-map java-list 5 clj-vec 3)
-{[1 2 3] 5, [1 2 3] 3}
+{[1 2 3] 5, [1 2 3] 3}              ; was {[1 2 3] 3} with Clojure 1.5.1
 ```
 
 Similar behavior occurs for Java collections that implement
@@ -509,7 +513,7 @@ with `=`.
 (Clojure 1.5.1) [CLJ-1118][CLJ-1118] mentioned above, fixed in Clojure
 1.6.0.
 
-(Clojure 1.6.0) [CLJ-1372][CLJ-1372]: 
+(Clojure 1.6.0) [CLJ-1372][CLJ-1372] described with examples above.
 
 (Clojure 1.6.0) [CLJ-1649][CLJ-1649]: For some Float and Double values
 that are `=` to each other, their `hash` values are inconsistent:
