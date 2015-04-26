@@ -25,6 +25,99 @@
   (is (= 0 (unchecked-int bigint-truncates-to-int-0))))
 
 
+(defn info [x y]
+  (let [v [x y]
+        smap (reduce (fn [smap [k f]]
+                       (assoc smap k (map f v)))
+                     (sorted-map)
+                     [[[0 :vals] identity]
+                      [[1 :class] class]
+                      [[2 :hash] hash]
+                      [[3 :hashCode] #(.hashCode %)]])]
+    (assoc smap
+           [4 :equal] (= x y)
+           [5 :vector-equal] (= [x] [y])
+           [6 :pam-equal] (= {x 5} {y 5})
+           [7 :phm-equal] (= (hash-map x 5) (hash-map y 5))
+           [8 :hash-set-equal] (= (hash-set x) (hash-set y)))))
+
+
+(deftest test-equality-and-hash
+  (is (= (float 314.0) (double 314.0)))
+  (is (= 3 3N))
+  (is (not (= 2 2.0)))
+  (is (= [0 1 2] (range 3)))
+  (is (= [0 1 2] '(0 1 2)))
+  (is (not (= [0 1] [0 1 2])))
+  (is (not (= '(0 1 2) '(0 1 2.0))))
+  (let [s1 (range 3)
+        v1 [0 1 2]]
+    (is (= s1 v1))
+    (is (not (= (conj s1 4) (conj v1 4)))))
+  (let [s1 (hash-set 1 2000 30000)
+        s2 (sorted-set 30000 2000 1)]
+    (is (= s1 s2))
+    (is (= (hash s1) (hash s2))))
+  (let [m1 {3 -7, 5 10, 15 20}
+        m2 (sorted-map-by > 3 -7 5 10 15 20)]
+    (is (= m1 m2))
+    (is (= (hash m1) (hash m2))))
+  (is (not (= ["a" "b" "c"] {0 "a" 1 "b" 2 "c"})))
+  (let [s1 (with-meta #{1 2 3} {:key1 "set 1"})
+        s2 (with-meta #{1 2 3} {:key1 "set 2 here"})]
+    (is (= s1 s2))
+    (is (not (= (meta s1) (meta s2)))))
+  (is (not (= Double/NaN Double/NaN)))
+  (is (not (== Double/NaN Double/NaN)))
+  (is (.equals Double/NaN Double/NaN))
+  (let [s1 #{1.0 2.0 Double/NaN}
+        s2 #{Double/NaN 2.0 1.0}]
+    (is (= (s1 1.0) 1.0))
+    (is (nil? (s1 1.5)))
+    (is (nil? (s1 Double/NaN)))
+    (is (not (= s1 s2))))
+  (is (= (float 1.0e9) (double 1.0e9)))
+  (is (not (= (hash (float 1.0e9)) (hash (double 1.0e9)))))
+  (is (= (int -1) (long -1) (bigint -1) (biginteger -1)))
+  (cond
+    clojure=15 (is (not (= (hash (bigint -1)) (hash (biginteger -1)))))
+    clojure>=16 (is (= (hash (bigint -1)) (hash (biginteger -1)))))
+  (let [l1 (java.util.ArrayList. [1 2 3])]
+    (is (= (info l1 [1 2 3])
+           {[0 :vals] [[1 2 3] [1 2 3]],
+            [1 :class] [java.util.ArrayList clojure.lang.PersistentVector],
+            [2 :hash] [30817 (if clojure>=16 736442005 30817)],
+            [3 :hashCode] [30817 30817],
+            [4 :equal] true,
+            [5 :vector-equal] true,
+            [6 :pam-equal] true,
+            [7 :phm-equal] (if clojure>=16 false true),
+            [8 :hash-set-equal] (if clojure>=16 false true)})))
+  (let [s1 (java.util.HashSet. [1 2 3])]
+    (is (= (info s1 #{1 2 3})
+           {[0 :vals] [#{1 2 3} #{1 3 2}],
+            [1 :class] [java.util.HashSet clojure.lang.PersistentHashSet],
+            [2 :hash] [6 (if clojure>=16 439094965 6)],
+            [3 :hashCode] [6 6],
+            [4 :equal] true,
+            [5 :vector-equal] true,
+            [6 :pam-equal] true,
+            [7 :phm-equal] (if clojure>=16 false true),
+            [8 :hash-set-equal] (if clojure>=16 false true)})))
+  (let [m1 (java.util.TreeMap. {:a 1 :b 2})]
+    (is (= (info m1 {:a 1 :b 2})
+           {[0 :vals] [{:a 1, :b 2} {:b 2, :a 1}],
+            [1 :class] [java.util.TreeMap clojure.lang.PersistentArrayMap],
+            [2 :hash] [2027821078  (if clojure>=16 161871944 2027821078)],
+            [3 :hashCode] [2027821078 2027821078],
+            [4 :equal] true,
+            [5 :vector-equal] true,
+            [6 :pam-equal] true,
+            [7 :phm-equal] (if clojure>=16 false true),
+            [8 :hash-set-equal] (if clojure>=16 false true)})))
+  )
+
+
 (deftest test-=
   (is (= 3 3N))
   (is (not (= 2 2.0)))

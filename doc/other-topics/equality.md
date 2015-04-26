@@ -38,22 +38,29 @@ Exceptions, or possible surprises:
 * When comparing collections with `=`, numbers within the collections
   are also compared with `=`, so the three numeric categories above
   are significant.
-* `hash` is consistent with `=`, except for some Floats and Doubles.
-  This leads to odd behavior if you use them as set elements or map
-  keys.  Convert floats and doubles to a common type with `(float x)`
-  or `(double x)`, to avoid this issue.
-* "Not a Number" values Float/NaN and Double/NaN are not `=` or `==`
-  to anything, not even themselves.  This leads to odd behavior if you
-  use them as set elements or map keys.
+* `hash` is consistent with `=` for numbers, except for some Float and
+  Double values.  This leads to odd behavior if you use them as set
+  elements or map keys.  Convert floats and doubles to a common type
+  with `(float x)` or `(double x)`, to avoid this issue.
+* "Not a Number" values `Float/NaN` and `Double/NaN` are not `=` or
+  `==` to anything, not even themselves.  This leads to odd behavior
+  if you use them as set elements or map keys.
+* (Clojure 1.6.0) `hash` is not consistent with `=` for immutable
+  Clojure collections and their mutable Java counterparts.  Comparing
+  a Clojure immutable set to a non-Clojure Java object that implements
+  `java.util.Set` with equal elements will be `=`, but their `hash`
+  values will usually be different.  `hash` was consistent with `=`
+  for these two kinds of collections in Clojure 1.5.1, before `hash`
+  was enhanced in Clojure 1.6.0.  (see [CLJ-1372][CLJ-1372])
 * `hash` is not consistent with `=` for objects with class `VecSeq`,
   returned from calls like `(seq (vector-of :int 0 1 2))` (see
   [CLJ-1364][CLJ-1364])
 * (Clojure 1.5.1) `hash` is not consistent with `=` for some
   BigInteger values.  Convert them to BigInt using `(bigint x)`.
-  (Fixed in Clojure 1.6.0.)
+  (fixed in Clojure 1.6.0)
 * (Clojure 1.5.1) `=` and `==` are false for BigDecimal values with
-  different scales, e.g. `(== 1.50M 1.500M)` is false.  (Fixed in
-  Clojure 1.6.0.)
+  different scales, e.g. `(== 1.50M 1.500M)` is false.  (fixed in
+  Clojure 1.6.0)
 
 
 ## Introduction
@@ -269,8 +276,7 @@ numbers (false).
 
 Clojure 1.5.1 inherits Java's exception for BigDecimal with the same
 numeric value but different scales, i.e. `(= 1.50M 1.500M)` is false.
-Ticket [CLJ-1118][CLJ-1118] might change this in a later version of
-Clojure.
+This is corrected in Clojure 1.6.0 (see [CLJ-1118][CLJ-1118]).
 
 Clojure also has `==` that is only useful for comparing numbers.  It
 returns true whenever `=` does.  It also returns true for numbers that
@@ -314,9 +320,12 @@ dedicated to studying algorithms that use numerical approximation.
 There are libraries of Fortran code that are used because their order
 of floating point operations is carefully crafted to give guarantees
 on the difference between their approximate answers and the exact
-answers.
+answers.  ["What Every Computer Scientist Should Know About
+Floating-Point Arithmetic"][WECSSKAFP] is good reading if you want
+quite a few details.
 
 [NumericalAnalysis]: https://en.wikipedia.org/wiki/Numerical_analysis
+[WECSSKAFP]: http://docs.oracle.com/cd/E19957-01/806-3568/ncg_goldberg.html
 
 If you want exact answers for at least some kinds of problems, ratios
 or BigDecimals might suit your needs.  Realize that these require
@@ -397,8 +406,9 @@ true
 Java has `equals` to compare pairs of objects for equality.
 
 Java has a method `hashCode` that is _consistent_ with this notion of
-equality, meaning that for any two objects `x` and `y` where `equals`
-is true, `x.hashCode()` and `y.hashCode()` are equal, too.
+equality (or is documented that it should be, at least).  This means
+that for any two objects `x` and `y` where `equals` is true,
+`x.hashCode()` and `y.hashCode()` are equal, too.
 
 This hash consistency property makes it possible to use `hashCode` to
 implement hash-based data structures like maps and sets using hashing
@@ -411,8 +421,8 @@ Clojure has `=` and `hash` for similar reasons.  Since Clojure `=`
 considers more pairs of things equal to each other than Java `equals`,
 Clojure `hash` must return the same hash value for more pairs of
 objects.  For example, `hash` always returns the same value regardless
-of whether a sequence of `=` elements is in a sequence, vector, or
-list:
+of whether a sequence of `=` elements is in a sequence, vector, list,
+or queue:
 
 ```clojure
 user> (hash ["a" 5 :c])
@@ -423,24 +433,88 @@ user> (hash '("a" 5 :c))
 1014033862
 ```
 
+TBD: intro to examples below
 
-### Possible bugs in Clojure 1.5.1
-
-[CLJ-1118][CLJ-1118] mentioned above.
-
-[CLJ-1036][CLJ-1036]: For some BigInteger values that are `=` to
-numbers of other types, their `hash` values are inconsistent.  This is
-also the case for some Float and Double values that are `=` to each
-other:
 
 ```clojure
-user> (= (int -1) (long -1) (bigint -1) (biginteger -1))
-true
-user> (map hash [(int -1) (long -1) (bigint -1) (biginteger -1)])
-(0 0 0 -1)
-user> (hash-map (long -1) :minus-one (biginteger -1) :oops)
-{-1 :minus-one, -1 :oops}
+;; The return values below are for Clojure 1.6.0.  Comments show which
+;; of these differ from Clojure 1.5.1.
 
+user=> (def java-list (java.util.ArrayList. [1 2 3]))
+#'user/java-list
+user=> (def clj-vec [1 2 3])
+#'user/clj-vec
+
+;; They are =, even though they are different classes
+user=> (= java-list clj-vec)
+true
+user=> (class java-list)
+java.util.ArrayList
+user=> (class clj-vec)
+clojure.lang.PersistentVector
+
+;; Their hash values were the same with 1.5.1, but are different in
+;; 1.6.0.  `hash` was changed to avoid some common cases with too many
+;; hash collisions in Clojure 1.5.1.
+
+user=> (hash java-list)
+30817
+user=> (hash clj-vec)
+736442005                           ; was 30817 with Clojure 1.5.1
+
+;; If java-list and clj-vec are put into collections that do not use
+;; their hash values, like a vector or array-map, then those
+;; collections will be equal, too.
+
+user=> (= [java-list] [clj-vec])
+true
+user=> (class {java-list 5})
+clojure.lang.PersistentArrayMap
+user=> (= {java-list 5} {clj-vec 5})
+true
+user=> (assoc {} java-list 5 clj-vec 3)
+{[1 2 3] 3}
+
+;; However, if java-list and clj-vec are put into collections that do
+;; use their hash values, like a hash-set, or a key in a hash-map,
+;; then those collections will not be equal because of the different
+;; hash values.
+
+user=> (class (hash-map java-list 5))
+clojure.lang.PersistentHashMap
+user=> (= (hash-map java-list 5) (hash-map clj-vec 5))
+false                               ; was true with Clojure 1.5.1
+user=> (= (hash-set java-list) (hash-set clj-vec))
+false                               ; was true with Clojure 1.5.1
+
+user=> (get (hash-map java-list 5) java-list)
+5
+user=> (get (hash-map java-list 5) clj-vec)
+nil
+
+user=> (conj #{} java-list clj-vec)
+#{[1 2 3] [1 2 3]}
+user=> (hash-map java-list 5 clj-vec 3)
+{[1 2 3] 5, [1 2 3] 3}
+```
+
+Similar behavior occurs for Java collections that implement
+`java.util.List`, `java.util.Set`, and `java.util.Map`.  It also
+occurs for any values for which Clojure's `hash` is not consistent
+with `=`.
+
+
+### Bugs
+
+(Clojure 1.5.1) [CLJ-1118][CLJ-1118] mentioned above, fixed in Clojure
+1.6.0.
+
+(Clojure 1.6.0) [CLJ-1372][CLJ-1372]: 
+
+(Clojure 1.6.0) [CLJ-1649][CLJ-1649]: For some Float and Double values
+that are `=` to each other, their `hash` values are inconsistent:
+
+```clojure
 user> (= (float 1.0e9) (double 1.0e9))
 true
 user> (map hash [(float 1.0e9) (double 1.0e9)])
@@ -449,9 +523,10 @@ user> (hash-map (float 1.0e9) :float-one (double 1.0e9) :oops)
 {1.0E9 :oops, 1.0E9 :float-one}
 ```
 
-The hash inconsistency for Java type `BigInteger` was corrected in
-Clojure 1.6.0 with [this
-commit](https://github.com/clojure/clojure/commit/96e72517615cd2ccdb4fdbbeb6ffba5ad99dbdac).
+You can avoid the `Float` vs `Double` hash inconsistency by
+consistently using one or the other types in floating point code.
+Clojure defaults to doubles for floating point values, so that may be
+the most convenient choice.
 
 Rich Hickey has decided that changing this inconsistency in hash
 values for types `Float` and `Double` is out of scope for Clojure.
@@ -460,20 +535,40 @@ Ticket [CLJ-1649][CLJ-1649] has been filed suggesting a change that
 make `hash` consistent with `=` by eliminating the restriction on
 `hash`, but there is no decision on that yet.
 
+(Clojure 1.5.1) `hash` is inconsistent with `=` for some BigInteger
+values that are `=` to numbers of other types.  This is fixed in
+Clojure 1.6.0 with [this
+commit](https://github.com/clojure/clojure/commit/96e72517615cd2ccdb4fdbbeb6ffba5ad99dbdac).
+
+```clojure
+user> (= (int -1) (long -1) (bigint -1) (biginteger -1))
+true
+
+;; Clojure 1.5.1
+
+user> (map hash [(int -1) (long -1) (bigint -1) (biginteger -1)])
+(0 0 0 -1)
+user> (hash-map (long -1) :minus-one (biginteger -1) :oops)
+{-1 :minus-one, -1 :oops}
+
+;; Clojure 1.6.0
+
+user=> (map hash [(int -1) (long -1) (bigint -1) (biginteger -1)])
+(1651860712 1651860712 1651860712 1651860712)
+user=> (hash-map (long -1) :minus-one (biginteger -1) :much-better)
+{-1 :much-better}
+```
+
 You can avoid the `BigInteger` issue in Clojure 1.5.1 by not using
 values of that type.  You are most likely to encounter them in Clojure
 through interop with Java libraries.  In that case, converting them to
 `BigInt` via the `bigint` function at the Clojure/Java boundary would
 be safest.
 
-You can avoid the `Float` vs `Double` hash inconsistency by
-consistently using one or the other types in floating point code.
-Clojure defaults to doubles for floating point values, so that may be
-the most convenient choice.
-
-[CLJ-1118]: http://dev.clojure.org/jira/browse/CLJ-1118
 [CLJ-1036]: http://dev.clojure.org/jira/browse/CLJ-1036
+[CLJ-1118]: http://dev.clojure.org/jira/browse/CLJ-1118
 [CLJ-1364]: http://dev.clojure.org/jira/browse/CLJ-1364
+[CLJ-1372]: http://dev.clojure.org/jira/browse/CLJ-1372
 [CLJ-1649]: http://dev.clojure.org/jira/browse/CLJ-1649
 
 
@@ -499,7 +594,7 @@ See these for examples on how to do this, and much more:
 The paper ["Equal Rights for Functional Objects, or, the More Things
 Change, The More They Are the Same"][BakerObjectIdentity] by Henry
 Baker includes code written in Common Lisp, but the idea of equality
-making sense for immutable values, and not so much for mutable
+making sense for immutable values, and not as much sense for mutable
 objects, is independent of programming language:
 
 [BakerObjectIdentity]: http://home.pipeline.com/~hbaker1/ObjectIdentity.html
