@@ -211,7 +211,7 @@ similar code in both the doc string text files and the unit tests.
 
 In their current form, running the tests is quite simple:
 
-    lein test
+    lein test-all
 
 It would be preferable not to do so, e.g. by having an automated way
 to extract the examples from the doc strings and execute them,
@@ -264,6 +264,6 @@ a line limit much longer than the current 15 lines.
 
 ## License
 
-Copyright © 2013 Andy Fingerhut
+Copyright (c) 2013-2015 Andy Fingerhut
 
 Distributed under the Eclipse Public License.
