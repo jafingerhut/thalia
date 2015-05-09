@@ -14,10 +14,11 @@ description of Clojure's `hash`, and how it differs from Java's
 
 Clojure's `=` is true when called with two values, if:
 
-* Both arguments are numbers in the same "category", and numerically
+* Both arguments are numbers in the same 'category', and numerically
   the same, where category is one of (integer or ratio), floating
   point, or BigDecimal.  Use `==` if you want to compare for numerical
-  equality between different categories.
+  equality between different categories, or you want an exception
+  thrown if either value is not a number.
 * Both arguments are sequences, lists, vectors, or queues, with `=`
   elements in the same order (including non-Clojure Java lists
   implementing `java.util.List`).
@@ -27,12 +28,16 @@ Clojure's `=` is true when called with two values, if:
   (including non-Clojure Java maps implementing `java.util.Map`).
 * Both arguments are symbols, or both keywords, with equal namespaces
   and names.
-* For types defined with `deftype`, the `equiv` method return value is used.
-* Java's `equals` is true for the values.  The result should be
-  unsurprising for nil, booleans, characters, and strings.
+* Both arguments are the same type defined with `deftype`.  The type's
+  `equiv` method is called and its return value becomes the value of
+  `(= x y)`.
+* Both arguments are refs, vars, or atoms, and they are the same
+  object, i.e. `(identical?  x y)` is true.
+* For other types, Java's `x.equals(y)` is true.  The result should be
+  unsurprising for `nil`, booleans, characters, and strings.
 
-You may call `=` or `==` with more than two arguments, and the result
-will be true when all consecutive pairs are `=` or `==`.  `hash` is
+If you call `=` or `==` with more than two arguments, the result will
+be true when all consecutive pairs are `=` or `==`.  `hash` is
 consistent with `=`, with the exceptions given below.
 
 Exceptions, or possible surprises:
@@ -44,9 +49,17 @@ Exceptions, or possible surprises:
   Double values.  This leads to odd behavior if you use them as set
   elements or map keys.  Convert floats and doubles to a common type
   with `(float x)` or `(double x)`, to avoid this issue.
-* "Not a Number" values `Float/NaN` and `Double/NaN` are not `=` or
+* 'Not a Number' values `Float/NaN` and `Double/NaN` are not `=` or
   `==` to anything, not even themselves.  This leads to odd behavior
   if you use them as set elements or map keys.
+* Clojure regex's, e.g. #"a.*bc", are implemented using Java
+  `java.util.regex.Pattern` objects, and Java's `equals` on two
+  `Pattern` objects returns `(identical? re1 re2)`.  Thus `(= #"abc"
+  #"abc")` returns false, and only returns true if two regex's happen
+  to be the same identical object in memory.  Recommendation: Don't
+  use regex's as set elements or keys.  If you feel the need to,
+  consider converting them to strings first, e.g. `(str #"abc")` ->
+  "abc".
 * (Clojure 1.6.0) `hash` is not consistent with `=` for immutable
   Clojure collections and their mutable Java counterparts.  Comparing
   a Clojure immutable set to a non-Clojure Java object implementing
