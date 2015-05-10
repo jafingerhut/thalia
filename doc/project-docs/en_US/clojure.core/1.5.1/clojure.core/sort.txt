@@ -4,10 +4,15 @@ or boolean comparator.  See `(topic Comparators)` for details on
 boolean comparators.
 
 `sort` is guaranteed to be stable, since it is implemented using the
-sort method of Java's `java.util.Arrays` class.  This means that if
+`sort` method of Java's `java.util.Arrays` class.  This means that if
 two values in the input collection are considered equal by the
 comparator, they are guaranteed to remain in the same relative order
 in the output as they had in the input.
+
+Warning: You can sort a Java array and get back a sorted immutable
+Clojure data structure, but it will also change the input Java array,
+by sorting it.  Copy the array before sorting if you want to avoid
+this.
 
 Examples:
 

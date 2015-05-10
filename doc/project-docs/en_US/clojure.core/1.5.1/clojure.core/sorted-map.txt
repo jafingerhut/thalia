@@ -24,7 +24,8 @@ include:
 * Unsorted maps use `=` to compare keys, but sorted maps use `compare`
   or a caller-supplied comparator.  A sorted map's comparator can
   throw exceptions if you put incomparable keys in the same map.
-* There is no transient version of sorted maps.
+* `sorted-map` does not support transients.  See 'Related libraries'
+  below for another sorted map data structure that does.
 
 Examples:
 
@@ -106,6 +107,12 @@ user=> (m2 1)
 user=> (m2 "a")   ; this gives exception from compare
 ClassCastException java.lang.Double cannot be cast to java.lang.String  java.lang.String.compareTo (String.java:108)
 ```clojure
+
+There is no transient implementation for `sorted-map`, but there is
+for unsorted maps.  See the implementation of `into` for an example of
+how to implement a function that uses transients on collections that
+support them, but falls back to the slower normal operations for
+collections that do not (e.g. do `(source into)` in a REPL session).
 
 Sorted maps maintain the key/value pairs in sorted order by key using
 a persistent red-black tree data structure.  It takes `O(log N)` time
