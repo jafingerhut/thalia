@@ -14,7 +14,7 @@ user=> (range 11 0 -1)
 (11 10 9 8 7 6 5 4 3 2 1)
 user=> (range 11 -1 -1)
 (11 10 9 8 7 6 5 4 3 2 1 0)
-```clojure
+```
 
 Be cautious when using float or double values, due to round-off
 errors.  This is especially true for `range`, because these round-off
@@ -29,7 +29,7 @@ user=> (count (range 0.0 10.0 0.1))
 101
 user=> (last (range 0.0 10.0 0.1))
 9.99999999999998
-```clojure
+```
 
 Functions like `double-range` and `rangef` in namespace `thalia.utils`
 may be closer to what you want in some cases.

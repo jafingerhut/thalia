@@ -22,7 +22,7 @@ user=> (sorted-map-by #(compare %2 %1)
 {"platypus" "Ornithorhynchus anatinus",
  "lion" "Panthera leo",
  "aardvark" "Orycteropus afer"}
-```clojure
+```
 
 With comparator `case-insensitive-cmp` below, "Lion" is equal to
 "lion" and not added as a separate key in the map.  The value
@@ -38,6 +38,6 @@ user=> (defn case-insensitive-cmp [s1 s2]
 user=> (sorted-map-by case-insensitive-cmp "lion" "normal lion"
                                            "Lion" "Orycteropus afer")
 {"lion" "Orycteropus afer"}
-```clojure
+```
 
 See also: `sorted-map`, `(topic Comparators)`

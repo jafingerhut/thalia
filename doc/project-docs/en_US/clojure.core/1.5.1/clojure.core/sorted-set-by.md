@@ -27,6 +27,6 @@ user=> (defn case-insensitive-cmp [s1 s2]
 user=> (sorted-set-by case-insensitive-cmp
                       "Food" "good" "air" "My" "AiR" "My")
 #{"air" "Food" "good" "My"}
-```clojure
+```
 
 See also: `sorted-set`, `(topic Comparators)`

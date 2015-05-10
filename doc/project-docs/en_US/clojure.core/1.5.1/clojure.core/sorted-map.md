@@ -106,7 +106,7 @@ user=> (m2 1)
 "bigdecone"
 user=> (m2 "a")   ; this gives exception from compare
 ClassCastException java.lang.Double cannot be cast to java.lang.String  java.lang.String.compareTo (String.java:108)
-```clojure
+```
 
 There is no transient implementation for `sorted-map`, but there is
 for unsorted maps.  See the implementation of `into` for an example of

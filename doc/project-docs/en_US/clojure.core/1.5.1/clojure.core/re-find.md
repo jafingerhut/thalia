@@ -14,7 +14,7 @@ user=> (re-find #"\d+" "abcdef")
 nil
 user=> (re-find #"(?:\d+)" "abc123def")
 "123"
-```clojure
+```
 
 If there are capturing groups, then on a match re-find returns a
 vector where the first element is the string that matches the entire

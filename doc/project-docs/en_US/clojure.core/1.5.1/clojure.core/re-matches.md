@@ -10,7 +10,7 @@ user=> (re-matches #"\d+" "abc123def")
 nil
 user=> (re-matches #"\d+" "123")
 "123"
-```clojure
+```
 
 See the extended docs of `re-find` for additional examples, and notes
 on how the return value is a vector when there are capture groups in
