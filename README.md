@@ -133,9 +133,10 @@ strings for use in the REPL rather than web browsing.
 
 The basic flow is:
 
-* Create text files containing extended doc strings in a directory
-  beneath the `doc/project-docs` directory.  See 'Directory structure'
-  below for the path names that should be used.
+* Create text files (in Github-flavored Markdown format) containing
+  extended doc strings in a directory beneath the `doc/project-docs`
+  directory.  See 'Directory structure' below for the path names that
+  should be used.
 
 * Create one file `resource/<language>.clj` per language for all
   extended doc strings written in that language.  See 'Create language
@@ -157,7 +158,7 @@ The path name of each text file should be of the following form, where
 `/` characters are used as on Mac OS X and Linux to separate directory
 names in the path.
 
-    doc/project-docs/<language>/<project-name>/<version>/<namespace>/<symbol>.txt
+    doc/project-docs/<language>/<project-name>/<version>/<namespace>/<symbol>.md
 
 Below are some example paths for the language US English, abbreviated
 `en_US`.  Execute the expression `(str (java.util.Locale/getDefault))`
@@ -166,7 +167,7 @@ at the REPL to see the abbreviation for your language.
 The project is `clojure.core`, version 1.5.1, namespace
 `clojure.string`, symbol `replace`:
 
-    doc/project-docs/en_US/clojure.core/1.5.1/clojure.string/replace.txt
+    doc/project-docs/en_US/clojure.core/1.5.1/clojure.string/replace.md
 
 Below is an example for everything the same as above, except the
 namespace is `clojure.core` and the symbol is `==`.  The file name has
@@ -177,7 +178,7 @@ numeric, nor the `-` character, you can use the function
 `thalia.core/encode-url-component` to see what the file name should
 be.
 
-    doc/project-docs/en_US/clojure.core/1.5.1/clojure.core/%3D%3D.txt
+    doc/project-docs/en_US/clojure.core/1.5.1/clojure.core/%3D%3D.md
 
 
 ### Create language resource files
