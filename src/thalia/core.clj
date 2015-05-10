@@ -23,7 +23,7 @@
 (def prog-name "lein run")
 
 
-(def ext-doc-filename-suffix ".txt")
+(def ext-doc-filename-suffix ".md")
 
 
 (defn file-with-suffix [^File f suffix]
