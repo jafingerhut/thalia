@@ -23,6 +23,9 @@
 (def prog-name "lein run")
 
 
+(def ext-doc-filename-suffix ".txt")
+
+
 (defn file-with-suffix [^File f suffix]
   (and (not (. f (isDirectory)))
        (.endsWith (str f) suffix)))
@@ -287,23 +290,23 @@ encoding and before decoding."
 
 
 (defn non-empty-project-docs [dir lang]
-  (let [fname-suffix ".txt"]
-    (->> (file-seq (io/file (path-from-parts [dir lang])))
-         (filter #(file-with-suffix % fname-suffix))
-         (map (fn [f] {:filename (str f) :extended-docstring (slurp f)}))
-         ;; remove any files that are completely blank
-         (remove #(str/blank? (:extended-docstring %)))
-         ;; parse file names for project name, version, namespace, and symbol
-         (map #(merge % (project-doc-name-components (:filename %)
-                                                     dir fname-suffix)))
-         (group-by #(select-keys % [:language :library :version]))
-
-         ;; After grouping, we don't need the keys :language :library
-         ;; :version in every map, nor do we need :filename any
-         ;; longer.
-         (map-vals (fn [map-list]
-                     (map #(dissoc % :language :library :version :filename)
-                          map-list))))))
+  (->> (file-seq (io/file (path-from-parts [dir lang])))
+       (filter #(file-with-suffix % ext-doc-filename-suffix))
+       (map (fn [f] {:filename (str f) :extended-docstring (slurp f)}))
+       ;; remove any files that are completely blank
+       (remove #(str/blank? (:extended-docstring %)))
+       ;; parse file names for project name, version, namespace, and symbol
+       (map #(merge % (project-doc-name-components (:filename %)
+                                                   dir
+                                                   ext-doc-filename-suffix)))
+       (group-by #(select-keys % [:language :library :version]))
+       
+       ;; After grouping, we don't need the keys :language :library
+       ;; :version in every map, nor do we need :filename any
+       ;; longer.
+       (map-vals (fn [map-list]
+                   (map #(dissoc % :language :library :version :filename)
+                        map-list)))))
 
 
 (def clojuredocs-files-root (path-from-parts ["." "doc" "clojuredocs"]))
@@ -352,7 +355,7 @@ encoding and before decoding."
                                    {:root-dir (path-from-parts
                                                [project-docs-root lang])
                                     :dry-run? false
-                                    :filename-suffix ".txt"}
+                                    :filename-suffix ext-doc-filename-suffix}
                                    make-project-dir
                                    make-namespace-dir
                                    nil    ;; before all public symbols
@@ -381,5 +384,4 @@ encoding and before decoding."
       ;; default case
       (do (iprintf *err* "Urecognized first arg '%s'\n" action)
           (show-usage prog-name)
-          (System/exit 1))
-      )))
+          (System/exit 1)))))
