@@ -1,4 +1,4 @@
-{{:version "1.5.1", :library "clojure.core", :language "en_US"}
+{{:version "1.6.0", :library "clojure.core", :language "en_US"}
  ({:symbol "==",
    :ns "clojure.core",
    :extended-docstring
