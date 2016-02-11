@@ -617,6 +617,19 @@ objects, is independent of programming language:
 [BakerObjectIdentity]: http://home.pipeline.com/~hbaker1/ObjectIdentity.html
 
 
+TBD: Other Clojure tickets to mention somewhere in this article,
+perhaps:
+
+* [CLJ-750][CLJ-750] clojure.lang.MapEntry violates .equals and .hashCode contracts of HashMap.Entry; leads to non-reflexive .equals, etc.
+* [CLJ-1059][CLJ-1059] PersistentQueue doesn't implement java.util.List, causing nontransitive equality
+* [CLJ-1242][CLJ-1242] = on sorted collections with different key types incorrectly throws
+* [CLJ-1860][CLJ-1860] 0.0 and -0.0 compare equal but have different hash values
+
+[CLJ-750]: http://dev.clojure.org/jira/browse/CLJ-750
+[CLJ-1059]: http://dev.clojure.org/jira/browse/CLJ-1059
+[CLJ-1242]: http://dev.clojure.org/jira/browse/CLJ-1242
+[CLJ-1860]: http://dev.clojure.org/jira/browse/CLJ-1860
+
 TBD: Mention Clojure `identity?`, same as Java object identity `==`,
 and how it is typically only a good idea to use it in Java interop
 cases where you need Java `==`.  It is better to use Clojure `=` value
