@@ -52,7 +52,7 @@ DOs:
 * Reverse the sort order by reversing the order that you give the
   arguments to an existing comparator.
 * Compare equal-length Clojure vectors containing "sort keys" in order
-  to do a multi-field comparison beween values.
+  to do a multi-field comparison between values.
 
 DO NOTs:
 
