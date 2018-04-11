@@ -458,6 +458,9 @@ by which Okasaki means:
     depend on otherwise unobservable internal state of the data
     structure, such as the actual shape of a balanced tree."
 
+More details on how Okasaki uses the terms ambiguous and unambiguous
+for the Edison library are [here](https://hackage.haskell.org/package/EdisonAPI-1.3/candidate/docs/Data-Edison.html).
+
 
 (3)
 
