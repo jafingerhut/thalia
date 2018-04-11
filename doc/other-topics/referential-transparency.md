@@ -483,8 +483,10 @@ understanding it, too.
 
 It is the last statement from user "ski" on the Haskell IRC channel
 below.  (Excerpted from [this conversation
-log](http://ircbrowse.net/day/haskell/2015/04/20) -- search for
-'andyf').
+log](http://tunes.org/~nef/logs/old/haskell-15.zip) -- search for
+'andyf' in all files inside that zip file).
+
+
 
     ski: I would consider "a hash set type that has an (==) defined to
     be true when two sets contain the same set of elements, even if a
