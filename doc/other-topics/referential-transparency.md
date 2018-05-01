@@ -73,6 +73,12 @@ its nuances.
 I have heard of denotational and operational semantics, but haven't
 studied them.  Similarly for monads.
 
+Another paper on the topic of equality and what it could and/or should
+mean is [The Left Hand of Equals](http://web.cecs.pdx.edu/~black/publications/egal.pdf).
+[Here](http://lambda-the-ultimate.org/node/5509) is a discussion of
+that paper on a programming language theory discussion site.
+
+
 ## Motivation for writing this
 
 Occasionally on the Clojure Google group a person will express
