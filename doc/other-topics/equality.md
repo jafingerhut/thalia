@@ -60,10 +60,8 @@ Exceptions, or possible surprises:
   and their mutable Java counterparts.  Comparing a Clojure immutable
   set to a Java object implementing `java.util.Set` with equal
   elements will be `=`, but their `hash` values will usually be
-  different.  `hash` was consistent with `=` for these two kinds of
-  collections in Clojure 1.5.1, before `hash` was enhanced in Clojure
-  1.6.0.  (see
-  [CLJ-1372](http://dev.clojure.org/jira/browse/CLJ-1372))
+  different (see
+  [CLJ-1372](http://dev.clojure.org/jira/browse/CLJ-1372)).
 * `hash` is not consistent with `=` for objects with class `VecSeq`,
   returned from calls like `(seq (vector-of :int 0 1 2))` (see
   [CLJ-1364](http://dev.clojure.org/jira/browse/CLJ-1364))
@@ -379,7 +377,7 @@ that for any two objects `x` and `y` where `equals` is true,
 `x.hashCode()` and `y.hashCode()` are equal, too.
 
 This hash consistency property makes it possible to use `hashCode` to
-implement hash-based data structures like maps and sets using hashing
+implement hash-based data structures like maps and sets that use hashing
 techniques internally.  For example, a hash table could be used to
 implement a set, and it will be guaranteed that objects with different
 `hashCode` values can be put into different hash buckets, and objects
@@ -500,42 +498,13 @@ Clojure defaults to doubles for floating point values, so that may be
 the most convenient choice.
 
 Rich Hickey has decided that changing this inconsistency in hash
-values for types `Float` and `Double` is out of scope for Clojure.
-Ticket [CLJ-1649](http://dev.clojure.org/jira/browse/CLJ-1649) has
-been filed suggesting a change that `=` always return false when
-comparing floats to doubles, which would make `hash` consistent with
-`=` by eliminating the restriction on `hash`, but there is no decision
-on that yet.
-
-(Clojure 1.5.1) `hash` is inconsistent with `=` for some BigInteger
-values that are `=` to numbers of other types.  This is fixed in
-Clojure 1.6.0 with [this
-commit](https://github.com/clojure/clojure/commit/96e72517615cd2ccdb4fdbbeb6ffba5ad99dbdac).
-
-```clojure
-user> (= (int -1) (long -1) (bigint -1) (biginteger -1))
-true
-
-;; Clojure 1.5.1
-
-user> (map hash [(int -1) (long -1) (bigint -1) (biginteger -1)])
-(0 0 0 -1)
-user> (hash-map (long -1) :minus-one (biginteger -1) :oops)
-{-1 :minus-one, -1 :oops}
-
-;; Clojure 1.6.0
-
-user=> (map hash [(int -1) (long -1) (bigint -1) (biginteger -1)])
-(1651860712 1651860712 1651860712 1651860712)
-user=> (hash-map (long -1) :minus-one (biginteger -1) :much-better)
-{-1 :much-better}
-```
-
-You can avoid the `BigInteger` issue in Clojure 1.5.1 by not using
-values of that type.  You are most likely to encounter them in Clojure
-through interop with Java libraries.  In that case, converting them to
-`BigInt` via the `bigint` function at the Clojure/Java boundary would
-be safest.
+values for types `Float` and `Double` is out of scope for Clojure
+(mentioned in a comment of
+[CLJ-1036](http://dev.clojure.org/jira/browse/CLJ-1036)).  Ticket
+[CLJ-1649](http://dev.clojure.org/jira/browse/CLJ-1649) has been filed
+suggesting a change that `=` always return false when comparing floats
+to doubles, which would make `hash` consistent with `=` by eliminating
+the restriction on `hash`, but there is no decision on that yet.
 
 
 ## Implementation details
@@ -589,6 +558,36 @@ equality in most cases.
 * (Clojure 1.5.1) `=` and `==` are false for BigDecimal values with
   different scales, e.g. `(== 1.50M 1.500M)` is false.  (fixed in
   Clojure 1.6.0)
+
+(Clojure 1.5.1) `hash` is inconsistent with `=` for some BigInteger
+values that are `=` to numbers of other types.  This is fixed in
+Clojure 1.6.0 with [this
+commit](https://github.com/clojure/clojure/commit/96e72517615cd2ccdb4fdbbeb6ffba5ad99dbdac).
+
+```clojure
+user> (= (int -1) (long -1) (bigint -1) (biginteger -1))
+true
+
+;; Clojure 1.5.1
+
+user> (map hash [(int -1) (long -1) (bigint -1) (biginteger -1)])
+(0 0 0 -1)
+user> (hash-map (long -1) :minus-one (biginteger -1) :oops)
+{-1 :minus-one, -1 :oops}
+
+;; Clojure 1.6.0
+
+user=> (map hash [(int -1) (long -1) (bigint -1) (biginteger -1)])
+(1651860712 1651860712 1651860712 1651860712)
+user=> (hash-map (long -1) :minus-one (biginteger -1) :much-better)
+{-1 :much-better}
+```
+
+You can avoid the `BigInteger` issue in Clojure 1.5.1 by not using
+values of that type.  You are most likely to encounter them in Clojure
+through interop with Java libraries.  In that case, converting them to
+`BigInt` via the `bigint` function at the Clojure/Java boundary would
+be safest.
 
 Clojure 1.5.1 inherits Java's exception for BigDecimal with the same
 numeric value but different scales, i.e. `(= 1.50M 1.500M)` is false.
