@@ -1,13 +1,8 @@
 # Equality
 
+This document discusses the concept of equality in Clojure, including the functions `=`, `==`, and `identical?`, and how they differ from Java's `equals` method.  It also has some description of Clojure's `hash`, and how it differs from Java's `hashCode`. The beginning of this guide provides a summary of the most important information for quick reference followed by a much more extensive review of the details.
 
-## Version info
-
-This document discusses the behavior of equality in Clojure 1.5.1 and
-Clojure 1.6.0, including the functions `=`, `==`, and `identical?`,
-and how they differ from Java's `equals` method.  It also has some
-description of Clojure's `hash`, and how it differs from Java's
-`hashCode`.
+_Information in this guide describes the behavior of Clojure 1.9.0 unless noted otherwise._
 
 
 ## Summary
@@ -16,25 +11,27 @@ Clojure's `=` is true when called with two values, if:
 
 * Both arguments are numbers in the same 'category', and numerically
   the same, where category is one of (integer or ratio), floating
-  point, or BigDecimal.  Use `==` if you want to compare for numerical
-  equality between different categories, or you want an exception
-  thrown if either value is not a number.
-* Both arguments are sequences, lists, vectors, or queues, with `=`
-  elements in the same order (including non-Clojure Java lists
-  implementing `java.util.List`).
-* Both arguments are sets, with `=` elements, ignoring order
-  (including non-Clojure Java sets implementing `java.util.Set`).
-* Both arguments are maps, with `=` key/value pairs, ignoring order
-  (including non-Clojure Java maps implementing `java.util.Map`).
-* Both arguments are symbols, or both keywords, with equal namespaces
-  and names.
+  point, or BigDecimal.
+* Both arguments are _sequential_ (sequences, lists, vectors, queues, or
+  Java collections implementing `java.util.List`) with `=`
+  elements in the same order.
+* Both arguments are sets (including Java sets implementing `java.util.Set`),
+  with `=` elements, ignoring order.
+* Both arguments are maps (including Java maps implementing `java.util.Map`),
+  with `=` keys *and* values, ignoring entry order.
+* Both arguments are symbols, or both keywords, with equal namespaces and names.
 * Both arguments are the same type defined with `deftype`.  The type's
   `equiv` method is called and its return value becomes the value of
   `(= x y)`.
-* Both arguments are refs, vars, or atoms, and they are the same
+* Both arguments are refs, vars, or atoms, and they are the identical
   object, i.e. `(identical?  x y)` is true.
 * For other types, Java's `x.equals(y)` is true.  The result should be
   unsurprising for `nil`, booleans, characters, and strings.
+
+Clojure's `==` is intended specifically for numerical values:
+
+* `==` can be used with numbers across different number categories (such as `0` and `0.0`).
+* If any value being compared is not a number, an exception is thrown.
 
 If you call `=` or `==` with more than two arguments, the result will
 be true when all consecutive pairs are `=` or `==`.  `hash` is
@@ -45,24 +42,23 @@ Exceptions, or possible surprises:
 * When comparing collections with `=`, numbers within the collections
   are also compared with `=`, so the three numeric categories above
   are significant.
-* `hash` is consistent with `=` for numbers, except for some Float and
-  Double values.  This leads to odd behavior if you use them as set
-  elements or map keys.  Convert floats and doubles to a common type
-  with `(float x)` or `(double x)`, to avoid this issue.
+* `hash` is consistent with `=` for numbers, except for special float and
+  double values.  This leads to odd behavior if you use them as set
+  elements or map keys.  Convert floats to doubles with `(double x)` to avoid this issue.
 * 'Not a Number' values `Float/NaN` and `Double/NaN` are not `=` or
   `==` to anything, not even themselves.  This leads to odd behavior
   if you use them as set elements or map keys.
+* TODO: -0.0 / 0.0 and +Infinity, -Infinity
 * Clojure regex's, e.g. #"a.*bc", are implemented using Java
   `java.util.regex.Pattern` objects, and Java's `equals` on two
   `Pattern` objects returns `(identical? re1 re2)`.  Thus `(= #"abc"
   #"abc")` returns false, and only returns true if two regex's happen
-  to be the same identical object in memory.  Recommendation: Don't
-  use regex's as set elements or keys.  If you feel the need to,
-  consider converting them to strings first, e.g. `(str #"abc")` ->
-  "abc".
-* (Clojure 1.6.0) `hash` is not consistent with `=` for immutable
+  to be the same identical object in memory.
+  _Recommendation:_ Don't use regex instances as set elements or keys.  If you feel the need to,
+  consider converting them to strings first, e.g. `(str #"abc")` -> "abc".
+* `hash` is not consistent with `=` for immutable
   Clojure collections and their mutable Java counterparts.  Comparing
-  a Clojure immutable set to a non-Clojure Java object implementing
+  a Clojure immutable set to a Java object implementing
   `java.util.Set` with equal elements will be `=`, but their `hash`
   values will usually be different.  `hash` was consistent with `=`
   for these two kinds of collections in Clojure 1.5.1, before `hash`
@@ -70,12 +66,6 @@ Exceptions, or possible surprises:
 * `hash` is not consistent with `=` for objects with class `VecSeq`,
   returned from calls like `(seq (vector-of :int 0 1 2))` (see
   [CLJ-1364][CLJ-1364])
-* (Clojure 1.5.1) `hash` is not consistent with `=` for some
-  BigInteger values.  Convert them to BigInt using `(bigint x)`.
-  (fixed in Clojure 1.6.0)
-* (Clojure 1.5.1) `=` and `==` are false for BigDecimal values with
-  different scales, e.g. `(== 1.50M 1.500M)` is false.  (fixed in
-  Clojure 1.6.0)
 
 
 ## Introduction
@@ -107,11 +97,9 @@ user> (= 2 2.0)
 false
 ```
 
-If you want to test for numeric equality, `==` is probably what you
-want.  See the section "Numbers" below for details.
+If you want to test for numeric equality across numeric partitions, use `==`.  See the section "Numbers" below for details.
 
-Sequences, vectors, lists, and queues with equal elements in the same
-order are equal:
+Sequential collections (sequences, vectors, lists, and queues) with equal elements in the same order are equal:
 
 ```clojure
 user> (range 3)
@@ -131,31 +119,7 @@ user> (= '(0 1 2) '(0 1 2.0))
 false
 ```
 
-This is so even though sequences, vectors, etc. are not the same type.
-There are some functions like `conj` where you can give them arguments
-that are all equal, but the return values are not equal:
-
-```clojure
-user> (def s1 (range 3))
-#'user/s1
-user> (def v1 [0 1 2])
-#'user/v1
-user> (= s1 v1)
-true
-user> (= (conj s1 4) (conj v1 4))
-false
-user> (conj s1 4)
-(4 0 1 2)
-user> (conj v1 4)
-[0 1 2 4]
-```
-
-This property of `=` has been true for a long time in Clojure (TBD:
-since version 1.0 or even before?), and can be a significant
-convenience given the prevalence of sequences and vectors.
-
-Two sets are equal if they have equal elements.  The order of the
-elements is not considered, nor is whether the sets are sorted.
+Two sets are equal if they have equal elements.  Sets are normally unordered but even with sorted sets, the sort order is not considered when comparing for equality.
 
 ```clojure
 user> (def s1 (hash-set 1 2000 30000))
@@ -171,8 +135,8 @@ true
 ```
 
 Two maps are equal if they have the same set of keys, and each key
-maps to equal values in each map.  The order of the key/value pairs is
-not considered, nor is whether the maps are sorted.
+maps to equal values in each map. As with sets, maps are unordered
+and the sort order is not considered for sorted maps.
 
 ```clojure
 user> (def m1 (sorted-map-by > 3 -7 5 10 15 20))
@@ -187,9 +151,8 @@ user> (= m1 m2)
 true
 ```
 
-Note that while it is possible to create a map that maps integers to
-values, and do so in a way very similar to a vector, these are not
-considered `=` in Clojure:
+Note that while vectors are indexed and possess some map-like qualities, maps
+and vectors never compare as `=` in Clojure:
 
 ```clojure
 user> (def v1 ["a" "b" "c"])
@@ -274,8 +237,7 @@ behavior is documented for BigDecimal method
 Clojure `=` is true if the 'category' and numeric values are the same.
 Category is one of:
 
-* integer: all integer types including BigInteger and BigInt, or
-  ratios (Java type Ratio)
+* integer: all integer types including BigInteger and BigInt, or ratios (Java type Ratio)
 * floating: Float and Double
 * decimal: BigDecimal
 
@@ -634,3 +596,13 @@ TBD: Mention Clojure `identity?`, same as Java object identity `==`,
 and how it is typically only a good idea to use it in Java interop
 cases where you need Java `==`.  It is better to use Clojure `=` value
 equality in most cases.
+
+
+## Historical notes
+
+* (Clojure 1.5.1) `hash` is not consistent with `=` for some
+  BigInteger values.  Convert them to BigInt using `(bigint x)`.
+  (fixed in Clojure 1.6.0)
+* (Clojure 1.5.1) `=` and `==` are false for BigDecimal values with
+  different scales, e.g. `(== 1.50M 1.500M)` is false.  (fixed in
+  Clojure 1.6.0)
