@@ -200,12 +200,10 @@ Unicode where strings that consist of different sequences of Unicode
 characters can look the same when displayed, and in some applications
 should be treated as equal even though `=` returns false.  See
 "Normalization" on the Wikipedia page on [Unicode
-equivalence][UnicodeEquivalence] if you are interested.  There are
-libraries like [ICU4J][ICU] (International Components for Unicode for
-Java) that can help if you need to do this.
-
-[UnicodeEquivalence]: http://en.wikipedia.org/wiki/Unicode_equivalence
-[ICU]: http://site.icu-project.org/
+equivalence](http://en.wikipedia.org/wiki/Unicode_equivalence) if you
+are interested.  There are libraries like
+[ICU4J](http://site.icu-project.org) (International Components for
+Unicode for Java) that can help if you need to do this.
 
 Two symbols are equal if they have the same namespace and symbol name.
 Two keywords are equal given the same conditions.  Clojure makes
@@ -231,9 +229,7 @@ Long 1, because they have different types.  Exception: Java `equals`
 is also false for two BigDecimal values that are numerically equal if
 they have different scales, e.g. 1.50M and 1.500M are not equal.  This
 behavior is documented for BigDecimal method
-[`equals`][Java-BigDecimal-equals].
-
-[Java-BigDecimal-equals]: http://docs.oracle.com/javase/6/docs/api/java/math/BigDecimal.html#equals%28java.lang.Object%29
+[`equals`](https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html#equals-java.lang.Object-).
 
 Clojure `=` is true if the 'category' and numeric values are the same.
 Category is one of:
@@ -251,10 +247,6 @@ are auto-converted to BigInts if they are whole numbers.  Thus any
 Clojure number that is a still a ratio cannot equal any integer, so
 `=` always gives the correct numerical answer when comparing two such
 numbers (false).
-
-Clojure 1.5.1 inherits Java's exception for BigDecimal with the same
-numeric value but different scales, i.e. `(= 1.50M 1.500M)` is false.
-This is corrected in Clojure 1.6.0 (see [CLJ-1118][CLJ-1118]).
 
 Clojure also has `==` that is only useful for comparing numbers.  It
 returns true whenever `=` does.  It also returns true for numbers that
@@ -293,17 +285,16 @@ user> (== d1 10.0)
 false
 ```
 
-There is a whole field called [Numerical Analysis][NumericalAnalysis]
-dedicated to studying algorithms that use numerical approximation.
-There are libraries of Fortran code that are used because their order
-of floating point operations is carefully crafted to give guarantees
-on the difference between their approximate answers and the exact
+There is a whole field called [Numerical
+Analysis](https://en.wikipedia.org/wiki/Numerical_analysis) dedicated
+to studying algorithms that use numerical approximation.  There are
+libraries of Fortran code that are used because their order of
+floating point operations is carefully crafted to give guarantees on
+the difference between their approximate answers and the exact
 answers.  ["What Every Computer Scientist Should Know About
-Floating-Point Arithmetic"][WECSSKAFP] is good reading if you want
-quite a few details.
-
-[NumericalAnalysis]: https://en.wikipedia.org/wiki/Numerical_analysis
-[WECSSKAFP]: http://docs.oracle.com/cd/E19957-01/806-3568/ncg_goldberg.html
+Floating-Point
+Arithmetic"](http://docs.oracle.com/cd/E19957-01/806-3568/ncg_goldberg.html)
+is good reading if you want quite a few details.
 
 If you want exact answers for at least some kinds of problems, ratios
 or BigDecimals might suit your needs.  Realize that these require
@@ -317,10 +308,9 @@ or the square root of 2.
 
 Clojure uses the underlying Java double-size floating point numbers
 (64-bit) with representation and behavior defined by a standard, IEEE
-754.  There is a special value [`NaN`][IEEE754NaN] ("Not A Number")
-that is not even equal to itself.
-
-[IEEE754NaN]: http://en.wikipedia.org/wiki/NaN
+754.  There is a special value
+[`NaN`](http://en.wikipedia.org/wiki/NaN) ("Not A Number") that is not
+even equal to itself.
 
 ```clojure
 user> (Math/sqrt -1)
@@ -486,15 +476,14 @@ with `=`.
 
 ### Bugs
 
-(Clojure 1.5.1) [CLJ-1118][CLJ-1118] mentioned above, fixed in Clojure
-1.6.0.
-
 (Clojure 1.6.0 through Clojure 1.9.0)
 [CLJ-1372](http://dev.clojure.org/jira/browse/CLJ-1372) described with
 examples above.
 
-(Clojure 1.6.0) [CLJ-1649][CLJ-1649]: For some Float and Double values
-that are `=` to each other, their `hash` values are inconsistent:
+(Clojure 1.6.0 through Clojure 1.9.0)
+[CLJ-1649](http://dev.clojure.org/jira/browse/CLJ-1649): For some
+Float and Double values that are `=` to each other, their `hash`
+values are inconsistent:
 
 ```clojure
 user> (= (float 1.0e9) (double 1.0e9))
@@ -512,10 +501,11 @@ the most convenient choice.
 
 Rich Hickey has decided that changing this inconsistency in hash
 values for types `Float` and `Double` is out of scope for Clojure.
-Ticket [CLJ-1649][CLJ-1649] has been filed suggesting a change that
-`=` always return false when comparing floats to doubles, which would
-make `hash` consistent with `=` by eliminating the restriction on
-`hash`, but there is no decision on that yet.
+Ticket [CLJ-1649](http://dev.clojure.org/jira/browse/CLJ-1649) has
+been filed suggesting a change that `=` always return false when
+comparing floats to doubles, which would make `hash` consistent with
+`=` by eliminating the restriction on `hash`, but there is no decision
+on that yet.
 
 (Clojure 1.5.1) `hash` is inconsistent with `=` for some BigInteger
 values that are `=` to numbers of other types.  This is fixed in
@@ -547,12 +537,6 @@ through interop with Java libraries.  In that case, converting them to
 `BigInt` via the `bigint` function at the Clojure/Java boundary would
 be safest.
 
-[CLJ-1036]: http://dev.clojure.org/jira/browse/CLJ-1036
-[CLJ-1118]: http://dev.clojure.org/jira/browse/CLJ-1118
-[CLJ-1364]: http://dev.clojure.org/jira/browse/CLJ-1364
-[CLJ-1372]: http://dev.clojure.org/jira/browse/CLJ-1372
-[CLJ-1649]: http://dev.clojure.org/jira/browse/CLJ-1649
-
 
 ## Implementation details
 
@@ -564,22 +548,18 @@ Numbers.java `equal` and `category`.  For `==`, Numbers.java `equiv`.
 
 See these for examples on how to do this, and much more:
 
-* [data.priority-map][data.priority-map]
-* [flatland/ordered-set][flatland-ordered-set]
-
-[data.priority-map]: https://github.com/clojure/data.priority-map
-[flatland-ordered-set]: https://github.com/flatland/ordered
+* [data.priority-map](https://github.com/clojure/data.priority-map)
+* [flatland/ordered-set](https://github.com/flatland/ordered)
 
 
 ## References
 
 The paper ["Equal Rights for Functional Objects, or, the More Things
-Change, The More They Are the Same"][BakerObjectIdentity] by Henry
+Change, The More They Are the
+Same"](http://home.pipeline.com/~hbaker1/ObjectIdentity.html) by Henry
 Baker includes code written in Common Lisp, but the idea of equality
 making sense for immutable values, and not as much sense for mutable
 objects, is independent of programming language:
-
-[BakerObjectIdentity]: http://home.pipeline.com/~hbaker1/ObjectIdentity.html
 
 
 TBD: Other Clojure tickets to mention somewhere in this article,
@@ -609,3 +589,8 @@ equality in most cases.
 * (Clojure 1.5.1) `=` and `==` are false for BigDecimal values with
   different scales, e.g. `(== 1.50M 1.500M)` is false.  (fixed in
   Clojure 1.6.0)
+
+Clojure 1.5.1 inherits Java's exception for BigDecimal with the same
+numeric value but different scales, i.e. `(= 1.50M 1.500M)` is false.
+This was corrected in Clojure 1.6.0 (see
+[CLJ-1118](http://dev.clojure.org/jira/browse/CLJ-1118)).
