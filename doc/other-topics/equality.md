@@ -56,16 +56,17 @@ Exceptions, or possible surprises:
   to be the same identical object in memory.
   _Recommendation:_ Don't use regex instances as set elements or keys.  If you feel the need to,
   consider converting them to strings first, e.g. `(str #"abc")` -> "abc".
-* `hash` is not consistent with `=` for immutable
-  Clojure collections and their mutable Java counterparts.  Comparing
-  a Clojure immutable set to a Java object implementing
-  `java.util.Set` with equal elements will be `=`, but their `hash`
-  values will usually be different.  `hash` was consistent with `=`
-  for these two kinds of collections in Clojure 1.5.1, before `hash`
-  was enhanced in Clojure 1.6.0.  (see [CLJ-1372][CLJ-1372])
+* `hash` is not consistent with `=` for immutable Clojure collections
+  and their mutable Java counterparts.  Comparing a Clojure immutable
+  set to a Java object implementing `java.util.Set` with equal
+  elements will be `=`, but their `hash` values will usually be
+  different.  `hash` was consistent with `=` for these two kinds of
+  collections in Clojure 1.5.1, before `hash` was enhanced in Clojure
+  1.6.0.  (see
+  [CLJ-1372](http://dev.clojure.org/jira/browse/CLJ-1372))
 * `hash` is not consistent with `=` for objects with class `VecSeq`,
   returned from calls like `(seq (vector-of :int 0 1 2))` (see
-  [CLJ-1364][CLJ-1364])
+  [CLJ-1364](http://dev.clojure.org/jira/browse/CLJ-1364))
 
 
 ## Introduction
@@ -488,7 +489,9 @@ with `=`.
 (Clojure 1.5.1) [CLJ-1118][CLJ-1118] mentioned above, fixed in Clojure
 1.6.0.
 
-(Clojure 1.6.0) [CLJ-1372][CLJ-1372] described with examples above.
+(Clojure 1.6.0 through Clojure 1.9.0)
+[CLJ-1372](http://dev.clojure.org/jira/browse/CLJ-1372) described with
+examples above.
 
 (Clojure 1.6.0) [CLJ-1649][CLJ-1649]: For some Float and Double values
 that are `=` to each other, their `hash` values are inconsistent:
