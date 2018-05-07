@@ -7,26 +7,48 @@ _Information in this guide describes the behavior of Clojure 1.9.0 unless noted 
 
 ## Summary
 
-Clojure's `=` is true when called with two values, if:
+Clojure's `=` is true when comparing immutable values that represent
+the same value, or when comparing mutable objects that are the
+identical object.  As a convenience, `=` also returns true when used
+to compare Java collections against each other, or against Clojure's
+immutable collections, if their contents are equal.  However, this is
+a "shallow" equality for non-Clojure maps and sets.
 
+Clojure's `=` is true when called with two immutable scalar values, if:
+
+* Both arguments are `nil`, `true`, `false`, the same character, or
+  the same string (i.e. the same sequence of characters).
+* Both arguments are symbols, or both keywords, with equal namespaces and names.
 * Both arguments are numbers in the same 'category', and numerically
   the same, where category is one of (integer or ratio), floating
-  point, or BigDecimal.
-* Both arguments are _sequential_ (sequences, lists, vectors, queues, or
-  Java collections implementing `java.util.List`) with `=`
-  elements in the same order.
-* Both arguments are sets (including Java sets implementing `java.util.Set`),
-  with `=` elements, ignoring order.
-* Both arguments are maps (including Java maps implementing `java.util.Map`),
-  with `=` keys *and* values, ignoring entry order.
-* Both arguments are symbols, or both keywords, with equal namespaces and names.
+  point (float or double), or
+  [BigDecimal](https://docs.oracle.com/javase/8/docs/api/java/math/BigDecimal.html).
+
+Clojure's `=` is true when called with two collections, if:
+
+* Both arguments are _sequential_ (sequences, lists, vectors, queues,
+  or Java collections implementing `java.util.List`) with `=` elements
+  in the same order.
+* Both arguments are sets (including Java sets implementing
+  `java.util.Set`), with `=` elements, ignoring order.
+* Both arguments are maps (including Java maps implementing
+  `java.util.Map`), with `=` keys *and* values, ignoring entry order.
+* Both arguments are records created with `defrecord`, with `=` keys
+  *and* values, ignoring order, _and_ they have the same type.  `=`
+  returns `false` when comparing a record to a map, even if they have
+  `=` key/value entries.
+
+Clojure's `=` is true when called with two mutable Clojure objects, if:
+
+* Both arguments are vars, refs, atoms, or agents, and they are the
+  identical object, i.e. `(identical?  x y)` is true.
+
+For all other types:
+
 * Both arguments are the same type defined with `deftype`.  The type's
   `equiv` method is called and its return value becomes the value of
   `(= x y)`.
-* Both arguments are refs, vars, or atoms, and they are the identical
-  object, i.e. `(identical?  x y)` is true.
-* For other types, Java's `x.equals(y)` is true.  The result should be
-  unsurprising for `nil`, booleans, characters, and strings.
+* For other types, Java's `x.equals(y)` is true.
 
 Clojure's `==` is intended specifically for numerical values:
 
@@ -54,7 +76,7 @@ Exceptions, or possible surprises:
   `Pattern` objects returns `(identical? re1 re2)`.  Thus `(= #"abc"
   #"abc")` returns false, and only returns true if two regex's happen
   to be the same identical object in memory.
-  _Recommendation:_ Don't use regex instances as set elements or keys.  If you feel the need to,
+  _Recommendation:_ Don't use regex instances as set elements or map keys.  If you feel the need to,
   consider converting them to strings first, e.g. `(str #"abc")` -> "abc".
 * `hash` is not consistent with `=` for immutable Clojure collections
   and their mutable Java counterparts.  Comparing a Clojure immutable
@@ -210,9 +232,8 @@ comparison).  It achieves this by its `intern` method of the Keyword
 class guaranteeing that all keywords with the same namespace and name
 will return the same keyword object.
 
-Like keywords, Clojure refs, vars, and atoms are only equal to others
-if they are the same object.  Unlike keywords, these types are
-mutable.
+Clojure mutable objects -- vars, refs, atoms, and agents -- are only
+`=` to others if they are the same object.
 
 TBD: Is there any issue with using them as set elements or map keys?
 Do they have consistent hash values even when their contents change?
@@ -531,25 +552,6 @@ making sense for immutable values, and not as much sense for mutable
 objects, is independent of programming language:
 
 
-TBD: Other Clojure tickets to mention somewhere in this article,
-perhaps:
-
-* [CLJ-750][CLJ-750] clojure.lang.MapEntry violates .equals and .hashCode contracts of HashMap.Entry; leads to non-reflexive .equals, etc.
-* [CLJ-1059][CLJ-1059] PersistentQueue doesn't implement java.util.List, causing nontransitive equality
-* [CLJ-1242][CLJ-1242] = on sorted collections with different key types incorrectly throws
-* [CLJ-1860][CLJ-1860] 0.0 and -0.0 compare equal but have different hash values
-
-[CLJ-750]: http://dev.clojure.org/jira/browse/CLJ-750
-[CLJ-1059]: http://dev.clojure.org/jira/browse/CLJ-1059
-[CLJ-1242]: http://dev.clojure.org/jira/browse/CLJ-1242
-[CLJ-1860]: http://dev.clojure.org/jira/browse/CLJ-1860
-
-TBD: Mention Clojure `identity?`, same as Java object identity `==`,
-and how it is typically only a good idea to use it in Java interop
-cases where you need Java `==`.  It is better to use Clojure `=` value
-equality in most cases.
-
-
 ## Historical notes
 
 * (Clojure 1.5.1) `hash` is not consistent with `=` for some
@@ -593,3 +595,25 @@ Clojure 1.5.1 inherits Java's exception for BigDecimal with the same
 numeric value but different scales, i.e. `(= 1.50M 1.500M)` is false.
 This was corrected in Clojure 1.6.0 (see
 [CLJ-1118](http://dev.clojure.org/jira/browse/CLJ-1118)).
+
+
+## Things to do
+
+TBD: Other Clojure tickets to mention somewhere in this article,
+perhaps:
+
+* [CLJ-750](http://dev.clojure.org/jira/browse/CLJ-750) clojure.lang.MapEntry violates .equals and .hashCode contracts of HashMap.Entry; leads to non-reflexive .equals, etc.
+* [CLJ-1059](http://dev.clojure.org/jira/browse/CLJ-1059) PersistentQueue doesn't implement java.util.List, causing nontransitive equality
+* [CLJ-1242](http://dev.clojure.org/jira/browse/CLJ-1242) = on sorted collections with different key types incorrectly throws
+* [CLJ-1860](http://dev.clojure.org/jira/browse/CLJ-1860) 0.0 and -0.0 compare equal but have different hash values
+
+TBD: Mention Clojure `identity?`, same as Java object identity `==`,
+and how it is typically only a good idea to use it in Java interop
+cases where you need Java `==`.  It is better to use Clojure `=` value
+equality in most cases.
+
+TBD: Mention somewhere this rationale for Clojure records being
+unequal to records with different types, and to maps: When you define
+a Clojure record, you are doing so in order to create a distinct type
+that can be distinguished from other types -- you want each type to
+have its own behavior with Clojure protocols and multimethods.
