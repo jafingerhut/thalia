@@ -86,9 +86,10 @@ Exceptions, or possible surprises:
   implementing `java.util.List`, not even if they have `=` elements in
   the same order (see
   [CLJ-1059](http://dev.clojure.org/jira/browse/CLJ-1059))
-* Using `=` to compare sorted maps with maps that contain keys, where
-  `compare` throws an exception when comparing the different types of
-  keys, will in some cases throw an exception (see
+* Using `=` to compare a sorted map with another map, where `compare`
+  throws an exception when comparing their keys to each other because
+  they have different types (e.g. keywords vs. numbers), will in some
+  cases throw an exception (see
   [CLJ-2325](http://dev.clojure.org/jira/browse/CLJ-2325))
 
 In most cases, `hash` is consistent with `=`, meaning: if `(= x y)`,
