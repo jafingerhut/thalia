@@ -428,6 +428,8 @@ user> (hash (seq ["a" 5 :c]))
 1698166287
 user> (hash '("a" 5 :c))
 1698166287
+user> (hash (conj clojure.lang.PersistentQueue/EMPTY "a" 5 :c))
+1698166287
 ```
 
 However, since `hash` is not consistent with `=` when comparing
@@ -573,16 +575,10 @@ that have been considered so far, but as of this time no one has
 discovered a competitively fast way to do it.
 
 
-### Bugs
+### Other cases of `hash` inconsistent with `=`
 
-(Clojure 1.6.0 through Clojure 1.9.0)
-[CLJ-1372](http://dev.clojure.org/jira/browse/CLJ-1372) described with
-examples above.
-
-(Clojure 1.6.0 through Clojure 1.9.0)
-[CLJ-1649](http://dev.clojure.org/jira/browse/CLJ-1649): For some
-Float and Double values that are `=` to each other, their `hash`
-values are inconsistent:
+For some Float and Double values that are `=` to each other, their
+`hash` values are inconsistent:
 
 ```clojure
 user> (= (float 1.0e9) (double 1.0e9))
