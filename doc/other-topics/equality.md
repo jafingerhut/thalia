@@ -12,7 +12,7 @@ the same value, or when comparing mutable objects that are the
 identical object.  As a convenience, `=` also returns true when used
 to compare Java collections against each other, or against Clojure's
 immutable collections, if their contents are equal.  However, there
-are important caveats when using non-Clojure collections.
+are important caveats if you use non-Clojure collections.
 
 Clojure's `=` is true when called with two immutable scalar values, if:
 
