@@ -165,20 +165,20 @@ false
 Two sets are equal if they have equal elements.  Sets are normally unordered but even with sorted sets, the sort order is not considered when comparing for equality.
 
 ```clojure
-user> (def s1 (hash-set 1 2000 30000))
+user> (def s1 #{1999 2001 3001})
 #'user/s1
 user> s1
-#{1 30000 2000}
-user> (def s2 (sorted-set 30000 2000 1))
+#{2001 1999 3001}
+user> (def s2 (sorted-set 1999 2001 3001))
 #'user/s2
 user> s2
-#{1 2000 30000}
+#{1999 2001 3001}
 user> (= s1 s2)
 true
 ```
 
 Two maps are equal if they have the same set of keys, and each key
-maps to equal values in each map. As with sets, maps are unordered
+maps to equal values in each map.  As with sets, maps are unordered
 and the sort order is not considered for sorted maps.
 
 ```clojure
@@ -286,7 +286,7 @@ are numerically equal, even if they are in different categories.  Thus
 `(= 1 1.0)` is false, but `(== 1 1.0)` is true.
 
 Why does `=` have different categories for numbers, you might wonder?
-Best educated guess: It would not be easy to make `hash` consistent
+It would difficult (if it is even possible) to make `hash` consistent
 with `=` if it behaved like `==` (see section "Equality and hash"
 below).  Imagine trying to write `hash` such that it was guaranteed to
 return the same hash value for all of `(float 1.5)`, `(double 1.5)`,
@@ -368,12 +368,12 @@ user> (s1 1.0)
 user> (s1 1.5)
 nil
 user> (s1 Double/NaN)
-nil
+nil             ; cannot find Double/NaN in a set, because it is not = to itself
 
 user> (disj s1 2.0)
 #{1.0 Double/NaN}
 user> (disj s1 Double/NaN)
-#{2.0 1.0 Double/NaN}
+#{2.0 1.0 Double/NaN}    ; Double/NaN is still in the result!
 ```
 
 This also means that _any_ collection that contains `NaN` will never be `=` to anything else:
