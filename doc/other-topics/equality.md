@@ -258,19 +258,19 @@ behavior is documented for BigDecimal method
 Clojure `=` is true if the 'category' and numeric values are the same.
 Category is one of:
 
-* integer: all integer types including BigInteger and BigInt, or ratios (Java type Ratio)
-* floating point: Float and Double
-* decimal: BigDecimal
+* integer or ratios, where integer includes all Java integer types such as `Byte`, `Short`, `Integer`, `Long`, `BigInteger`, and `clojure.lang.BigInt`, and ratios are represented with the Java type named `clojure.lang.Ratio`.
+* floating point: `Float` and `Double`
+* decimal: `BigDecimal`
 
 So `(= (int 1) (long 1))` is true because they are in the same integer
 category, but `(= 1 1.0)` is false because they are in different
-categories (integer and floating).  While integers and ratios are
+categories (integer vs. floating).  While integers and ratios are
 separate types in the Clojure implementation, for the purposes of `=`
-they are effectively in the same category.  This is because ratios are
-auto-converted to BigInts if they are whole numbers.  Thus any Clojure
-number that has type Ratio cannot equal any integer, so `=` always
-gives the correct numerical answer (`false`) when comparing two such
-numbers.
+they are effectively in the same category.  The results of arithmetic
+operations on ratios are auto-converted to integers if they are whole
+numbers.  Thus any Clojure number that has type Ratio cannot equal any
+integer, so `=` always gives the correct numerical answer (`false`)
+when comparing a ratio to an integer.
 
 Clojure also has `==` that is only useful for comparing numbers.  It
 returns true whenever `=` does.  It also returns true for numbers that
@@ -278,12 +278,11 @@ are numerically equal, even if they are in different categories.  Thus
 `(= 1 1.0)` is false, but `(== 1 1.0)` is true.
 
 Why does `=` have different categories for numbers, you might wonder?
-Best educated guess, unconfirmed: It would not be easy to make `hash`
-consistent with `=` if it behaved like `==` (see section "Equality and
-hash" below).  Imagine trying to write `hash` such that it was
-guaranteed to return the same hash value for all of `(float 1.5)`,
-`(double 1.5)`, BigDecimal values 1.50M, 1.500M, etc. and the ratio
-`(/ 3 2)`.
+Best educated guess: It would not be easy to make `hash` consistent
+with `=` if it behaved like `==` (see section "Equality and hash"
+below).  Imagine trying to write `hash` such that it was guaranteed to
+return the same hash value for all of `(float 1.5)`, `(double 1.5)`,
+BigDecimal values 1.50M, 1.500M, etc. and the ratio `(/ 3 2)`.
 
 Clojure uses `=` to compare values for equality when they are used as
 elements in sets, or keys in maps.  Thus Clojure's numeric categories
@@ -442,18 +441,12 @@ java.util.ArrayList
 user=> (class clj-vec)
 clojure.lang.PersistentVector
 
-;; Java's `hashCode` is not a very good hash function when applied to collections.  For example, if you examine the `hashCode` values for all 10,000 vectors of 2 numbers, where both are in the range [0, 99], there are only 3,169 different `hashCode` results, meaning that on average 
-
-;; The `hash` values are different for java-list and clj-vec.  Java's `hashCode` is not a very good hash function when applied to collections.  This is not a pr`hash` was made different from Java `hashCode` for Clojure's immutable collections, since Clojure collections are more often used as set elements or map keys.
-
-;; Their hash values were the same with 1.5.1, but are different in
-;; 1.6.0.  `hash` was changed to avoid some common cases with too many
-;; hash collisions in Clojure 1.5.1.
+;; Their hash values are different, though.
 
 user=> (hash java-list)
 30817
 user=> (hash clj-vec)
-736442005                           ; was 30817 with Clojure 1.5.1
+736442005
 
 ;; If java-list and clj-vec are put into collections that do not use
 ;; their hash values, like a vector or array-map, then those
@@ -476,36 +469,47 @@ user=> (assoc {} java-list 5 clj-vec 3)
 user=> (class (hash-map java-list 5))
 clojure.lang.PersistentHashMap
 user=> (= (hash-map java-list 5) (hash-map clj-vec 5))
-false                               ; was true with Clojure 1.5.1
+false               ; sorry, not true
 user=> (= (hash-set java-list) (hash-set clj-vec))
-false                               ; was true with Clojure 1.5.1
+false               ; also not true
 
 user=> (get (hash-map java-list 5) java-list)
 5
 user=> (get (hash-map java-list 5) clj-vec)
-nil                                 ; was 5 with Clojure 1.5.1
+nil                 ; you were probably hoping for 5
 
 user=> (conj #{} java-list clj-vec)
-#{[1 2 3] [1 2 3]}                  ; was #{[1 2 3]} with Clojure 1.5.1
+#{[1 2 3] [1 2 3]}          ; you may have been expecting #{[1 2 3]}
 user=> (hash-map java-list 5 clj-vec 3)
-{[1 2 3] 5, [1 2 3] 3}              ; was {[1 2 3] 3} with Clojure 1.5.1
+{[1 2 3] 5, [1 2 3] 3}      ; I bet you wanted {[1 2 3] 3} instead
 ```
 
-Similar behavior occurs for Java collections that implement
-`java.util.List`, `java.util.Set`, and `java.util.Map`.  It also
-occurs for any values for which Clojure's `hash` is not consistent
-with `=`.
+Most of the time you use maps in Clojure, you do not specify whether
+you want an array map or a hash map.  By default you array maps are
+used if there are at most 8 keys, and hash maps are used if there are
+over 8 keys.  Clojure functions choose the implementation for you as
+you do operations on the maps.  Thus even if you tried to use array
+maps consistently, you are likely to frequently get hash maps as you
+create larger maps.
 
-TBD: Include any of this?
-  _Recommendation:_ Convert non-Clojure sets to Clojure sets using
-  `(set x)`.  Convert non-Clojure maps to Clojure maps using `(into {}
-  x)`.  That will convert the "top level" container, but not any
-  nested non-Clojure sets and maps that might lie within.  Converting
-  those would require some data-structure specific conversion, or a
-  "data structure walker" that traversed a nested data structure,
-  finding and converting non-Clojure sets and maps, e.g. perhaps
-  something based on `clojure.walk/postwalk` or
-  `clojure.walk/postwalk-replace`.
+We do _not_ recommend trying to avoid the use of hash-based sets and
+maps in Clojure.  They use hashing to help achieve high performance in
+their operations.  Instead we would recommend avoiding the use of
+non-Clojure collections as parts within Clojure collections.
+Primarily this advice is because most such non-Clojure collections are
+mutable, and mutability often leads to subtle bugs.  Another reason is
+the inconsistency of `hash` with `=`.
+
+Similar behavior occurs for Java collections that implement
+`java.util.List`, `java.util.Set`, and `java.util.Map`, and any of the
+few kinds of values for which Clojure's `hash` is not consistent with
+`=`.
+
+If you use hash-inconsistent values as parts within _any_ Clojure
+collection, even as elements in a sequential collection like a list or
+vector, those collections become hash-inconsistent with each other,
+too.  This occurs because the hash value of collections is calculated
+by combining the hash values of their parts.
 
 
 ### Historical notes on hash inconsistency for non-Clojure collections
