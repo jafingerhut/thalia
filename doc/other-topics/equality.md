@@ -485,7 +485,7 @@ user=> (hash-map java-list 5 clj-vec 3)
 ```
 
 Most of the time you use maps in Clojure, you do not specify whether
-you want an array map or a hash map.  By default you array maps are
+you want an array map or a hash map.  By default array maps are
 used if there are at most 8 keys, and hash maps are used if there are
 over 8 keys.  Clojure functions choose the implementation for you as
 you do operations on the maps.  Thus even if you tried to use array
@@ -549,11 +549,12 @@ Thus there are an average of 10,000 / 3,169 = 3.16 collisions per hash
 bucket if the map uses the default Clojure implementation of a
 hash-map.
 
-The Clojure developers analyzed several alternate hash functions, and
-chose one based on the Murmur3 hash function, which has been in use
-since Clojure 1.6.0.  It also uses a different way than Java's
-`hashCode` does to combine the hashes of multiple elements in a
-collection.
+The Clojure developers
+[analyzed](https://dev.clojure.org/display/design/Better+hashing)
+several alternate hash functions, and chose one based on the Murmur3
+hash function, which has been in use since Clojure 1.6.0.  It also
+uses a different way than Java's `hashCode` does to combine the hashes
+of multiple elements in a collection.
 
 At that time, Clojure could have changed `hash` to use the new
 technique for non-Clojure collections as well, but it was judged that
