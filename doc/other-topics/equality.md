@@ -70,17 +70,26 @@ Exceptions, or possible surprises:
   _Recommendation:_ Avoid including `NaN` inside of Clojure data
   structures where you want to compare them to each other using `=`,
   and sometimes get `true` as the result.
-* TODO: -0.0 / 0.0 and +Infinity, -Infinity
+* 0.0 is `=` to -0.0
 * Clojure regex's, e.g. #"a.*bc", are implemented using Java
   `java.util.regex.Pattern` objects, and Java's `equals` on two
-  `Pattern` objects returns `(identical? re1 re2)`.  Thus `(= #"abc"
-  #"abc")` returns false, and only returns true if two regex's happen
-  to be the same identical object in memory.  _Recommedation:_ Avoid
-  using regex instances inside of Clojure data structures where you
-  want to compare them to each other using `=`, and get `true` as the
-  result even if the regex instances are not identical objects.  If
-  you feel the need to, consider converting them to strings first,
-  e.g. `(str #"abc")` -> `"abc"`.
+  `Pattern` objects returns `(identical? re1 re2)`, even though they
+  are documented as immutable objects.  Thus `(= #"abc" #"abc")`
+  returns false, and `=` only returns true if two regex's happen to be
+  the same identical object in memory.  _Recommendation:_ Avoid using
+  regex instances inside of Clojure data structures where you want to
+  compare them to each other using `=`, and get `true` as the result
+  even if the regex instances are not identical objects.  If you feel
+  the need to, consider converting them to strings first, e.g. `(str
+  #"abc")` -> `"abc"`.
+* Clojure persistent queues are never `=` to Java collections
+  implementing `java.util.List`, not even if they have `=` elements in
+  the same order (see
+  [CLJ-1059](http://dev.clojure.org/jira/browse/CLJ-1059))
+* Using `=` to compare sorted maps with maps that contain keys, where
+  `compare` throws an exception when comparing the different types of
+  keys, will in some cases throw an exception (see
+  [CLJ-2325](http://dev.clojure.org/jira/browse/CLJ-2325))
 
 In most cases, `hash` is consistent with `=`, meaning: if `(= x y)`,
 then `(= (hash x) (hash y))`.  For any values or objects where this
@@ -222,8 +231,6 @@ Clojure `=` behaves the same as Java's `equals` for all types except
 numbers and Clojure collections.
 
 TBD: Behavior for records defined via `defrecord`.
-TBD: Behavior for types defined via `deftype`.
-TBD: Does it ever make sense to define `equiv` for such things?
 
 Booleans and characters are straightforward in their equality.
 
@@ -602,13 +609,14 @@ the restriction on `hash`, but there is no decision on that yet.
 
 ## Implementation details
 
-References to implementation code: For `=`, Util.java `equiv`,
-Numbers.java `equal` and `category`.  For `==`, Numbers.java `equiv`.
+References to implementation code: For `=`, see the method `equiv` in
+Clojure source file Util.java.  For `=` and `==` among numbers and the
+three numeric categories, see the Clojure source file Numbers.java.
 
 
 ## Defining equality for your own types
 
-See these for examples on how to do this, and much more:
+See these for examples on how to do this:
 
 * [data.priority-map](https://github.com/clojure/data.priority-map)
 * [flatland/ordered-set](https://github.com/flatland/ordered)
@@ -621,7 +629,8 @@ Change, The More They Are the
 Same"](http://home.pipeline.com/~hbaker1/ObjectIdentity.html) by Henry
 Baker includes code written in Common Lisp, but the idea of equality
 making sense for immutable values, and not as much sense for mutable
-objects, is independent of programming language:
+objects (unless the mutable objects are the same object in memory), is
+independent of programming language.
 
 
 ## Historical notes
@@ -675,14 +684,15 @@ TBD: Other Clojure tickets to mention somewhere in this article,
 perhaps:
 
 * [CLJ-750](http://dev.clojure.org/jira/browse/CLJ-750) clojure.lang.MapEntry violates .equals and .hashCode contracts of HashMap.Entry; leads to non-reflexive .equals, etc.
-* [CLJ-1059](http://dev.clojure.org/jira/browse/CLJ-1059) PersistentQueue doesn't implement java.util.List, causing nontransitive equality
 * [CLJ-1242](http://dev.clojure.org/jira/browse/CLJ-1242) = on sorted collections with different key types incorrectly throws
-* [CLJ-1860](http://dev.clojure.org/jira/browse/CLJ-1860) 0.0 and -0.0 compare equal but have different hash values
+* [CLJ-2089](http://dev.clojure.org/jira/browse/CLJ-2089) Sorted colls with default comparator don't check that first element is Comparable
 
 TBD: Mention Clojure `identity?`, same as Java object identity `==`,
 and how it is typically only a good idea to use it in Java interop
 cases where you need Java `==`.  It is better to use Clojure `=` value
 equality in most cases.
+
+* TODO: +Infinity, -Infinity  (what did Alex think was important to mention about those in this article?)
 
 TBD: Mention somewhere this rationale for Clojure records being
 unequal to records with different types, and to maps: When you define
@@ -690,10 +700,9 @@ a Clojure record, you are doing so in order to create a distinct type
 that can be distinguished from other types -- you want each type to
 have its own behavior with Clojure protocols and multimethods.
 
+TBD: Is there any issue with using Clojure mutable objects (vars,
+refs, atoms, and agents) as set elements or map keys?  Do they have
+consistent hash values even when their contents change?  If so, how?
 
-Clojure mutable objects -- vars, refs, atoms, and agents -- are only
-`=` to others if they are the same object.
-
-TBD: Is there any issue with using them as set elements or map keys?
-Do they have consistent hash values even when their contents change?
-If so, how?
+TBD: Behavior for types defined via `deftype`.
+TBD: Does it ever make sense to define `equiv` for such things?
