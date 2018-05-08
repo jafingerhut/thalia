@@ -20,9 +20,10 @@ Clojure's `=` is true when called with two immutable scalar values, if:
   the same string (i.e. the same sequence of characters).
 * Both arguments are symbols, or both keywords, with equal namespaces and names.
 * Both arguments are numbers in the same 'category', and numerically
-  the same, where category is one of (integer or ratio), floating
-  point (float or double), or
-  [BigDecimal](https://docs.oracle.com/javase/8/docs/api/java/math/BigDecimal.html).
+  the same, where category is one of:
+  * integer or ratio
+  * floating point (float or double)
+  * [BigDecimal](https://docs.oracle.com/javase/8/docs/api/java/math/BigDecimal.html).
 
 Clojure's `=` is true when called with two collections, if:
 
@@ -35,13 +36,13 @@ Clojure's `=` is true when called with two collections, if:
   `java.util.Map`), with `=` keys *and* values, ignoring entry order.
 * Both arguments are records created with `defrecord`, with `=` keys
   *and* values, ignoring order, _and_ they have the same type.  `=`
-  returns `false` when comparing a record to a map, even if they have
-  `=` key/value entries.
+  returns `false` when comparing a record to a map, regardless of
+  their keys and values, because they do not have the same type.
 
-Clojure's `=` is true when called with two mutable Clojure objects, if:
+Clojure's `=` is true when called with two mutable Clojure objects,
+i.e. vars, refs, atoms, or agents, if:
 
-* Both arguments are vars, refs, atoms, or agents, and they are the
-  identical object, i.e. `(identical?  x y)` is true.
+* Both arguments are the identical object, i.e. `(identical?  x y)` is true.
 
 For all other types:
 
@@ -52,7 +53,7 @@ For all other types:
 
 Clojure's `==` is intended specifically for numerical values:
 
-* `==` can be used with numbers across different number categories (such as `0` and `0.0`).
+* `==` can be used with numbers across different number categories (such as integer `0` and floating point `0.0`).
 * If any value being compared is not a number, an exception is thrown.
 
 If you call `=` or `==` with more than two arguments, the result will
@@ -64,26 +65,37 @@ Exceptions, or possible surprises:
 * When comparing collections with `=`, numbers within the collections
   are also compared with `=`, so the three numeric categories above
   are significant.
-* `hash` is consistent with `=` for numbers, except for special float and
-  double values.  This leads to odd behavior if you use them as set
-  elements or map keys.  Convert floats to doubles with `(double x)` to avoid this issue.
 * 'Not a Number' values `Float/NaN` and `Double/NaN` are not `=` or
-  `==` to anything, not even themselves.  This leads to odd behavior
-  if you use them as set elements or map keys.
+  `==` to anything, not even themselves.
+  _Recommendation:_ Avoid including `NaN` inside of Clojure data
+  structures where you want to compare them to each other using `=`,
+  and sometimes get `true` as the result.
 * TODO: -0.0 / 0.0 and +Infinity, -Infinity
 * Clojure regex's, e.g. #"a.*bc", are implemented using Java
   `java.util.regex.Pattern` objects, and Java's `equals` on two
   `Pattern` objects returns `(identical? re1 re2)`.  Thus `(= #"abc"
   #"abc")` returns false, and only returns true if two regex's happen
-  to be the same identical object in memory.
-  _Recommendation:_ Don't use regex instances as set elements or map keys.  If you feel the need to,
-  consider converting them to strings first, e.g. `(str #"abc")` -> "abc".
+  to be the same identical object in memory.  _Recommedation:_ Avoid
+  using regex instances inside of Clojure data structures where you
+  want to compare them to each other using `=`, and get `true` as the
+  result even if the regex instances are not identical objects.  If
+  you feel the need to, consider converting them to strings first,
+  e.g. `(str #"abc")` -> `"abc"`.
+
+In most cases, `hash` is consistent with `=`, meaning: if `(= x y)`,
+then `(= (hash x) (hash y))`.  For any values or objects where this
+does not hold, Clojure hash-based collections will not be able to find
+or remove those items correctly, i.e. for hash-based sets with those
+items as elements, or hash-based maps with those items as keys.
+
+* `hash` is consistent with `=` for numbers, except for special float
+  and double values.  _Recommendation:_ Convert floats to doubles with
+  `(double x)` to avoid this issue.
 * `hash` is not consistent with `=` for immutable Clojure collections
-  and their mutable Java counterparts.  Comparing a Clojure immutable
-  set to a Java object implementing `java.util.Set` with equal
-  elements will be `=`, but their `hash` values will usually be
-  different (see
-  [CLJ-1372](http://dev.clojure.org/jira/browse/CLJ-1372)).
+  and their non-Clojure counterparts.  See the "Equality and hash"
+  section below for more details.  _Recommendation:_ Convert
+  non-Clojure collections to their Clojure immutable counterparts
+  before including them in other Clojure data structures.
 * `hash` is not consistent with `=` for objects with class `VecSeq`,
   returned from calls like `(seq (vector-of :int 0 1 2))` (see
   [CLJ-1364](http://dev.clojure.org/jira/browse/CLJ-1364))
@@ -118,7 +130,7 @@ user> (= 2 2.0)
 false
 ```
 
-If you want to test for numeric equality across numeric partitions, use `==`.  See the section "Numbers" below for details.
+If you want to test for numeric equality across different numeric categories, use `==`.  See the section "Numbers" below for details.
 
 Sequential collections (sequences, vectors, lists, and queues) with equal elements in the same order are equal:
 
@@ -232,13 +244,6 @@ comparison).  It achieves this by its `intern` method of the Keyword
 class guaranteeing that all keywords with the same namespace and name
 will return the same keyword object.
 
-Clojure mutable objects -- vars, refs, atoms, and agents -- are only
-`=` to others if they are the same object.
-
-TBD: Is there any issue with using them as set elements or map keys?
-Do they have consistent hash values even when their contents change?
-If so, how?
-
 
 ## Numbers
 
@@ -254,18 +259,18 @@ Clojure `=` is true if the 'category' and numeric values are the same.
 Category is one of:
 
 * integer: all integer types including BigInteger and BigInt, or ratios (Java type Ratio)
-* floating: Float and Double
+* floating point: Float and Double
 * decimal: BigDecimal
 
 So `(= (int 1) (long 1))` is true because they are in the same integer
 category, but `(= 1 1.0)` is false because they are in different
-categories (integer and floating).  While integers and ratios are in
-separate categories in the Clojure implementation, for the purposes of
-`=` they are effectively in the same category.  This is because ratios
-are auto-converted to BigInts if they are whole numbers.  Thus any
-Clojure number that is a still a ratio cannot equal any integer, so
-`=` always gives the correct numerical answer when comparing two such
-numbers (false).
+categories (integer and floating).  While integers and ratios are
+separate types in the Clojure implementation, for the purposes of `=`
+they are effectively in the same category.  This is because ratios are
+auto-converted to BigInts if they are whole numbers.  Thus any Clojure
+number that has type Ratio cannot equal any integer, so `=` always
+gives the correct numerical answer (`false`) when comparing two such
+numbers.
 
 Clojure also has `==` that is only useful for comparing numbers.  It
 returns true whenever `=` does.  It also returns true for numbers that
@@ -341,10 +346,10 @@ false
 ```
 
 This leads to some odd behavior if this "value" appears in your data.
-While there is no error adding `NaN` as a set element or a key in a
+While no error occurs when adding `NaN` as a set element or a key in a
 map, you cannot then search for it and find it.  You also cannot
 remove it using functions like `disj` or `dissoc`.  It will appear
-normally in sequences of those collections.
+normally in sequences created from collections containing it.
 
 ```clojure
 user> (def s1 #{1.0 2.0 Double/NaN})
@@ -364,8 +369,7 @@ user> (disj s1 Double/NaN)
 #{2.0 1.0 Double/NaN}
 ```
 
-This also means that two sets with the same elements will not be `=`,
-if they contain `NaN`:
+This also means that _any_ collection that contains `NaN` will never be `=` to anything else:
 
 ```clojure
 user> (def s2 #{Double/NaN 2.0 1.0})
@@ -374,10 +378,9 @@ user> s2
 #{2.0 1.0 Double/NaN}
 user> (= s1 s2)
 false
+user> (= [1 Double/NaN] [1 Double/NaN])
+false
 ```
-
-Similar issues exist if you create a map containing `NaN` as a key or
-value.
 
 Java has a special case in its `equals` method for floating point
 values that makes `NaN` equal to itself.  Clojure `=` and `==` do not.
@@ -413,22 +416,19 @@ or queue:
 
 ```clojure
 user> (hash ["a" 5 :c])
-1014033862
+1698166287
 user> (hash (seq ["a" 5 :c]))
-1014033862
+1698166287
 user> (hash '("a" 5 :c))
-1014033862
+1698166287
 ```
 
-However, since `hash` is not consistent with `=` in Clojure 1.6.0 when
-comparing Clojure immutable collections with Java mutable collections,
+However, since `hash` is not consistent with `=` when comparing
+Clojure immutable collections with their non-Clojure counterparts,
 mixing the two can lead to undesirable behavior, as shown in the
 examples below.
 
 ```clojure
-;; The return values below are for Clojure 1.6.0.  Comments show which
-;; of these differ from Clojure 1.5.1.
-
 user=> (def java-list (java.util.ArrayList. [1 2 3]))
 #'user/java-list
 user=> (def clj-vec [1 2 3])
@@ -441,6 +441,10 @@ user=> (class java-list)
 java.util.ArrayList
 user=> (class clj-vec)
 clojure.lang.PersistentVector
+
+;; Java's `hashCode` is not a very good hash function when applied to collections.  For example, if you examine the `hashCode` values for all 10,000 vectors of 2 numbers, where both are in the range [0, 99], there are only 3,169 different `hashCode` results, meaning that on average 
+
+;; The `hash` values are different for java-list and clj-vec.  Java's `hashCode` is not a very good hash function when applied to collections.  This is not a pr`hash` was made different from Java `hashCode` for Clojure's immutable collections, since Clojure collections are more often used as set elements or map keys.
 
 ;; Their hash values were the same with 1.5.1, but are different in
 ;; 1.6.0.  `hash` was changed to avoid some common cases with too many
@@ -491,6 +495,69 @@ Similar behavior occurs for Java collections that implement
 `java.util.List`, `java.util.Set`, and `java.util.Map`.  It also
 occurs for any values for which Clojure's `hash` is not consistent
 with `=`.
+
+TBD: Include any of this?
+  _Recommendation:_ Convert non-Clojure sets to Clojure sets using
+  `(set x)`.  Convert non-Clojure maps to Clojure maps using `(into {}
+  x)`.  That will convert the "top level" container, but not any
+  nested non-Clojure sets and maps that might lie within.  Converting
+  those would require some data-structure specific conversion, or a
+  "data structure walker" that traversed a nested data structure,
+  finding and converting non-Clojure sets and maps, e.g. perhaps
+  something based on `clojure.walk/postwalk` or
+  `clojure.walk/postwalk-replace`.
+
+
+### Historical notes on hash inconsistency for non-Clojure collections
+
+You are likely wondering _why_ `hash` is not consistent with `=` for
+non-Clojure collections.  Non-Clojure collections have used Java's
+`hashCode` method long before Clojure existed.  When Clojure was
+initially developed, it used the same formula for calculating a hash
+function from collection elements as `hashCode` did.
+
+Before the release of Clojure 1.6.0 it was discovered that this use of
+`hashCode` for Clojure's `hash` function can lead to many hash
+collisions when small collections are used as set elements or map
+keys.
+
+For example, imagine a Clojure program that represents the contents of
+a 2-dimensional grid with 100 rows and 100 columns using a map with
+keys that are vectors of two numbers in the range [0, 99].  There are
+10,000 such points in this grid, so 10,000 keys in the map, but
+`hashCode` only gives 3,169 different results.
+
+```clojure
+user=> (def grid-keys (for [x (range 100), y (range 100)]
+                        [x y]))
+#'user/grid-keys
+user=> (count grid-keys)
+10000
+user=> (take 5 grid-keys)
+([0 0] [0 1] [0 2] [0 3] [0 4])
+user=> (take-last 5 grid-keys)
+([99 95] [99 96] [99 97] [99 98] [99 99])
+user=> (count (group-by #(.hashCode %) grid-keys))
+3169
+```
+
+Thus there are an average of 10,000 / 3,169 = 3.16 collisions per hash
+bucket if the map uses the default Clojure implementation of a
+hash-map.
+
+The Clojure developers analyzed several alternate hash functions, and
+chose one based on the Murmur3 hash function, which has been in use
+since Clojure 1.6.0.  It also uses a different way than Java's
+`hashCode` does to combine the hashes of multiple elements in a
+collection.
+
+At that time, Clojure could have changed `hash` to use the new
+technique for non-Clojure collections as well, but it was judged that
+doing so would significantly slow down a Java method called `hasheq`,
+used to implement `hash`.  See
+[CLJ-1372](http://dev.clojure.org/jira/browse/CLJ-1372) for approaches
+that have been considered so far, but as of this time no one has
+discovered a competitively fast way to do it.
 
 
 ### Bugs
@@ -617,3 +684,11 @@ unequal to records with different types, and to maps: When you define
 a Clojure record, you are doing so in order to create a distinct type
 that can be distinguished from other types -- you want each type to
 have its own behavior with Clojure protocols and multimethods.
+
+
+Clojure mutable objects -- vars, refs, atoms, and agents -- are only
+`=` to others if they are the same object.
+
+TBD: Is there any issue with using them as set elements or map keys?
+Do they have consistent hash values even when their contents change?
+If so, how?
