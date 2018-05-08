@@ -228,10 +228,48 @@ user> (= (meta s1) (meta s2))
 false
 ```
 
+Records created with `defrecord` in many ways behave similarly to
+Clojure maps.  However, they are only `=` to other records of the same
+type, and only then if they have the same keys and the same values.
+They are never equal to maps, even if they have the same keys and
+values.
+
+When you define a Clojure record, you are doing so in order to create
+a distinct type that can be distinguished from other types -- you want
+each type to have its own behavior with Clojure protocols and
+multimethods.
+
+```clojure
+user=> (defrecord MyRec1 [a b])
+user.MyRec1
+user=> (def r1 (->MyRec1 1 2))
+#'user/r1
+user=> r1
+#user.MyRec1{:a 1, :b 2}
+
+user=> (defrecord MyRec2 [a b])
+user.MyRec2
+user=> (def r2 (->MyRec2 1 2))
+#'user/r2
+user=> r2
+#user.MyRec2{:a 1, :b 2}
+
+user=> (def m1 {:a 1 :b 2})
+#'user/m1
+
+user=> (= r1 r2)
+false             ; r1 and r2 have different types
+user=> (= r1 m1)
+false             ; r1 and m1 have different types
+user=> (into {} r1)
+{:a 1, :b 2}      ; this is one way to "convert" a record to a map
+user=> (= (into {} r1) m1)
+true              ; the resulting map is = to m1
+```
+
+
 Clojure `=` behaves the same as Java's `equals` for all types except
 numbers and Clojure collections.
-
-TBD: Behavior for records defined via `defrecord`.
 
 Booleans and characters are straightforward in their equality.
 
