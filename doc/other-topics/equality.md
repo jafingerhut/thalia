@@ -604,13 +604,6 @@ to doubles, which would make `hash` consistent with `=` by eliminating
 the restriction on `hash`, but there is no decision on that yet.
 
 
-## Implementation details
-
-References to implementation code: For `=`, see the method `equiv` in
-Clojure source file Util.java.  For `=` and `==` among numbers and the
-three numeric categories, see the Clojure source file Numbers.java.
-
-
 ## Defining equality for your own types
 
 See these for examples on how to do this:
@@ -628,6 +621,13 @@ Baker includes code written in Common Lisp, but the idea of equality
 making sense for immutable values, and not as much sense for mutable
 objects (unless the mutable objects are the same object in memory), is
 independent of programming language.
+
+
+### Implementation details
+
+References to implementation code: For `=`, see the method `equiv` in
+Clojure source file Util.java.  For `=` and `==` among numbers and the
+three numeric categories, see the Clojure source file Numbers.java.
 
 
 ## Historical notes
