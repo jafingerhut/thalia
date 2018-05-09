@@ -299,7 +299,7 @@ Long 1, because they have different types.  Exception: Java `equals`
 is also false for two BigDecimal values that are numerically equal if
 they have different scales, e.g. 1.50M and 1.500M are not equal.  This
 behavior is documented for BigDecimal method
-[`equals`](https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html#equals-java.lang.Object-).
+[`equals`](https://docs.oracle.com/javase/8/docs/api/java/math/BigDecimal.html#equals-java.lang.Object-).
 
 Clojure `=` is true if the 'category' and numeric values are the same.
 Category is one of:
@@ -324,7 +324,7 @@ are numerically equal, even if they are in different categories.  Thus
 `(= 1 1.0)` is false, but `(== 1 1.0)` is true.
 
 Why does `=` have different categories for numbers, you might wonder?
-It would difficult (if it is even possible) to make `hash` consistent
+It would be difficult (if it is even possible) to make `hash` consistent
 with `=` if it behaved like `==` (see section "Equality and hash"
 below).  Imagine trying to write `hash` such that it was guaranteed to
 return the same hash value for all of `(float 1.5)`, `(double 1.5)`,
