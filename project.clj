@@ -3,10 +3,19 @@
   :url "http://github.com/jafingerhut/thalia"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
-  :dependencies [[org.clojure/clojure "1.6.0"]]
+  :dependencies [[org.clojure/clojure "1.9.0"]]
   :profiles {:dev {:dependencies [[cheshire "5.0.2"]
                                   [me.raynes/fs "1.4.3"]
-                                  [org.clojure/core.memoize "0.5.7"]]
+                                  [org.clojure/core.memoize "0.5.7"]
+
+                                  ;; 3rd party Clojure collection libs
+                                  [org.clojure/data.avl "0.0.17"]
+                                  [org.clojure/data.int-map "0.2.4"]
+                                  [org.clojure/data.priority-map "0.0.9"]
+                                  ;;[org.clojure/data.priority-map "0.0.10-SNAPSHOT"]
+                                  [org.flatland/ordered "1.5.6"]
+                                  [org.flatland/useful "0.11.5"]
+                                  ]
                    ;; The following line interferes with creating
                    ;; small JAR files via 'lein install/jar/deploy',
                    ;; so only include it in the dev profile.
