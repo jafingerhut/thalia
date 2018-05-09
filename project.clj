@@ -9,11 +9,14 @@
                                   [org.clojure/core.memoize "0.5.7"]
 
                                   ;; 3rd party Clojure collection libs
-                                  [org.clojure/data.avl "0.0.17"]
-                                  [org.clojure/data.int-map "0.2.4"]
-                                  [org.clojure/data.priority-map "0.0.9"]
-                                  ;;[org.clojure/data.priority-map "0.0.10-SNAPSHOT"]
-                                  [org.flatland/ordered "1.5.6"]
+                                  ;;[org.clojure/data.avl "0.0.17"]
+                                  [org.clojure/data.avl "0.0.18-SNAPSHOT"]
+                                  ;;[org.clojure/data.int-map "0.2.4"]
+                                  [org.clojure/data.int-map "0.2.5-SNAPSHOT"]
+                                  ;;[org.clojure/data.priority-map "0.0.9"]
+                                  [org.clojure/data.priority-map "0.0.10-SNAPSHOT"]
+                                  ;;[org.flatland/ordered "1.5.6"]
+                                  [org.flatland/ordered "1.5.7-SNAPSHOT"]
                                   [org.flatland/useful "0.11.5"]
                                   ]
                    ;; The following line interferes with creating
