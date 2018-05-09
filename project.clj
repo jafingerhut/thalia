@@ -29,5 +29,5 @@
              :1.8 {:dependencies [[org.clojure/clojure "1.8.0"]]}
              :1.9 {:dependencies [[org.clojure/clojure "1.9.0"]]}}
   :aliases {"test-all" ["with-profile" "dev,1.5:dev,1.6:dev,1.7:dev,1.8:dev,1.9" "test"]}
-  :repl-options {:init-ns user}
+  ;;:repl-options {:init-ns user}
   :resource-paths ["resource"])

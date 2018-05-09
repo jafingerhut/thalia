@@ -15,9 +15,127 @@
 ;; Clojure collections, including those in some 3rd party Clojure
 ;; libraries.
 
-;; Function is-same-collection was copied from file
+;; Functions is-same-sequential, is-same-set, and is-same-map started
+;; by being copied from function is-same-collection in file
 ;; test/clojure/test_clojure/data_structures.clj in the Clojure
 ;; implementation test suite.
+
+;; TBD: This only approximately characterizes Clojure 1.9.0 behavior,
+;; since there are still some test failures that this code is not
+;; predicting the results correctly, I think mostly around
+;; clojure.core.Vec and clojure.core.VecSeq objects, created from
+;; clojure.core/vector-of.
+
+(defn is-same-sequential [a-info b-info should-be-java-equals?]
+  (let [a (:val a-info)
+        b (:val b-info)
+        a-persistent? (sequential? a)
+        b-persistent? (sequential? b)
+        both-non-persistent? (and (not a-persistent?) (not b-persistent?))
+        ;; CLJ-1059 https://dev.clojure.org/jira/browse/CLJ-1059
+        ;; = and .equals return false when comparing otherwise equal
+        ;; PersistentQueue and non-Clojure java.util.List instances.
+        clj-1059-case? (or (and (not a-persistent?)
+                                (instance? clojure.lang.PersistentQueue b))
+                           (and (instance? clojure.lang.PersistentQueue a)
+                                (not b-persistent?)))
+        should-be-=? (if clj-1059-case?
+                       false
+                       true)
+        a-vec-or-vecseq? (or (instance? clojure.core.Vec a)
+                             (instance? clojure.core.VecSeq a))
+        b-vec-or-vecseq? (or (instance? clojure.core.Vec b)
+                             (instance? clojure.core.VecSeq b))
+        a-size (try
+                 (.size a)
+                 (catch IllegalArgumentException e
+                     (count a)))
+        b-size (try
+                 (.size b)
+                 (catch IllegalArgumentException e
+                     (count b)))
+        ;;should-be-equals? (and should-be-java-equals?
+        ;;                       (not clj-1059-case?)
+        ;;                       (not a-vecseq?))
+        should-be-equals? (cond
+                            (= false should-be-java-equals?) false
+                            a-vec-or-vecseq? b-vec-or-vecseq?
+                            clj-1059-case? false
+                            :else true)
+        msg (format "(class a)=%s (class b)=%s a=%s b=%s (:expr a-info)=%s (:expr b-info)=%s a-vec-or-vecseq?=%s b-vec-or-vecseq?=%s"
+                    (.getName (class a)) (.getName (class b))
+                    a b
+                    (:expr a-info) (:expr b-info)
+                    a-vec-or-vecseq? b-vec-or-vecseq?)
+        ]
+    (is (= (reversible? a) (:reversible? a-info)) msg)
+    (is (= (reversible? b) (:reversible? b-info)) msg)
+    (is (= (count a) (count b) a-size b-size) msg)
+    (is (= (= a b) should-be-=?) msg)
+    ;;(is (= (= b a) should-be-=?) msg)
+    (is (= (.equals ^Object a b) should-be-equals?) msg)
+    ;;(is (= (.equals ^Object b a) should-be-equals?) msg)
+    (when (not (or a-vec-or-vecseq? b-vec-or-vecseq?))
+      (is (= (.hashCode ^Object a) (.hashCode ^Object b)) msg))
+    ;; At least while CLJ-1372 is unresolved, Clojure persistent
+    ;; collections intentionally have different result for
+    ;; clojure.core/hash than otherwise = non-persistent collections.
+    (let [do-hash-compare (cond
+                            (or a-vec-or-vecseq? b-vec-or-vecseq?) (and a-vec-or-vecseq? b-vec-or-vecseq?)
+                            (and a-persistent? b-persistent?) true
+                            both-non-persistent? true
+                            :else false)]
+      (if do-hash-compare
+        (is (= (hash a) (hash b)) msg)))))
+
+;; TBD: I believe some test failures are occurring because of
+;; CLJ-1364, but if so, which ones?  Can I add some straightforward
+;; conditions to is-same-sequential to cover those cases?
+;; https://dev.clojure.org/jira/browse/CLJ-1364
+
+(deftest sequential-collection-tests
+  (let [sequentials
+        [
+         ;; TBD: Add core.rrb-vector vectors and some variations on
+         ;; them (e.g. subvec, rseq, concatenated, spliced.
+         {:val [1 2 3]
+          :expr "[1 2 3]" :reversible? true}
+         {:val (rseq [3 2 1])
+          :expr "(rseq [3 2 1])" :reversible? false}
+         {:val (seq [1 2 3])
+          :expr "(seq [1 2 3])" :reversible? false}
+         {:val '(1 2 3)
+          :expr "'(1 2 3)" :reversible? false}
+         {:val (conj clojure.lang.PersistentQueue/EMPTY 1 2 3)
+          :expr "(conj clojure.lang.PersistentQueue/EMPTY 1 2 3)"
+          :reversible? false}
+         {:val (subvec [0 1 2 3 4] 1 4)
+          :expr "(subvec [0 1 2 3 4] 1 4)" :reversible? true}
+         {:val (rseq (subvec [4 3 2 1 0] 1 4))
+          :expr "(rseq (subvec [4 3 2 1 0] 1 4))" :reversible? false}
+         {:val (java.util.ArrayList. [1 2 3])
+          :expr "(java.util.ArrayList. [1 2 3])" :reversible? false}
+         {:val (vector-of :long 1 2 3)
+          :expr "(vector-of :long 1 2 3)" :reversible? true}
+         {:val (rseq (vector-of :long 3 2 1))
+          :expr "(rseq (vector-of :long 3 2 1))" :reversible? false}
+         {:val (subvec (vector-of :long 0 1 2 3 4) 1 4)
+          :expr "(subvec (vector-of :long 0 1 2 3 4) 1 4)" :reversible? true}
+         {:val (rseq (subvec (vector-of :long 4 3 2 1 0) 1 4))
+          :expr "(rseq (subvec (vector-of :long 4 3 2 1 0) 1 4))"
+          :reversible? false}
+         ]
+        seqs-of-sequentials (map (fn [info]
+                                   {:val (seq (:val info))
+                                    :expr (str "(seq " (:expr info) ")")
+                                    :reversible? false})
+                                 sequentials)
+        all (concat sequentials seqs-of-sequentials)
+        ]
+    (doseq [idx1 (range (count all)),
+            idx2 (range (count all))]
+      (is-same-sequential (nth all idx1) (nth all idx2) true))))
+
 
 (defn is-same-set [a b should-be-java-equals?]
   (let [msg (format "(class a)=%s (class b)=%s a=%s b=%s"
@@ -38,6 +156,28 @@
     (if (or (and a-persistent? b-persistent?)
             both-non-persistent?)
       (is (= (hash a) (hash b)) msg))))
+
+(deftest set-collection-tests
+  (let [clj-sets [
+                  #{}
+                  (set [])
+                  (hash-set)
+                  (sorted-set)
+                  (sorted-set-by <)
+                  (avl/sorted-set)
+                  (avl/sorted-set-by <)
+                  (fset/ordered-set)
+                  (imap/int-set)
+                  (imap/dense-int-set)
+                  ]
+        non-clj-sets [
+                      (java.util.HashSet.)
+                      ]
+        ]
+    (doseq [c1 (concat clj-sets non-clj-sets),
+            c2 (concat clj-sets non-clj-sets)]
+      (is-same-set c1 c2 true))))
+
 
 (defn is-same-map [a b should-be-java-equals?]
   ;; These are really more like assertions.  I never want to call this
@@ -79,27 +219,6 @@
                  b-persistent? (not (record? b)))
             both-non-persistent?)
       (is (= (hash a) (hash b)) msg))))
-
-(deftest set-collection-tests
-  (let [clj-sets [
-                  #{}
-                  (set [])
-                  (hash-set)
-                  (sorted-set)
-                  (sorted-set-by <)
-                  (avl/sorted-set)
-                  (avl/sorted-set-by <)
-                  (fset/ordered-set)
-                  (imap/int-set)
-                  (imap/dense-int-set)
-                  ]
-        non-clj-sets [
-                      (java.util.HashSet.)
-                      ]
-        ]
-    (doseq [c1 (concat clj-sets non-clj-sets),
-            c2 (concat clj-sets non-clj-sets)]
-      (is-same-set c1 c2 true))))
 
 (defrecord EmptyRec1 [])
 (defrecord EmptyRec2 [])
