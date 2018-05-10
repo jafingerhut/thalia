@@ -644,11 +644,19 @@ the restriction on `hash`, but there is no decision on that yet.
 
 ## Defining equality for your own types
 
-See these for examples on how to do this:
+See these for examples on how to do this, and much more.  In
+particular, the Java methods `equals` and `hashCode` from standard
+Java objects, and the Clojure Java methods `equiv` and `hasheq` are
+the most relevant for how `=` and `hash` behave.
 
-* [data.priority-map](https://github.com/clojure/data.priority-map)
-* [flatland/ordered-set](https://github.com/flatland/ordered)
-
+* [org.clojure/data.priority-map](https://github.com/clojure/data.priority-map)
+  but note that it needs a change to implement `hash` consistently
+  with `=`.
+  [DPRIMAP-12](https://dev.clojure.org/jira/browse/DPRIMAP-12)
+* [org.flatland/ordered](https://github.com/amalloy/ordered) but note
+  that it needs a change so that its custom ordered map data structure
+  is not `=` to any Clojure record:
+  [PR #34](https://github.com/amalloy/ordered/pull/34)
 
 ## References
 
@@ -729,15 +737,58 @@ equality in most cases.
 
 * TODO: +Infinity, -Infinity  (what did Alex think was important to mention about those in this article?)
 
-TBD: Mention somewhere this rationale for Clojure records being
-unequal to records with different types, and to maps: When you define
-a Clojure record, you are doing so in order to create a distinct type
-that can be distinguished from other types -- you want each type to
-have its own behavior with Clojure protocols and multimethods.
-
 TBD: Is there any issue with using Clojure mutable objects (vars,
-refs, atoms, and agents) as set elements or map keys?  Do they have
-consistent hash values even when their contents change?  If so, how?
+refs, atoms, and agents) as set elements or map keys?
+
+Do mutable objects (vars, refs, atoms, and agents) have consistent
+hash values even when their contents change?  The answer should be
+"yes", because of the 4 Java classes in clojure.lang Agent, Atom, Ref,
+and Var, none of them have a hashCode method, and none of their
+superclasses do, until you get to java.lang.Object.  Thus they should
+all inherit the implementation of Object's hashCode method.
+
+The article below explains how the default hashCode method is
+implemented in OpenJDK and Azul Zing JVMs.  It is basically a number
+generated when a JVM Object is created, where pseudo-randomly is one
+way, and the number is then recorded as part of the state of the
+Object instance and returned by the default hashCode() method
+implementation if it is used.  Thus this value remains stable across
+the lifetime of the object instance, even if a copying garbage
+collector changes its current address in memory.
+
+"How does the default hashCode() work?"
+https://srvaroa.github.io/jvm/java/openjdk/biased-locking/2017/01/30/hashCode.html
+
+```java
+// Interfaces:
+interface Callable  // in java.util.concurrent - no hashCode method
+interface Comparable<T>  // in java.lang - no hashCode method
+public interface IAtom  // no hashCode method
+public interface IAtom2 extends IAtom  // no hashCode method
+public interface IDeref  // no hashCode method
+public interface IFn extends Callable, Runnable  // no hashCode method
+public interface IMeta  // no hashCode method
+public interface IRef extends IDeref  // no hashCode method
+public interface IReference extends IMeta  // no hashCode method
+interface Runnable  // in java.lang  - no hashCode method
+public interface Settable  // no hashCode method
+interface Serializable  // in java.io - no hashCode method
+
+public class AReference implements IReference
+  // class AReference has no hashCode method
+  public abstract class ARef extends AReference implements IRef
+    // class ARef has no hashCode method
+    public class Agent extends ARef
+      // class Agent has no hashCode method
+    final public class Atom extends ARef implements IAtom2
+      // class Atom has no hashCode method
+      // so: class Atom should inherit hashCode impl. from class Object
+    public class Ref extends ARef implements IFn, Comparable<Ref>, IRef
+      // class Ref has no hashCode method
+    public final class Var extends ARef implements IFn, IRef, Settable, Serializable
+      // class Var has no hashCode method
+```
+
 
 TBD: Behavior for types defined via `deftype`.
 TBD: Does it ever make sense to define `equiv` for such things?
