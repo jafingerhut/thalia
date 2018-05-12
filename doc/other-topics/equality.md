@@ -40,7 +40,8 @@ Clojure's `=` is true when called with two collections, if:
   their keys and values, because they do not have the same type.
 
 Clojure's `=` is true when called with two mutable Clojure objects,
-i.e. vars, refs, atoms, or agents, if:
+i.e. vars, refs, atoms, or agents, or with two "pending" Clojure
+objects, i.e. futures, promises, or delays, if:
 
 * Both arguments are the identical object, i.e. `(identical?  x y)` is true.
 
@@ -769,6 +770,8 @@ public interface IAtom2 extends IAtom  // no hashCode method
 public interface IDeref  // no hashCode method
 public interface IFn extends Callable, Runnable  // no hashCode method
 public interface IMeta  // no hashCode method
+public interface IObj extends IMeta  // no hashCode method
+public interface IPending  // no hashCode method
 public interface IRef extends IDeref  // no hashCode method
 public interface IReference extends IMeta  // no hashCode method
 interface Runnable  // in java.lang  - no hashCode method
@@ -788,6 +791,30 @@ public class AReference implements IReference
       // class Ref has no hashCode method
     public final class Var extends ARef implements IFn, IRef, Settable, Serializable
       // class Var has no hashCode method
+
+
+public class Delay implements IDeref, IPending
+  // class Delay has no hashCode method
+
+
+thalia.core=> (def p1 (promise))
+#'thalia.core/p1
+thalia.core=> (class p1)
+clojure.core$promise$reify__8144
+thalia.core=> (supers (class p1))
+#{java.lang.Object clojure.lang.IFn java.util.concurrent.Callable java.lang.Runnable clojure.lang.IPending clojure.lang.IObj clojure.lang.IDeref clojure.lang.IBlockingDeref clojure.lang.IMeta}
+
+#{java.lang.Object  // because all Java objects are instances of Object or one of its subclsses
+clojure.lang.IFn  // because of reify args in clojure.core/promise
+java.util.concurrent.Callable  // because IFn extends Callable
+java.lang.Runnable  // because IFn extends Callable
+clojure.lang.IPending  // because of reify args in clojure.core/promise
+clojure.lang.IObj  // because reify documents that created objects always implement IObj
+clojure.lang.IDeref  // because of reify args in clojure.core/promise
+clojure.lang.IBlockingDeref  // because of reify args in clojure.core/promise
+clojure.lang.IMeta  // because IObj extends IMeta
+}
+
 ```
 
 
