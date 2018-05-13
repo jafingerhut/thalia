@@ -710,7 +710,7 @@ memory, even if `deref`ing them would result in values that were
 
 ### Closures
 
-Baker goes into detail on how `EGAL` can return `true` in some cases
+Baker describes in detail how `EGAL` can return `true` in some cases
 when comparing
 [closures](https://en.wikipedia.org/wiki/Closure_(computer_programming))
 to each other (see Section 3. D. "Equality of Functions and
@@ -721,10 +721,11 @@ returns `true` if they are `identical?` to each other.
 
 Baker appeared to be motivated to define `EGAL` this way because of
 the prevalence in some Lisp family languages of using closures to
-represent objects, where those objects could contain mutable or
-immutable state (see the example below).  Given that Clojure has
-multiple other ways of creating objects (e.g. records, reify, proxy,
-deftype), using closures to do so is uncommon.
+represent objects, where those objects could contain mutable state, or
+immutable values (see the example below).  Given that Clojure has
+multiple other ways of creating immutable values and mutable objects
+(e.g. records, reify, proxy, deftype), using closures to do so is
+uncommon.
 
 ```clojure
 (defn make-point [init-x init-y]
