@@ -702,11 +702,10 @@ to proceed a little bit further than that point, as is the case for
 any event in Clojure that causes evaluation of part of a lazy
 sequence.
 
-Clojure's `=` does not `deref` delay, promise, or future objects
-when comparing them.  Instead, it compares them via `identical?`,
-thus returning `true` only if they are the same identical object in
-memory, even if `deref`ing them would result in values that were
-`=`.
+Clojure's `=` does not `deref` delay, promise, or future objects when
+comparing them.  Instead, it compares them via `identical?`, thus
+returning `true` only if they are the same identical object in memory,
+even if calling `deref` on them would result in values that were `=`.
 
 ### Closures
 
