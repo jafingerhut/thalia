@@ -903,3 +903,140 @@ clojure.lang.IMeta  // because IObj extends IMeta
 
 TBD: Behavior for types defined via `deftype`.
 TBD: Does it ever make sense to define `equiv` for such things?
+
+
+### Example showing Clojure `=` forcing evaluation of lazy sequences
+
+```clojure
+user=> (defn print-it [x]
+         (println x)
+         x)
+#'user/print-it
+
+user=> (def lazy1 (map print-it (range 100)))
+#'user/lazy1
+
+;; Because range returns a 'chunked' lazy sequence, doing a 'take 5'
+;; on it causes the evaluation of 32 of its elements, not just the
+;; first 5.
+
+user=> (take 5 lazy1)
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+(0 1 2 3 4)
+
+
+;; The already-evaluated portion is stored in memory, so doing 'take
+;; n' for n up to 32 will get the already-evaluated sequence elements
+;; from memory, without re-evaluating them.
+
+user=> (take 32 lazy1)
+(0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31)
+
+;; Let us make a version of the lazy sequence that is not chunked,
+;; using a function called 'unchunk' that has several variations.
+;; This one is copied from the math.combinatorics library:
+
+;; https://github.com/clojure/math.combinatorics/blob/master/src/main/clojure/clojure/math/combinatorics.cljc#L190-L200
+
+user=> (defn unchunk [s]
+         (lazy-seq
+           (when (seq s)
+             (cons (first s) (unchunk (rest s))))))
+#'user/unchunk
+
+user=> (def lazy2 (map print-it (unchunk (range 100))))
+#'user/lazy2
+
+;; lazy2 only evaluates the sequence elements requested.
+
+user=> (take 5 lazy2)
+0
+1
+2
+3
+4
+(0 1 2 3 4)
+
+user=> (take 4 lazy2)
+(0 1 2 3)
+
+user=> (take 10 lazy2)
+5
+6
+7
+8
+9
+(0 1 2 3 4 5 6 7 8 9)
+
+user=> (def lazy3 (map print-it (unchunk (range 100))))
+#'user/lazy3
+
+;; This comparison between a vector and lazy3 forces evaluation of all
+;; of lazy3, because when comparing vectors to other things, their
+;; lengths are compared.  Calculating the length of the full lazy
+;; sequence requires fully evaluating it.
+
+;; See method doEquiv in class APersistentVector of the Clojure/Java
+;; implementation:
+;; https://github.com/clojure/clojure/blob/master/src/jvm/clojure/lang/APersistentVector.java#L89
+
+user=> (= [0 1 2 3 5 5 6 7 8 9 10 11] lazy3)
+0
+1
+[... many lines deleted ...]
+98
+99
+false
+
+user=> (def lazy4 (map print-it (unchunk (range 100))))
+#'user/lazy4
+
+;; The comparison below stops evaluating the sequence lazy4 at element
+;; 10, because it is not equal to the corresponding element of the
+;; other lazy sequence we are comparing it to.
+
+user=> (= (concat (range 10) [-7]) lazy4)
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+false
+```
