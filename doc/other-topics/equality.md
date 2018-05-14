@@ -1002,19 +1002,33 @@ user=> (take 10 lazy2)
 user=> (def lazy3 (map print-it (unchunk (range 100))))
 #'user/lazy3
 
-;; This comparison between a vector and lazy3 forces evaluation of all
-;; of lazy3, because when comparing vectors to other things, their
-;; lengths are compared.  Calculating the length of the full lazy
-;; sequence requires fully evaluating it.
+;; This comparison stops after evaluating element 2 of the lazy
+;; sequence, since it is not equal to the corresponding element of the
+;; vector.
+
+user=> (= lazy3 [0 1 -3])
+0
+1
+2
+false
+
+;; If you reverse the order of comparison, the equiv method of class
+;; APersistentVector is called instead.  When comparing two vectors,
+;; you can quickly tell they are not equal if they have different
+;; number of elements, and so that is what the equiv method for that
+;; class does.  Finding the count of number of elements in the lazy
+;; sequence causes it to be fully evaluated.
 
 ;; See method doEquiv in class APersistentVector of the Clojure/Java
 ;; implementation:
 ;; https://github.com/clojure/clojure/blob/master/src/jvm/clojure/lang/APersistentVector.java#L89
 
-user=> (= [0 1 2 3 5 5 6 7 8 9 10 11] lazy3)
-0
-1
+user=> (= [0 1 -3] lazy3)
+3
+4
+5
 [... many lines deleted ...]
+97
 98
 99
 false
@@ -1022,21 +1036,27 @@ false
 user=> (def lazy4 (map print-it (unchunk (range 100))))
 #'user/lazy4
 
-;; The comparison below stops evaluating the sequence lazy4 at element
-;; 10, because it is not equal to the corresponding element of the
-;; other lazy sequence we are comparing it to.
+;; The equiv methods for Clojure queues, lists, and lazy sequences do
+;; not use this count check, so will not fully evaluate the lazy
+;; sequence unless needed to determine whether the two sequences have
+;; equal elements.
 
-user=> (= (concat (range 10) [-7]) lazy4)
+user=> (def lazy4 (map print-it (unchunk (range 100))))
+#'user/lazy4
+user=> (= '(0 1 -3) lazy4)
 0
 1
 2
+false
+
+user=> (= (conj clojure.lang.PersistentQueue/EMPTY 0 1 2 3 -4) lazy4)
 3
 4
+false
+
+user=> (= (range 7) lazy4)
 5
 6
 7
-8
-9
-10
 false
 ```
