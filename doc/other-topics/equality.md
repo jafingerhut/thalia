@@ -66,8 +66,8 @@ Exceptions, or possible surprises:
 * When using non-Clojure collections in a Clojure hash-based
   collection (as map keys, or set elements), it will not appear equal
   to a similar collection with Clojure counterparts, due to the
-  difference in hashing behavior.  (see later section [[Equality and
-  hash]](#equality-and-hash) and
+  difference in hashing behavior.  (see later section [Equality and
+  hash](#equality-and-hash) and
   [CLJ-1372](http://dev.clojure.org/jira/browse/CLJ-1372))
 * When comparing collections with `=`, numbers within the collections
   are also compared with `=`, so the three numeric categories above
