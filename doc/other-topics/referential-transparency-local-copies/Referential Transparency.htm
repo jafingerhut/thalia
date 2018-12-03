@@ -1,0 +1,36 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<!-- saved from url=(0077)http://userpage.fu-berlin.de/~ram/pub/pub_jf47ht81Ht/referential_transparency -->
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>Referential Transparency</title>
+    <meta name="robots" content="noarchive"></head>
+  <body>
+    <h1 class="syxheading0">Referential Transparency</h1>
+    <p><span>The meaning of “referential transparency” differs between authors.</span></p>
+    <p><span>It seems to stem from Russel and Whitehead's “Principa Mathematica”, was then adopted by Quine (1960), then by Strachey (1967), and finally by different other authors.</span></p>
+    <p><span>Søndergaard and Sestof take the term to mean what Quine suggests: A form f(...) is referentially transparent, if its argument can be replaced by the argument's definition.</span></p>
+    <p><span>Søndergaard and Sestof suggest other names for similar but (in some cases) independed properties, which are sometimes also called "referential transparency" by individual authors. </span></p>
+    <p><span>These properties are as follows.</span></p>
+    <p><span>extensionality</span></p>
+    <p><span>To find the value of an expression, the only thing one needs to know about a subexpression is its (the subexpression's) value.</span></p>
+    <p><span>definiteness</span></p>
+    <p><span>A symbol (within the some context or scope) always stands for the same thing. (One needs to figure out the details of when exactly two contexts are considered the same context.)</span></p>
+    <p><span>substitutivity of identity</span></p>
+    <p><span>Any subexpression can be replaced by any other equal in value.</span></p>
+    <p><span>unfoldability</span></p>
+    <p><span>An application f(x) of a defined function f can be replaced by its instantiated right-hand side (definition).</span></p>
+    <p><span>Søndergaard and Sestof then show that most of these properties are independed of each other.</span></p>
+    <p><span>Søndergaard and Sestoft define a language Q₀ with a a predicate “@” for numerals. The language Q₀ is not referentially transparent, because @(1 − 0) ≠ @1.</span></p>
+    <p><span>Variables are indefinite: (λx.(x − x))(0 ⊓ 1) can give any value of {0, 1, #}, because “0 ⊓ 1” means "one of 0 or 1" and each x in “x − x” might evaluate to 0 or 1 (the language is indeterministic). Moreover, 0 − 1 is defined as # (i.e., “undefined”/“bottom”), because only the values 0 and 1 are possible.</span></p>
+    <p><span>Unfoldability does not apply. (λx.0)(0 - 1) gives #, because (0 - 1) gives # and the application is strict.</span></p>
+    <p><span>When “@” is redefined as the identity, a new language Q₁ is formed, which now is referentially transparent.</span></p>
+    <p><span>When normal order evaluation is used, a new language Q₂ is formed from Q₁, which has unfoldability.</span></p>
+    <p><span>When call time choice semantics are used, a new language Q₃ is formed, which has definiteness. (λx.(x − x))(0 ⊓ 1) now always gives 0, because the decision between 0 and 1 is made once for the whole lambda. However, this loses unfoldability, because ((0 ⊓ 1) − (0 ⊓ 1)) might be 0, 1, or #.</span></p>
+    <p><span>Giving up non-determinism, a language Q₄ is formed that has both definiteness and unfoldability. </span></p>
+    <p><span>Thus, the values for eterminacy, definiteness, unfoldability, and referential transparency, respectively are given for these languages as follows.</span></p>
+    <p><span>Q₀: no, no, no, no.</span></p>
+    <p><span>Q₁: no, no, no, yes.</span></p>
+    <p><span>Q₂: no, no, yes, yes.</span></p>
+    <p><span>Q₃: no, yes, no, yes.</span></p>
+    <p><span>Q₄: yes, yes, yes, yes.</span></p>
+  
+</body></html>

@@ -90,7 +90,7 @@ Below are several cases of this.  I find example 3 to be the most
 interesting, since it is more subtle than the others, appears to exist
 in Haskell as well as in Clojure.  I'm not saying there is anything
 wrong with Haskell -- it is simply that if any programmers had thought
-about this issue deeply, it would probably be someone knowledgable of
+about this issue deeply, it would probably be someone knowledgeable of
 Haskell.
 
 
@@ -580,7 +580,7 @@ user=> (memoized-conj s1 0)
 
 user=> (memoized-conj s2 0)
 (0 4 5 6)
-ser=> (conj s2 0)
+user=> (conj s2 0)
 [4 5 6 0]
 ```
 
@@ -668,9 +668,52 @@ recommended reading.
 Søndergaard and Peter Sestoft, Acta Informatica 27, pp. 505-517 (1990)
 http://www.cs.tufts.edu/~nr/cs257/archive/peter-sestoft/ref-trans.pdf
 
-I scanned the paper below, and it seems to require more knowledge of
-lambda calculus than I have now, and might ever choose to learn.
+This page has what appears to be a summary of the paper above:
+http://userpage.fu-berlin.de/~ram/pub/pub_jf47ht81Ht/referential_transparency
+A local copy of this page can be found
+[here](referential-transparency-local-copies/Referential Transparency.htm)
+
+I skimmed quickly through the paper below, and it seems to require
+more knowledge of lambda calculus than I have now, and might ever
+choose to learn.
 
 "What is a Purely Functional Language?", Amr Sabry, J. Functional
 Programming, vol. 1 no. 1, January 1993, Cambridge University Press
 https://www.cs.indiana.edu/~sabry/papers/purelyFunctional.ps
+
+
+The Wikipedia page for referential transparency is: https://en.wikipedia.org/wiki/Referential_transparency
+
+It references this p. 78 of the book "Concepts in Programming
+Languages", John C. Mitchell, 2002, Cambridge University Press
+
+The section page includes this text (as well as other text left out of
+this quote):
+
+    In some of the academic literature on programming languages,
+    including some textbooks on programming language semantics, the
+    concept that is used to distinguish declarative from programming
+    language semantics is called _referential transparency_.  Although
+    it is easy to define this phrase, it is a bit tricky to use it
+    correctly to distinguish one programming language from another.
+
+and later:
+
+    Returning to programming languages, it is traditional to say that
+    a language is referentially transparent if we may replace one
+    expression with another of equal value anywhere in a program
+    without changing the meaning of the program.  This is a property
+    of pure functional languages.
+
+    The reason referential transparency is subtle is that it depends
+    on the value we associate with expressions.  In imperative
+    programming languages, we can say that a variable x refer to its
+    value or to its location.  If we say that a variable refers to its
+    location in memory, then imperative languages _are_ referentially
+    transparent, as replacing one variable with another that names the
+    same memory location will not change the meaning of the program.
+    On the other hand, if we say that a variable refers to the value
+    stored in that location, then imperative languages are not
+    referentially transparent, as the value of a variable may change
+    as the result of assignment.
+
