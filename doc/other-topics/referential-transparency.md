@@ -671,7 +671,7 @@ http://www.cs.tufts.edu/~nr/cs257/archive/peter-sestoft/ref-trans.pdf
 This page has what appears to be a summary of the paper above:
 http://userpage.fu-berlin.de/~ram/pub/pub_jf47ht81Ht/referential_transparency
 A local copy of this page can be found
-[here](referential-transparency-local-copies/Referential Transparency.htm)
+[here](referential-transparency-local-copies/Referential-Transparency.htm)
 
 I skimmed quickly through the paper below, and it seems to require
 more knowledge of lambda calculus than I have now, and might ever
