@@ -693,7 +693,7 @@ collections.
 
 There is no Java method to determine whether an arbitrary collection
 is mutable or immutable, so it is not possible in Clojure to implement
-`EGAL`'s intended behavior, although one might consider `=` "closer"
+the intended behavior of `EGAL`, although one might consider `=` "closer"
 to `EGAL` if it always returned `false` when one of the arguments was
 a non-Clojure collection.
 
