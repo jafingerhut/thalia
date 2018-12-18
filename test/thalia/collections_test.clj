@@ -1,6 +1,5 @@
 (ns thalia.collections-test
-  (:use clojure.test
-        thalia.doc)
+  (:use clojure.test)
   (:require
    [clojure.data.avl :as avl]
    [flatland.ordered.set :as fset]
@@ -8,6 +7,7 @@
    [flatland.useful.map :as umap]
    [clojure.data.int-map :as imap]
    [clojure.data.priority-map :as pmap]
+   [clojure.core.rrb-vector :as rrbv]
    ))
 
 
@@ -35,10 +35,11 @@
         ;; CLJ-1059 https://dev.clojure.org/jira/browse/CLJ-1059
         ;; = and .equals return false when comparing otherwise equal
         ;; PersistentQueue and non-Clojure java.util.List instances.
-        clj-1059-case? (or (and (not a-persistent?)
-                                (instance? clojure.lang.PersistentQueue b))
-                           (and (instance? clojure.lang.PersistentQueue a)
-                                (not b-persistent?)))
+;;        clj-1059-case? (or (and (not a-persistent?)
+;;                                (instance? clojure.lang.PersistentQueue b))
+;;                           (and (instance? clojure.lang.PersistentQueue a)
+;;                                (not b-persistent?)))
+        clj-1059-case? false
         should-be-=? (if clj-1059-case?
                        false
                        true)
@@ -73,7 +74,8 @@
     (is (= (count a) (count b) a-size b-size) msg)
     (is (= (= a b) should-be-=?) msg)
     ;;(is (= (= b a) should-be-=?) msg)
-    (is (= (.equals ^Object a b) should-be-equals?) msg)
+    (when-not (:java-equals-bug-clj-1364? a-info)
+      (is (= (.equals ^Object a b) should-be-equals?) msg))
     ;;(is (= (.equals ^Object b a) should-be-equals?) msg)
     (when (not (or a-vec-or-vecseq? b-vec-or-vecseq?))
       (is (= (.hashCode ^Object a) (.hashCode ^Object b)) msg))
@@ -116,7 +118,8 @@
          {:val (java.util.ArrayList. [1 2 3])
           :expr "(java.util.ArrayList. [1 2 3])" :reversible? false}
          {:val (vector-of :long 1 2 3)
-          :expr "(vector-of :long 1 2 3)" :reversible? true}
+          :expr "(vector-of :long 1 2 3)" :reversible? true
+          :java-equals-bug-clj-1364? true}
          {:val (rseq (vector-of :long 3 2 1))
           :expr "(rseq (vector-of :long 3 2 1))" :reversible? false}
          {:val (subvec (vector-of :long 0 1 2 3 4) 1 4)
@@ -124,6 +127,14 @@
          {:val (rseq (subvec (vector-of :long 4 3 2 1 0) 1 4))
           :expr "(rseq (subvec (vector-of :long 4 3 2 1 0) 1 4))"
           :reversible? false}
+         {:val (rrbv/vector 1 2 3)
+          :expr "(rrbv/vector 1 2 3)" :reversible? true}
+         {:val (rseq (rrbv/vector 3 2 1))
+          :expr "(rseq (rrbv/vector 3 2 1))" :reversible? false}
+         {:val (rrbv/subvec (rrbv/vector 0 1 2 3 4) 1 4)
+          :expr "(rrbv/subvec (rrbv/vector 0 1 2 3 4) 1 4)" :reversible? true}
+         {:val (rseq (rrbv/subvec (rrbv/vector 4 3 2 1 0) 1 4))
+          :expr "(rseq (rrbv/subvec (rrbv/vector 4 3 2 1 0) 1 4))" :reversible? false}
          ]
         seqs-of-sequentials (map (fn [info]
                                    {:val (seq (:val info))
