@@ -3,7 +3,7 @@
   :url "http://github.com/jafingerhut/thalia"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
-  :dependencies [[org.clojure/clojure "1.9.0"]]
+  :dependencies [[org.clojure/clojure "1.10.0"]]
   ;;:dependencies [[org.clojure/clojure "1.10.0-master-SNAPSHOT"]]
   :profiles {:dev {:dependencies [[cheshire "5.0.2"]
                                   [me.raynes/fs "1.4.3"]

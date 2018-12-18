@@ -2,8 +2,7 @@
 
 This document discusses the concept of equality in Clojure, including the functions `=`, `==`, and `identical?`, and how they differ from Java's `equals` method.  It also has some description of Clojure's `hash`, and how it differs from Java's `hashCode`. The beginning of this guide provides a summary of the most important information for quick reference followed by a much more extensive review of the details.
 
-_Information in this guide describes the behavior of Clojure 1.9.0 unless noted otherwise._
-
+_Information in this guide describes the behavior of Clojure 1.10.0 unless noted otherwise._
 
 ## Summary
 
@@ -72,9 +71,9 @@ Exceptions, or possible surprises:
 * When comparing collections with `=`, numbers within the collections
   are also compared with `=`, so the three numeric categories above
   are significant.
-* 'Not a Number' values `Float/NaN` and `Double/NaN` are not `=` or
-  `==` to anything, not even themselves.
-  _Recommendation:_ Avoid including `NaN` inside of Clojure data
+* 'Not a Number' values `##NaN`, `Float/NaN`, and `Double/NaN` are not
+  `=` or `==` to anything, not even themselves.
+  _Recommendation:_ Avoid including `##NaN` inside of Clojure data
   structures where you want to compare them to each other using `=`,
   and sometimes get `true` as the result.
 * 0.0 is `=` to -0.0
@@ -387,59 +386,65 @@ Clojure uses the underlying Java double-size floating point numbers
 (64-bit) with representation and behavior defined by a standard, IEEE
 754.  There is a special value
 [`NaN`](http://en.wikipedia.org/wiki/NaN) ("Not A Number") that is not
-even equal to itself.
+even equal to itself. Clojure represents this value as
+the symbolic value `##NaN`.
 
 ```clojure
 user> (Math/sqrt -1)
-Double/NaN
-user> (= Double/NaN Double/NaN)
+##NaN
+user> (= ##NaN ##NaN)
 false
-user> (== Double/NaN Double/NaN)
+user> (== ##NaN ##NaN)
 false
 ```
 
 This leads to some odd behavior if this "value" appears in your data.
-While no error occurs when adding `NaN` as a set element or a key in a
+While no error occurs when adding `##NaN` as a set element or a key in a
 map, you cannot then search for it and find it.  You also cannot
 remove it using functions like `disj` or `dissoc`.  It will appear
 normally in sequences created from collections containing it.
 
 ```clojure
-user> (def s1 #{1.0 2.0 Double/NaN})
+user> (def s1 #{1.0 2.0 ##NaN})
 #'user/s1
 user> s1
-#{2.0 1.0 Double/NaN}
+#{2.0 1.0 ##NaN}
 user> (s1 1.0)
 1.0
 user> (s1 1.5)
 nil
-user> (s1 Double/NaN)
-nil             ; cannot find Double/NaN in a set, because it is not = to itself
+user> (s1 ##NaN)
+nil             ; cannot find ##NaN in a set, because it is not = to itself
 
 user> (disj s1 2.0)
-#{1.0 Double/NaN}
-user> (disj s1 Double/NaN)
-#{2.0 1.0 Double/NaN}    ; Double/NaN is still in the result!
+#{1.0 ##NaN}
+user> (disj s1 ##NaN)
+#{2.0 1.0 ##NaN}    ; ##NaN is still in the result!
 ```
 
-This also means that _any_ collection that contains `NaN` will never be `=` to anything else:
+In many cases, collections that contain `##NaN` will not be `=` to another collection, even if they look like they should be, because `(= ##NaN ##NaN)` is `false`:
 
 ```clojure
-user> (def s2 #{Double/NaN 2.0 1.0})
+user> (= [1 ##NaN] [1 ##NaN])
+false
+```
+
+Oddly enough, there are exceptions where collections contain `##NaN` that look like they should be `=`, and they are, because `(identical? ##NaN ##NaN)` is `true`:
+
+```clojure
+user> (def s2 #{##NaN 2.0 1.0})
 #'user/s2
 user> s2
-#{2.0 1.0 Double/NaN}
+#{2.0 1.0 ##NaN}
 user> (= s1 s2)
-false
-user> (= [1 Double/NaN] [1 Double/NaN])
-false
+true
 ```
 
 Java has a special case in its `equals` method for floating point
-values that makes `NaN` equal to itself.  Clojure `=` and `==` do not.
+values that makes `##NaN` equal to itself.  Clojure `=` and `==` do not.
 
 ```clojure
-user> (.equals Double/NaN Double/NaN)
+user> (.equals ##NaN ##NaN)
 true
 ```
 
@@ -650,21 +655,16 @@ to doubles, which would make `hash` consistent with `=` by eliminating
 the restriction on `hash`, but there is no decision on that yet.
 
 
-## Defining equality for your own types
-
-See these for examples on how to do this, and much more.  In
+See the code of the projects below for examples of how to do this, and much more.  In
 particular, the Java methods `equals` and `hashCode` from standard
 Java objects, and the Clojure Java methods `equiv` and `hasheq` are
 the most relevant for how `=` and `hash` behave.
 
 * [org.clojure/data.priority-map](https://github.com/clojure/data.priority-map)
-  but note that it needs a change to implement `hash` consistently
-  with `=`.
-  [DPRIMAP-12](https://dev.clojure.org/jira/browse/DPRIMAP-12)
-* [org.flatland/ordered](https://github.com/amalloy/ordered) but note
+* [org.flatland/ordered](https://github.com/clj-commons/ordered) but note
   that it needs a change so that its custom ordered map data structure
   is not `=` to any Clojure record:
-  [PR #34](https://github.com/amalloy/ordered/pull/34)
+  [PR #34](https://github.com/clj-commons/ordered/pull/34)
 
 ## References
 
@@ -700,7 +700,7 @@ a non-Clojure collection.
 ### Lazy and pending values
 
 Baker recommends that `EGAL` force lazy values when comparing them
-(see Section 3. J. "Lazy Values").  When comparing a lazy sequence to
+(see Section 3. J. "Lazy Values" in the "Equal Rights for Functional Objects" paper).  When comparing a lazy sequence to
 another sequential thing, Clojure's `=` does force the evaluation of
 the lazy sequence, stopping if it reaches a non-`=` sequence element.
 Chunked sequences, e.g. as produced by `range`, can cause evaluation
@@ -719,7 +719,7 @@ Baker describes in detail how `EGAL` can return `true` in some cases
 when comparing
 [closures](https://en.wikipedia.org/wiki/Closure_(computer_programming))
 to each other (see Section 3. D. "Equality of Functions and
-Function-Closures").
+Function-Closures" in the "Equal Rights for Functional Objects" paper).
 
 When given a function or closure as an argument, Clojure's `=` only
 returns `true` if they are `identical?` to each other.
