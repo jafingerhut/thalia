@@ -250,7 +250,7 @@
     (is (thrown? IndexOutOfBoundsException
                  (vec1 3)))
     (is (thrown-with-msg? clojure.lang.ArityException
-                          #"Wrong number of args \(2\) passed to: PersistentVector"
+                          #"Wrong number of args \(2\) passed to: (clojure\.lang\.)?PersistentVector"
                           (vec1 3 :not-found))))
   (let [map1 {:a 1 :b 2}]
     (is (= (map1 :a)
