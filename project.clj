@@ -5,6 +5,19 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.10.0"]]
   ;;:dependencies [[org.clojure/clojure "1.10.0-master-SNAPSHOT"]]
+
+  ;; Version 1.5.7 of org.flatland/ordered causes some test failures.
+  ;; These are fixed with this PR:
+  ;; https://github.com/clj-commons/ordered/pull/42
+
+  ;; Version 0.2.4 of org.clojure/data.int-map causes some test
+  ;; failures.  These are fixed with the patch proposed on this
+  ;; ticket: https://dev.clojure.org/jira/browse/DIMAP-16
+
+  ;; Version 0.0.18 of org.clojure/data.avl causes some test failures.
+  ;; These are fixed with the patch proposed on this ticket:
+  ;; https://dev.clojure.org/jira/browse/DAVL-10
+
   :profiles {:dev {:dependencies [[cheshire "5.0.2"]
                                   [me.raynes/fs "1.4.3"]
                                   ;;[org.clojure/core.memoize "0.5.7"]
@@ -17,6 +30,7 @@
                                   [org.clojure/data.priority-map "0.0.10"]
                                   [org.clojure/core.rrb-vector "0.0.13"]
                                   [org.flatland/ordered "1.5.7"]
+                                  ;;[org.flatland/ordered "1.5.8-SNAPSHOT"]
                                   [org.flatland/useful "0.11.5"]
                                   ]
                    ;; The following line interferes with creating
