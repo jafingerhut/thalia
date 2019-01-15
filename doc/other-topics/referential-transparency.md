@@ -681,6 +681,10 @@ choose to learn.
 Programming, vol. 1 no. 1, January 1993, Cambridge University Press
 https://www.cs.indiana.edu/~sabry/papers/purelyFunctional.ps
 
+This Reddit discussion topic references Sabry's paper above.  I have
+skimmed through it, but nothing jumped out at me as quickly clarifying
+for my current context of knowledge.
+https://www.reddit.com/r/haskell/comments/21y560/purity_and_referential_transparency_are_different/
 
 The Wikipedia page for referential transparency is: https://en.wikipedia.org/wiki/Referential_transparency
 
@@ -717,3 +721,8 @@ and later:
     referentially transparent, as the value of a variable may change
     as the result of assignment.
 
+Here is a January 2019 post that discusses some of these issues, and
+gives links to other on-line articles, including this one:
+
+"Abstract types are more equal", January 2, 2019,
+https://giacomociti.github.io/2019/01/02/Abstract-types-are-more-equal.html
