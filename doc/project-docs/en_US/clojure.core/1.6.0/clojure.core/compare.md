@@ -86,9 +86,9 @@ can do this.
 
 ```clojure
 user=> (sort [5 "a"])
-ClassCastException java.lang.Long cannot be cast to java.lang.String  java.lang.String.compareTo (String.java:108)
+ClassCastException java.lang.Long cannot be cast to java.lang.String  java.lang.String.compareTo (String.java:111)
 user=> (sort [:foo 'bar])
-ClassCastException clojure.lang.Keyword cannot be cast to clojure.lang.Symbol  clojure.lang.Symbol.compareTo (Symbol.java:106)
+ClassCastException clojure.lang.Keyword cannot be cast to clojure.lang.Symbol  clojure.lang.Symbol.compareTo (Symbol.java:107)
 
 user=> (sort [#{1 2} {2 4}])
 ClassCastException clojure.lang.PersistentArrayMap cannot be cast to java.lang.Comparable  clojure.lang.Util.compare (Util.java:153)
@@ -96,11 +96,9 @@ user=> (sort [{:a 1 :b 3} {:c -2 :d 4}])
 ClassCastException clojure.lang.PersistentArrayMap cannot be cast to java.lang.Comparable  clojure.lang.Util.compare (Util.java:153)
 
 user=> (sort [[1 2] '(3 4)])
-Execution error (ClassCastException) at java.util.TimSort/countRunAndMakeAscending (TimSort.java:355).
-clojure.lang.PersistentList cannot be cast to java.lang.Comparable
+ClassCastException clojure.lang.PersistentList cannot be cast to java.lang.Comparable  clojure.lang.Util.compare (Util.java:153)
 user=> (sort [[1 2] (seq [3 4])])
-Execution error (ClassCastException) at java.util.TimSort/countRunAndMakeAscending (TimSort.java:355).
-clojure.lang.PersistentVector$ChunkedSeq cannot be cast to java.lang.Comparable
+ClassCastException clojure.lang.PersistentVector$ChunkedSeq cannot be cast to java.lang.Comparable  clojure.lang.Util.compare (Util.java:153)
 ```
 
 Implementation detail: Clojure refs can also be sorted using
