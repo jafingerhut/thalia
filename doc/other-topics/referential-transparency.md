@@ -726,3 +726,151 @@ gives links to other on-line articles, including this one:
 
 "Abstract types are more equal", January 2, 2019,
 https://giacomociti.github.io/2019/01/02/Abstract-types-are-more-equal.html
+
+
+# What is the definition of "referential transparency" applied to programming?
+
+Or a related question: Is there any widely agreed upon definition of
+what referential transparency means in the domain of programming
+languages?
+
+It seems that among specialists in studying the semantics of
+programming languages, there might be a smaller variety of definitions
+of the term "referential transparency", but I do not know if I will
+ever be interested enough to learn about this field to confirm or
+refute that guess.
+
+It does seem that among those who are not specialists in semantics of
+programming languages, but who are developers using languages that
+focus on pure functions, e.g. Haskell, OCaml, F#, etc., that there are
+many different descriptions of what referential transparency means.  I
+suppose that this should not be too surprising for _any_ technical
+term that has subtleties in its meaning.
+
+
+## Uses of referential transparency in the book "Structure and Interpretation of Computer Programs"
+
+In particular, the edition that was published at the link below as I
+retrieved it on 2021-Jan-23.
+
+    https://mitpress.mit.edu/sites/default/files/sicp/full-text/book/book.html
+
+Section 1.1.5 "The Substitution Model for Procedure application"
+introduces a reasonably simple substitution model as a way of
+understanding what procedure application means, and how expressions
+can be evaluated in order to determine their values.
+
+It also names and demonstrates with a simple example the difference
+between applicative order and normal order.  Exercise 1.5 gives a
+small program showing how these two order of evaluation, involving a
+procedure that goes into an infinite loop.
+
+Quote:
+
+    This alternative ``fully expand and then reduce'' evaluation
+    method is known as normal-order evaluation, in contrast to the
+    ``evaluate the arguments and then apply'' method that the
+    interpreter actually uses, which is called applicative-order
+    evaluation. It can be shown that, for procedure applications that
+    can be modeled using substitution (including all the procedures in
+    the first two chapters of this book) and that yield legitimate
+    values, normal-order and applicative-order evaluation produce the
+    same value. (See exercise 1.5 for an instance of an
+    ``illegitimate'' value where normal-order and applicative-order
+    evaluation do not give the same result.)
+
+    Lisp uses applicative-order evaluation, partly because of the
+    additional efficiency obtained from avoiding multiple evaluations
+    of expressions such as those illustrated with (+ 5 1) and (* 5 2)
+    above and, more significantly, because normal-order evaluation
+    becomes much more complicated to deal with when we leave the realm
+    of procedures that can be modeled by substitution. On the other
+    hand, normal-order evaluation can be an extremely valuable tool,
+    and we will investigate some of its implications in chapters 3 and
+    4.16
+
+The phrase "the realm of procedures that can be modeled by
+substitution" sounds likely to be related to referential transparency,
+pure functions, or both.
+
+Section 3.1 "Assignment and Local State":
+
+    https://mitpress.mit.edu/sites/default/files/sicp/full-text/book/book-Z-H-20.html#%_sec_3.1
+
+This section introduces the idea of objects in a computer program that
+have local state, and procedures that when called multiple times with
+the same parameters, return different values, depending upon the
+history of what calls have been made before.  It also introduces
+assignment using Scheme `set!`.
+
+Very shortly after doing this, it immediately points out something
+very different about such procedures:
+
+    Combining `set!` with local variables is the general programming
+    technique we will use for constructing computational objects with
+    local state.  Unfortunately, using this technique raises a serious
+    problem: When we first introduced procedures, we also introduced
+    the substitution model of evaluation (section 1.1.5) to provide an
+    interpretation of what procedure application means.  We said that
+    applying a procedure should be interpreted as evaluating the body
+    of the procedure with the formal parameters replaced by their
+    values.  The trouble is that, as soon as we introduce assignment
+    into our language, substitution is no longer an adequate model of
+    procedure application.  (We will see why this is so in section
+    3.1.3.)  As a consequence, we technically have at this point no
+    way to understand why the new-withdraw procedure behaves as
+    claimed above.  In order to really understand a procedure such as
+    new-withdraw, we will need to develop a new model of procedure
+    application.  In section 3.2 we will introduce such a model,
+    together with an explanation of `set!` and local variables.
+
+Section 3.1.2 describes a benefit of introducing assignment, by
+showing how a small program written that calls a procedure to return a
+sequence of pseudo-random numbers can be written, and how much
+"messier" that program becomes if you are only allowed to write it
+using pure functions.
+
+Section 3.1.3 "The Costs of Introducing Assignment" is the first one
+of the book to mention the term "referential transparency", here:
+
+    A language that supports the concept that ``equals can be
+    substituted for equals'' in an expression without changing the
+    value of the expression is said to be _referentially transparent_.
+    Referential transparency is violated when we include `set!` in our
+    computer language.  This makes it tricky to determine when we can
+    simplify expressions by substituting equivalent expressions.
+    Consequently, reasoning about programs that use assignment becomes
+    drastically more difficult.
+
+    Once we forgo referential transparency, the notion of what it
+    means for computational objects to be ``the same'' becomes
+    difficult to capture in a formal way.  Indeed, the meaning of
+    ``same'' in the real world that our programs model is hardly clear
+    in itself.  In general, we can determine that two apparently
+    identical objects are indeed ``the same one'' only by modifying
+    one object and then observing whether the other object has changed
+    in the same way.  But how can we tell if an object has ``changed''
+    other than by observing the ``same'' object twice and seeing
+    whether some property of the object differs from one observation
+    to the next? Thus, we cannot determine ``change'' without some a
+    priori notion of ``sameness,'' and we cannot determine sameness
+    without observing the effects of change.
+
+Section 3.2 "The Environment Model of Evaluation" introduces a new
+model of evaluation, more general than the substitution model of
+evaluation from Section 1.1.5, that can support `set!`.
+
+The second mention of referential transparency in the entire book is
+in Section 3.4 "Concurrency: Time Is of the Essence":
+
+    We've seen the power of computational objects with local state as
+    tools for modeling. Yet, as section 3.1.3 warned, this power
+    extracts a price: the loss of referential transparency, giving
+    rise to a thicket of questions about sameness and change, and the
+    need to abandon the substitution model of evaluation in favor of
+    the more intricate environment model.
+
+No mentions of referential transparency anywhere in Chapters 4 or 5.
+
+All occurrences of referential transparency in the index point at the
+first occurrence of the term in the book in Section 3.1.3.
