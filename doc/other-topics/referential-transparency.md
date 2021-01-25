@@ -696,10 +696,11 @@ this quote):
 
     In some of the academic literature on programming languages,
     including some textbooks on programming language semantics, the
-    concept that is used to distinguish declarative from programming
-    language semantics is called _referential transparency_.  Although
-    it is easy to define this phrase, it is a bit tricky to use it
-    correctly to distinguish one programming language from another.
+    concept that is used to distinguish declarative from imperative
+    programming language semantics is called _referential
+    transparency_.  Although it is easy to define this phrase, it is a
+    bit tricky to use it correctly to distinguish one programming
+    language from another.
 
 and later:
 
@@ -874,3 +875,154 @@ No mentions of referential transparency anywhere in Chapters 4 or 5.
 
 All occurrences of referential transparency in the index point at the
 first occurrence of the term in the book in Section 3.1.3.
+
+
+## Uses of referential transparency in the book "Introduction to Functional Programming"
+
+Richard Bird, Philip Wadler, "Introduction to Functional Programming",
+1988, Prentice Hall International Series in Computer Science
+
+The introduction of this book says it is an introductory textbook on
+programming in general and functional programming in particular.  The
+authors consider it suitable for teaching a course in programming to
+first-year undergraduates.  It is definitely not a book targeted at
+specialists in the semantics of programming languages.
+
+The only occurrence of the term "referential transparency" in the
+entire book occurs in Section 1.2 "Expressions and values":
+
+    As we have seen, the notion of an expression is central in
+    functional programming.  There are many kinds of mathematical
+    expression, not all of which are permitted in the notation we
+    shall describe, but all possess certain characteristics in common.
+    The most important feature of mathematical notation is that an
+    expression is used solely to describe (or _denote_) a _value_.  In
+    other words, the meaning of an expression _is_ its value and there
+    are no other effects, hidden or otherwise, in any procedure for
+    actually obtaining it.  Furthermore, the value of an expression
+    depends only on the the values of its constituent expressions (if
+    any) and these subexpressions may be replaced freely by others
+    possessing the same value.  An expression may contain certain
+    'names' which stand for unknown quantities, but it is normal in
+    mathematical notation to presume that different occurrences of the
+    same name refer to the same unknown quantity (within obvious
+    syntactic limits).  Such names are usually called 'variables', but
+    every mathematician understands that variables do _not_ vary: they
+    always denote the same quantity, provided we remain within the
+    same context of the definitions associated with them.  The
+    characteristic property of mathematical expressions described here
+    is called _referential transparency_.
+
+
+## Uses of referential transparency in the book "Concepts in Programming Languages"
+
+John C. Mitchell, "Concepts in Programming Languages", 2003, Cambridge
+University Press
+
+The introduction says this book is intended for undergraduate and
+beginning graduate students, and explains central concepts in modern
+programming languages, including purely functional languages as well
+as other such as Simula, C++, Java.
+
+    The author presents foundational topics, such as lambda calculus
+    and denotational semantics, in an easy-to-read, informal style,
+    focusing on the main insights provided by these theories.
+
+    ...
+
+    His graduate textbook, "Foundations for Programming Languages"
+    covers lambda calculus, type systems, logic for program
+    verification, and mathematical semantics of programming languages.
+
+So while this book was written by someone who may be an expert on
+semantics of programming languages, it is not the focus of this book.
+The other textbook mentioned above might not mention referential
+transparency at all.  See elsewhere in this document for the title of
+that book and my notes on it.
+
+The only mention of "referential transparency" in the entire book is
+in Section 4.4 "Functional and Imperative Languages".  Here are all
+sections within Chapter 4 "Fundamentals":
+
++ 4.1 Compilers and Syntax
++ 4.1.1 Structure of a Simple Compiler
++ 4.1.2 Grammars and Parse Trees
++ 4.1.3 Parsing and Precedence
++ 4.2 Lambda Calculus
++ 4.2.1 Functions and Function Expressions
++ 4.2.2 Lambda Expressions
++ 4.2.3 Programming in Lambda Calculus
++ 4.2.4 Reduction, Confluence, and Normal Forms
++ 4.2.5 Important Properties of Lambda Calculus
++ 4.3 Denotational Semantics
++ 4.3.1 Object Language and Metalanguage
++ 4.3.2 Denotational Semantics of Binary Numbers
++ 4.3.3 Denotational Semantics of While Programs
++ 4.3.4 Perspective and Nonstandard Semantics
++ 4.4 Functional and Imperative Languages
++ 4.4.1 Imperative and Declarative Sentences
++ 4.4.2 Functional versus Imperative Programs
+
+
+## Books/article I have checked that make no mention of "referential transparency"
+
+### Winskel, 1994
+
+I have searched the full text of this book, and it contains no
+occurrences of the word "referential", and no occurrences of the word
+"transparency":
+
++ Glynn Winskel, "The Formal Semantics of Programming Languages: An
+  Introduction", 1994, MIT Press
+
+
+# Mitchell, 1996
+
+In this book:
+
++ John C. Mitchell, "Foundations for Programming Languages", 1996, MIT
+  Press
+
+I have checked the index, retrieved from this page:
+https://theory.stanford.edu/people/jcm/books.html, but not the full
+text, for the following terms, and found none of them:
+
++ equational reasoning
++ pure function
++ referential
++ transparency
+
+It does have several occurrences of "substitution" on various kinds of
+things.
+
+
+# Some terms, and how they might be related to each other
+
+My guess is that some of these things can be proven true, perhaps with
+some additional qualifications that I am not yet aware of.
+
++ If you use a language that enables you to write programs with no
+  I/O, no assignments, and they terminate, it is always possible to
+  describe their behavior using the substitution model of evaluation.
+
+
+## substitution model of evaluation
+
+As described in SICP and other books on other programming languages
+than Scheme, many of which I suspect were influenced by their authors
+learning it from SICP.
+
+
+## pure functions
+
+
+
+## referential transparency
+
+
+
+## substituting equals for equals / substitution law / substitution rule
+
+
+
+## equational reasoning
