@@ -1,5 +1,11 @@
 # Comparators in Clojure
 
+A slightly more updated version of this article is available on the
+Clojure web site, here:
+
++ https://clojure.org/guides/comparators
+
+
 ## Versions
 
 This document was written while checking the details against Clojure

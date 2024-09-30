@@ -1,5 +1,11 @@
 # Equality
 
+A slightly more updated version of this article is available on the
+Clojure web site, here:
+
++ https://clojure.org/guides/equality
+
+
 This document discusses the concept of equality in Clojure, including the functions `=`, `==`, and `identical?`, and how they differ from Java's `equals` method.  It also has some description of Clojure's `hash`, and how it differs from Java's `hashCode`. The beginning of this guide provides a summary of the most important information for quick reference followed by a much more extensive review of the details.
 
 _Information in this guide describes the behavior of Clojure 1.10.0 unless noted otherwise._
