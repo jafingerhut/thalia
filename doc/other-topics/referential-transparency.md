@@ -67,10 +67,10 @@ arguments, and perhaps other pure functions defined earlier.
 I have read Henry Baker's paper on
 [egal](http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.23.9999),
 "Equal Rights for Functional Objects or, The More Things Change, The
-More They Are the Same", but can't claim to understand every one of
+More They Are the Same", but cannot claim to understand every one of
 its nuances.
 
-I have heard of denotational and operational semantics, but haven't
+I have heard of denotational and operational semantics, but have not
 studied them.  Similarly for monads.
 
 Another paper on the topic of equality and what it could and/or should
@@ -88,7 +88,7 @@ pair of values `v1` and `v2`, but other functions return different
 
 Below are several cases of this.  I find example 3 to be the most
 interesting, since it is more subtle than the others, appears to exist
-in Haskell as well as in Clojure.  I'm not saying there is anything
+in Haskell as well as in Clojure.  I am not saying there is anything
 wrong with Haskell -- it is simply that if any programmers had thought
 about this issue deeply, it would probably be someone knowledgeable of
 Haskell.
