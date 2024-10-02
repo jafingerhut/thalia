@@ -303,6 +303,10 @@ because Haskell's hash function is different than Clojure's.
 
 ```bash
 # Install steps tested on Ubuntu 24.04 aarch64 Linux system on 2024-Oct-02:
+sudo apt-get install ghc libghc-unordered-containers-dev
+
+# If you also want to install doc package, and a package for random
+# number generation.
 sudo apt-get install ghc libghc-unordered-containers-dev libghc-unordered-containers-doc libghc-random-dev libghc-random-doc
 ```
 
