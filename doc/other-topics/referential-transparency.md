@@ -108,7 +108,7 @@ equal, and in the same order.
 ;; here is the version used for this session.
 
 user=> (clojure-version)
-"1.6.0"
+"1.12.0"
 
 ;; Lists and vectors are different types.  Vectors provide O(log n)
 ;; time access to any item given an integer index (base 32 log), and
@@ -184,7 +184,7 @@ we will ignore that here.
 ;; here is the version used for this session.
 
 user=> (clojure-version)
-"1.6.0"
+"1.12.0"
 
 ;; Create a vector with items 1, 2, 3, and metadata as a map with one
 ;; key :key1, and its associated value "value1"
@@ -236,7 +236,7 @@ data structure implementation in Haskell with similar behavior.
 ;; version.
 
 user=> (clojure-version)
-"1.6.0"
+"1.12.0"
 
 ;; Demonstrate two particular integers that have equal hash values
 
@@ -300,57 +300,65 @@ is similar.  The corresponding names are:
 The particular integers used in the example below are different
 because Haskell's hash function is different than Clojure's.
 
+```bash
+# Install steps tested on Ubuntu 24.04 aarch64 Linux system on 2024-Oct-02:
+sudo apt-get install ghc libghc-unordered-containers-dev libghc-unordered-containers-doc libghc-random-dev libghc-random-doc
+```
+
+Aside: It appears that the Haskell function `hash` in package
+`Data.Hashable` returns `x` for integers `x` in the range `[0,
+2^63-1]`.  If this is true, we can quickly find two integers with the
+same hash value by simply calcalating the hash of an integer L >=
+2^63, and if `hash L = H` is in the range `[0, 2^63-1]`, then `hash L
+= hash H`.
+
+Find two values with same hash:
 ```haskell
-% ghci
-GHCi, version 7.8.3: http://www.haskell.org/ghc/  :? for help
-Loading package ghc-prim ... linking ... done.
-Loading package integer-gmp ... linking ... done.
-Loading package base ... linking ... done.
-
-Prelude> import Data.Hashable
-Prelude Data.Hashable> import Data.HashSet
-
--- Found two integers that have the same hash function
-
-Prelude Data.Hashable Data.HashSet> hash 6860296727119291693
-Loading package array-0.5.0.0 ... linking ... done.
-Loading package deepseq-1.3.0.2 ... linking ... done.
-Loading package bytestring-0.10.4.0 ... linking ... done.
-Loading package text-1.1.0.0 ... linking ... done.
-Loading package hashable-1.2.3.2 ... linking ... done.
-6860296727119291693
-Prelude Data.Hashable Data.HashSet> hash 9223372036854775808
-6860296727119291693
-Prelude Data.Hashable Data.HashSet> hash 6860296727119291693 == hash 9223372036854775808
+$ ghci
+GHCi, version 9.4.7: https://www.haskell.org/ghc/  :? for help
+ghci> hash 9223372036854775808
+6273985623559904276
+ghci> hash 6273985623559904276
+6273985623559904276
+ghci> hash 9223372036854775808 == hash 6273985623559904276
 True
+```
+
+Create two `HashSet` values, inserting the two values with the same
+hash in a different order:
+
+```haskell
+$ ghci
+GHCi, version 9.4.7: https://www.haskell.org/ghc/  :? for help
+ghci> import qualified Data.HashSet as HashSet
+ghci> import Data.Hashable
 
 -- Create two HashSets, adding those two integers in a different order
 -- for each one.
 
-Prelude Data.Hashable Data.HashSet> let s1=fromList[6860296727119291693,9223372036854775808]
-Loading package unordered-containers-0.2.5.1 ... linking ... done.
-Prelude Data.Hashable Data.HashSet> let s2=fromList[9223372036854775808,6860296727119291693]
-Prelude Data.Hashable Data.HashSet> s1
-fromList [6860296727119291693,9223372036854775808]
-Prelude Data.Hashable Data.HashSet> s2
-fromList [9223372036854775808,6860296727119291693]
+ghci> let s1=HashSet.fromList[6273985623559904276,9223372036854775808]
+ghci> let s2=HashSet.fromList[9223372036854775808,6273985623559904276]
+ghci> s1
+fromList [6273985623559904276,9223372036854775808]
+ghci> s2
+fromList [9223372036854775808,6273985623559904276]
 
 -- They are equal according to the == defined for Data.HashSet
 
-Prelude Data.Hashable Data.HashSet> s1 == s2
+ghci> s1 == s2
 True
 
 -- but toList returns the integers in a different order for each one
 
-Prelude Data.Hashable Data.HashSet> toList s1
-[6860296727119291693,9223372036854775808]
-Prelude Data.Hashable Data.HashSet> toList s2
-[9223372036854775808,6860296727119291693]
+ghci> HashSet.toList s1
+[6273985623559904276,9223372036854775808]
+ghci> HashSet.toList s2
+[9223372036854775808,6273985623559904276]
 
 -- and of course lists with items in different orders are not equal in
 -- Haskell.
 
-Prelude Data.Hashable Data.HashSet> toList s1 == toList s2
+ghci> HashSet.toList s1 == HashSet.toList s2
 False
 ```
 
