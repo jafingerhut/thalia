@@ -317,6 +317,7 @@ Find two values with same hash:
 ```haskell
 $ ghci
 GHCi, version 9.4.7: https://www.haskell.org/ghc/  :? for help
+ghci> import Data.Hashable
 ghci> hash 9223372036854775808
 6273985623559904276
 ghci> hash 6273985623559904276
