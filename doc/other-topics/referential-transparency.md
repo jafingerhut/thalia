@@ -289,8 +289,9 @@ false
 ```
 
 Haskell's
-[Data.HashSet](https://hackage.haskell.org/package/hashmap-1.0.0.2/docs/Data-HashSet.html)
-is similar.  The corresponding names are:
+[`unordered-containers`](https://hackage.haskell.org/package/unordered-containers)
+package contains a data structure `HashSet` that is similar.  The
+corresponding names are:
 
 * `hash-set` -> `HashSet`
 * `conj` -> `insert`
